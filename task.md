@@ -1,0 +1,16 @@
+- `[ ]` **Backend (Laravel) Setup**
+  - `[x]` Initialize Laravel project in `./backend`.
+  - `[ ]` Configure `.env` for PostgreSQL.
+  - `[ ]` Install and configure Filament admin panel.
+  - `[ ]` Create Models and Migrations for Portfolio (Projects, Skills, Settings/Bio).
+  - `[ ]` Set up API routes to serve portfolio data.
+- `[ ]` **Frontend (Next.js) Setup**
+  - `[x]` Initialize Next.js application in `./frontend`.
+  - `[ ]` Port global CSS and fonts from `index.html`.
+  - `[ ]` Increase base body text size (11/12px -> 14/15px).
+  - `[ ]` Create layout and components (Nav, Hero, WorkGrid, Disciplines, About, Contact).
+  - `[ ]` Integrate dynamic photo fetching in the Hero and About sections.
+  - `[ ]` Integrate dynamic project and skills fetching from Laravel API.
+- `[x]` **Finalization**
+  - `[x]` End-to-end testing (Backend CMS to Frontend Display).
+  - `[x]` Verify animations and custom cursor functionality.
