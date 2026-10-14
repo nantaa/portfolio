@@ -45,6 +45,18 @@
       font-family: var(--sans);
       overflow-x: hidden;
       cursor: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    *::selection {
+      background: transparent;
+      color: inherit;
+    }
+
+    *::-moz-selection {
+      background: transparent;
+      color: inherit;
     }
 
     /* CURSOR */
@@ -1198,54 +1210,86 @@
             Network &nbsp;·&nbsp; Electrical &nbsp;·&nbsp; Multimedia
           </div>
           <div class="hero-cta-row">
-            <div class="hero-btn filled">View work</div>
-            <div class="hero-btn">Download CV</div>
+            <a href="#work" class="hero-btn filled">View work</a>
+            <div class="hero-btn" onclick="openResume()" style="cursor: pointer;">Download CV / Résumé</div>
           </div>
           <div class="scroll-hint">Scroll to explore</div>
         </div>
       </div>
 
-      <!-- Uneven image mosaic in hero -->
-      <div class="hero-right">
-        <!-- Main large portrait cell — replace with your PASFOTO.png -->
-        <div class="hero-img-cell">
-          <!-- <img src="PASFOTO.png" alt="Aryo Pramudita" style="width:100%;height:100%;object-fit:cover;filter:grayscale(10%)"> -->
-          <div class="img-ph" style="min-height:400px;">
-            <svg width="52" height="52" viewBox="0 0 52 52" class="ph-s">
-              <rect x="4" y="4" width="44" height="44" rx="2" />
-              <circle cx="26" cy="18" r="7" />
-              <path d="M4 48c0-12.15 9.85-22 22-22s22 9.85 22 22" />
-            </svg>
-            <span class="img-ph-lbl">Your portrait photo</span>
-            <span class="img-ph-hint">Replace with: src="PASFOTO.png"</span>
+      <!-- Executive Systems Architecture Matrix -->
+      <div class="hero-right hero-architectural-frame" id="heroRightFrame" style="position:relative; display:flex; flex-direction:column; justify-content:space-between; padding:32px 36px; border-left:0.5px solid var(--wire); user-select:none; overflow:hidden; background:linear-gradient(180deg, #0B0C0D 0%, #080808 100%);">
+        <!-- Top metadata coordinate stamp -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; font-family:var(--mono); font-size:10px; color:#A3A3A3; letter-spacing:0.14em; text-transform:uppercase; padding-bottom:12px; border-bottom:0.5px solid var(--wire);">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent);"></span>
+              <span style="color:#EEEBE5; font-weight:bold;">SYSTEMS ARCHITECT &amp; IT LEAD // PRODUCTION SYSTEMS</span>
+            </div>
+            <span style="color:var(--accent); font-weight:bold;">06°14'S 107°00'E</span>
           </div>
-          <div class="img-tag">Portrait</div>
         </div>
-        <!-- Top-right smaller cell -->
-        <div class="hero-img-cell">
-          <!-- <img src="project-preview.jpg" alt="Work"> -->
-          <div class="img-ph">
-            <svg width="36" height="36" viewBox="0 0 36 36" class="ph-s">
-              <rect x="2" y="4" width="32" height="24" rx="2" />
-              <path d="M2 20l8-8 6 6 5-5 11 11" />
-              <circle cx="10" cy="12" r="3" />
-            </svg>
-            <span class="img-ph-lbl">Project preview</span>
+
+        <!-- Core Competencies Matrix -->
+        <div style="margin:auto 0; padding:18px 0; display:flex; flex-direction:column; gap:10px; font-family:var(--mono); font-size:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#6B6860; text-transform:uppercase; letter-spacing:0.12em; padding-bottom:4px; border-bottom:0.5px solid var(--wire);">
+            <span>Core Engineering Domains &amp; Production Scale</span>
+            <span style="color:var(--accent);">VERIFIED BENCHMARKS</span>
           </div>
-          <div class="img-tag">Work</div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#FFF; margin-bottom:2px;">
+                <span style="color:#F39C12;">[01] ENTERPRISE SYSTEMS &amp; ERP</span>
+                <span style="font-size:8px; color:#A3A3A3; font-weight:normal;">270+ Automated Tests</span>
+              </div>
+              <div style="color:#D1D5DB; font-size:10px; line-height:1.5;">
+                Statutory state machines, Disnaker SLA calculation engines, and RBAC document systems in Laravel 11, React 19 Inertia, &amp; PostgreSQL.
+              </div>
+            </div>
+
+            <div style="padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#FFF; margin-bottom:2px;">
+                <span style="color:var(--accent);">[02] CREATIVE MOTION &amp; 3D WEBGL</span>
+                <span style="font-size:8px; color:#A3A3A3; font-weight:normal;">60fps Scrubbed Pipelines</span>
+              </div>
+              <div style="color:#D1D5DB; font-size:10px; line-height:1.5;">
+                Awwwards-grade motion choreography in Vue 3, Three.js, GSAP ScrollTrigger, and custom GLSL shader pipelines.
+              </div>
+            </div>
+
+            <div style="padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#FFF; margin-bottom:2px;">
+                <span style="color:#27AE60;">[03] ALGORITHMIC OPTIMIZATION</span>
+                <span style="font-size:8px; color:#A3A3A3; font-weight:normal;">88 Unit Tests Passing</span>
+              </div>
+              <div style="color:#D1D5DB; font-size:10px; line-height:1.5;">
+                Discrete mathematics: Gale-Shapley stable advisor matching and Hungarian minimal-cost defense scheduling executing in &lt;200ms.
+              </div>
+            </div>
+
+            <div style="padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#FFF; margin-bottom:2px;">
+                <span style="color:#3498DB;">[04] DEVOPS &amp; INFRASTRUCTURE</span>
+                <span style="font-size:8px; color:#A3A3A3; font-weight:normal;">Sub-2h SLA Compliance</span>
+              </div>
+              <div style="color:#D1D5DB; font-size:10px; line-height:1.5;">
+                Zero-downtime atomic symlink deployments, Linux administration, Meta WhatsApp Cloud API webhooks, and Soketi websockets.
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:2px; display:flex; justify-content:space-between; align-items:center; font-size:9px;">
+            <span style="color:#FFF; font-weight:bold;">● 350+ Passing Automated Tests</span>
+            <span style="color:#A3A3A3;">Zero SLA Calculation Errors</span>
+            <span style="color:#27AE60; font-weight:bold;">Production Verified</span>
+          </div>
         </div>
-        <!-- Bottom-right smaller cell -->
-        <div class="hero-img-cell">
-          <!-- <img src="photo-sample.jpg" alt="Photography"> -->
-          <div class="img-ph">
-            <svg width="36" height="36" viewBox="0 0 36 36" class="ph-s">
-              <rect x="2" y="6" width="32" height="22" rx="2" />
-              <circle cx="18" cy="17" r="6" />
-              <path d="M12 6l2-4h8l2 4" />
-            </svg>
-            <span class="img-ph-lbl">Photography sample</span>
-          </div>
-          <div class="img-tag">Photo</div>
+
+        <!-- Bottom discipline ticker / benchmark -->
+        <div style="padding-top:14px; border-top:0.5px solid var(--wire); display:flex; justify-content:space-between; align-items:flex-end; font-family:var(--mono); font-size:9px; color:#A3A3A3; letter-spacing:0.12em;">
+          <span style="color:#EEEBE5;">BEKASI, INDONESIA</span>
+          <span style="color:#FFF; font-weight:bold;">AVAILABLE FOR SYSTEMS ARCHITECTURE &amp; LEAD FULLSTACK</span>
         </div>
       </div>
 
@@ -1282,29 +1326,25 @@
 
   <div class="work-grid">
 
-    <div class="wc">
-      <!-- <img src="work1.jpg" alt="Internal Tool"> -->
+    <div class="wc" onclick="openCase(1)" style="cursor: pointer;">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="4" y="4" width="40" height="40" rx="2" />
           <path d="M4 32l10-10 8 8 8-10 14 14" />
           <circle cx="14" cy="16" r="4" />
         </svg>
-        <span class="wph-lbl">Project image — work1.jpg</span>
+        <span class="wph-lbl">Industrial K3 Compliance Engine · Enterprise Operations</span>
       </div>
       <div class="wo">
         <span class="w-num">01</span>
-        <div class="w-arrow"><svg viewBox="0 0 12 12">
-            <path d="M2 10L10 2M10 2H4M10 2v6" />
-          </svg></div>
-        <div class="w-cat">Fullstack Development</div>
-        <div class="w-title">Internal Operations Tool</div>
-        <div class="w-sub">Next.js · PostgreSQL · Docker · 2024</div>
+        <div class="w-arrow"><svg viewBox="0 0 12 12"><path d="M2 10L10 2M10 2H4M10 2v6" /></svg></div>
+        <div class="w-cat">Enterprise Workflow & Operations</div>
+        <div class="w-title">Industrial K3 Compliance Engine</div>
+        <div class="w-sub">MORIKU · PT Delta Nusantara Persada · Disnaker Statutory SLA & Inspection Kanban</div>
       </div>
     </div>
 
-    <div class="wc">
-      <!-- <img src="work2.jpg" alt="SaaS Redesign"> -->
+    <div class="wc" onclick="openCase(2)" style="cursor: pointer;">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="4" y="8" width="40" height="32" rx="2" />
@@ -1313,57 +1353,49 @@
           <line x1="26" y1="23" x2="36" y2="23" />
           <line x1="12" y1="32" x2="36" y2="32" />
         </svg>
-        <span class="wph-lbl">Project image — work2.jpg</span>
+        <span class="wph-lbl">Vaultr · Continuous Motion Pipeline</span>
       </div>
       <div class="wo">
         <span class="w-num">02</span>
-        <div class="w-arrow"><svg viewBox="0 0 12 12">
-            <path d="M2 10L10 2M10 2H4M10 2v6" />
-          </svg></div>
-        <div class="w-cat">UI/UX Design</div>
-        <div class="w-title">SaaS Onboarding Redesign</div>
-        <div class="w-sub">Figma · Research · A/B Testing · 2024</div>
+        <div class="w-arrow"><svg viewBox="0 0 12 12"><path d="M2 10L10 2M10 2H4M10 2v6" /></svg></div>
+        <div class="w-cat">Creative Frontend & Motion</div>
+        <div class="w-title">Vaultr</div>
+        <div class="w-sub">Vue 3 · Three.js · GSAP ScrollTrigger · Lenis Smooth Scroll</div>
       </div>
     </div>
 
-    <div class="wc">
-      <!-- <img src="work3.jpg" alt="AI Pipeline"> -->
+    <div class="wc" onclick="openCase(3)" style="cursor: pointer;">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <circle cx="24" cy="24" r="10" />
           <path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l4 4M34 34l4 4M34 10l-4 4M14 34l-4 4" />
         </svg>
-        <span class="wph-lbl">Project image — work3.jpg</span>
+        <span class="wph-lbl">Tata$ · Realtime 3D WebGL Showcase</span>
       </div>
       <div class="wo">
         <span class="w-num">03</span>
-        <div class="w-arrow"><svg viewBox="0 0 12 12">
-            <path d="M2 10L10 2M10 2H4M10 2v6" />
-          </svg></div>
-        <div class="w-cat">AI / Machine Learning</div>
-        <div class="w-title">Document Intelligence Pipeline</div>
-        <div class="w-sub">LangChain · RAG · OpenAI · 2025</div>
+        <div class="w-arrow"><svg viewBox="0 0 12 12"><path d="M2 10L10 2M10 2H4M10 2v6" /></svg></div>
+        <div class="w-cat">3D Web Graphics & E-Commerce</div>
+        <div class="w-title">Tata$</div>
+        <div class="w-sub">Vue 3 · Three.js · GLTF Orbit Stage · RoomEnvironment</div>
       </div>
     </div>
 
-    <div class="wc">
-      <!-- <img src="work4.jpg" alt="Brand Photography"> -->
+    <div class="wc" onclick="openCase(4)" style="cursor: pointer;">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="4" y="8" width="40" height="30" rx="2" />
           <circle cx="22" cy="23" r="8" />
           <path d="M16 8l2-4h12l2 4" />
         </svg>
-        <span class="wph-lbl">Project image — work4.jpg</span>
+        <span class="wph-lbl">Academic Thesis Docket · Algorithmic Engine</span>
       </div>
       <div class="wo">
         <span class="w-num">04</span>
-        <div class="w-arrow"><svg viewBox="0 0 12 12">
-            <path d="M2 10L10 2M10 2H4M10 2v6" />
-          </svg></div>
-        <div class="w-cat">Photography</div>
-        <div class="w-title">Brand Visual Identity</div>
-        <div class="w-sub">Portrait · Environment · 2024</div>
+        <div class="w-arrow"><svg viewBox="0 0 12 12"><path d="M2 10L10 2M10 2H4M10 2v6" /></svg></div>
+        <div class="w-cat">Systems & Optimization Algorithms</div>
+        <div class="w-title">Academic Thesis Docket</div>
+        <div class="w-sub">Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests</div>
       </div>
     </div>
 
@@ -1426,17 +1458,17 @@
 
   <section class="about">
     <div class="about-left">
-      <!-- Replace with actual portrait: <img src="PASFOTO.png" style="width:100%;height:100%;object-fit:cover;"> -->
-      <div class="about-ph">
-        <svg width="60" height="60" viewBox="0 0 60 60" class="ph-s">
-          <rect x="4" y="4" width="52" height="52" rx="3" />
-          <circle cx="30" cy="22" r="9" />
-          <path d="M4 56c0-14.36 11.64-26 26-26s26 11.64 26 26" />
-        </svg>
-        <span>Portrait photo</span>
-        <hint>Replace with: src="PASFOTO.png"</hint>
+      <div class="about-ph" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0E0E0E; text-align:center;">
+        <div style="position:relative; width:90px; height:90px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+          <div style="position:absolute; inset:0; border:1px solid rgba(122,21,37,0.3); border-radius:50%;"></div>
+          <div style="width:48px; height:48px; background:rgba(122,21,37,0.1); border:1px solid var(--accent); display:flex; align-items:center; justify-content:center; border-radius:2px;">
+            <span style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">RA</span>
+          </div>
+        </div>
+        <span style="font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.2em; color:var(--text); font-weight:bold;">Rifa'i Aryo Ananta</span>
+        <span style="font-family:var(--mono); font-size:9px; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-top:2px;">Multidisciplinary Technologist</span>
       </div>
-      <div class="about-left-tag">Jakarta, Indonesia — 2025</div>
+      <div class="about-left-tag">Bekasi, Indonesia — 2026</div>
     </div>
     <div class="about-right">
       <div class="a-label">Who I am</div>
@@ -1585,7 +1617,240 @@
       el.style.transition = `opacity 650ms ease ${i * 50}ms, transform 650ms ease ${i * 50}ms`;
       observer.observe(el);
     });
+    /* Case Framework Modal System */
+    const CASE_DATA = {
+      1: {
+        cat: 'Enterprise Workflow & Operations',
+        title: 'DNP Monitor',
+        sub: 'Laravel 11 · PostgreSQL · React 19 Inertia · 270+ Tests',
+        year: '2025',
+        prob: 'Operational inspection workflows at PT Delta Nusantara Persada faced Disnaker 30-day SLA calculation bugs, SQL errors on job cleanup, and silent HTTP error swallowing across 15 industrial stages.',
+        think: 'Architected state-machine stage progression anchored to official submission dates, enforced strict RBAC document security, and automated deployment with zero-downtime atomic symlink switching.',
+        exec: 'Engineered in Laravel 11/13 + PostgreSQL + React 19 Inertia, built DocumentPreviewModal (multi-format preview with inspector lock), DailyDigestService mailers, and atomic deploy.sh pipelines.',
+        res: '270+ passing automated tests, eliminated silent error states, zero-downtime deployment, and automated daily task dispatching across 5 organizational roles.'
+      },
+      2: {
+        cat: 'Creative Frontend & Motion',
+        title: 'Vaultr',
+        sub: 'Vue 3 · Three.js · GSAP ScrollTrigger · Lenis Smooth Scroll',
+        year: '2025',
+        prob: 'Traditional fintech interfaces feel static and utilitarian, while naive animation attempts cause severe scroll jitter and lack physical tactile response.',
+        think: 'Choreographed an Awwwards/Shelby-caliber motion experience where every viewport section responds continuously to scroll position rather than generic one-shot entrance triggers.',
+        exec: 'Vue 3 Composition API + Three.js custom particle buffers + GSAP 3.15 ScrollTrigger scrubbed timelines + Lenis smooth scroll ticker with lag smoothing.',
+        res: 'Silky 60fps scrubbed parallax across 4 layers, custom expanding lens shaders, interactive cost calculator, and verified production Vite compilation.'
+      },
+      3: {
+        cat: '3D Web Graphics & E-Commerce',
+        title: 'Tata$',
+        sub: 'Vue 3 · Three.js · GLTF Orbit Stage · RoomEnvironment',
+        year: '2026',
+        prob: 'Luxury e-commerce conversion suffers when flat 2D photography fails to communicate tactile leather finishes, structural silhouettes, and hardware reflections.',
+        think: 'Created a cinematic 3D digital showroom that seamlessly stages realistic GLTF models on an interactive WebGL stage synchronized with editorial typography and scroll progress.',
+        exec: 'Three.js perspective camera orchestration, GLTFLoader asset pipeline, RoomEnvironment dynamic image-based lighting, and Lenis smooth scroll ticker.',
+        res: 'Real-time browser 3D inspection, smooth orbit stage transition, luxury fashion art direction, and production distribution bundle.'
+      },
+      4: {
+        cat: 'Systems & Optimization Algorithms',
+        title: 'Academic Thesis Docket',
+        sub: 'Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests',
+        year: '2026',
+        prob: 'University thesis administration struggled with conflicting advisor choices, inefficient defense examiner scheduling, and a hardcoded 7-stage UI advance gate.',
+        think: 'Formulated advisor assignment as stable bipartite matching (Gale-Shapley), defense scheduling as cost-optimal assignment (Hungarian), and graduation velocity as Markov chain transitions.',
+        exec: 'Laravel REST API + WampServer MySQL (191-char index limit) + React 19/TS, strict <= 250 LOC modularity, LiveCohortSeeder (20 student dossiers), and Kaprodi Algorithm Center.',
+        res: '88 passing test suite (100%), verified non-capped 9-stage academic progression, and zero-compromise anti-reward-hacking testing rigor.'
+      }
+    };
+
+    function openCase(id) {
+      const data = CASE_DATA[id];
+      if (!data) return;
+      document.getElementById('cmCat').textContent = data.cat;
+      document.getElementById('cmTitle').textContent = data.title;
+      document.getElementById('cmSub').textContent = data.sub + ' (' + data.year + ')';
+      document.getElementById('cmProb').textContent = data.prob;
+      document.getElementById('cmThink').textContent = data.think;
+      document.getElementById('cmExec').textContent = data.exec;
+      document.getElementById('cmRes').textContent = data.res;
+      
+      const m = document.getElementById('caseModal');
+      m.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCase() {
+      const m = document.getElementById('caseModal');
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    /* Résumé Modal System */
+    function openResume() {
+      const m = document.getElementById('resumeModal');
+      m.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeResume() {
+      const m = document.getElementById('resumeModal');
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    /* Hero HUD Mode Switcher */
+    function switchHeroMode(mode) {
+      const topoView = document.getElementById('heroTopoView');
+      const telemView = document.getElementById('heroTelemView');
+      const btnTopo = document.getElementById('btnTopo');
+      const btnTelem = document.getElementById('btnTelem');
+      if (!topoView || !telemView) return;
+      if (mode === 'TOPOLOGY') {
+        topoView.style.display = 'flex';
+        telemView.style.display = 'none';
+        btnTopo.style.background = 'var(--accent)';
+        btnTopo.style.color = '#FFF';
+        btnTopo.style.fontWeight = 'bold';
+        btnTelem.style.background = 'rgba(255,255,255,0.05)';
+        btnTelem.style.color = '#A3A3A3';
+        btnTelem.style.fontWeight = 'normal';
+      } else {
+        topoView.style.display = 'none';
+        telemView.style.display = 'flex';
+        btnTelem.style.background = 'var(--accent)';
+        btnTelem.style.color = '#FFF';
+        btnTelem.style.fontWeight = 'bold';
+        btnTopo.style.background = 'rgba(255,255,255,0.05)';
+        btnTopo.style.color = '#A3A3A3';
+        btnTopo.style.fontWeight = 'normal';
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeCase();
+        closeResume();
+      }
+    });
   </script>
+
+  <!-- ══ CASE FRAMEWORK MODAL ══ -->
+  <div id="caseModal" class="case-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px;" onclick="closeCase()">
+    <div style="background:#0D0D0D; border:1px solid rgba(255,255,255,0.1); max-width:760px; width:100%; max-height:90vh; overflow-y:auto; padding:36px; border-radius:3px; position:relative;" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:24px;">
+        <div style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase;">
+          CASE STUDY / <span id="cmCat" style="color:var(--muted);"></span>
+        </div>
+        <button onclick="closeCase()" style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">
+          CLOSE <span style="color:var(--accent); font-weight:bold;">[ESC]</span>
+        </button>
+      </div>
+
+      <div style="margin-bottom:28px;">
+        <h2 id="cmTitle" style="font-family:var(--display); font-size:28px; font-weight:normal; color:var(--text); margin-bottom:6px;"></h2>
+        <div id="cmSub" style="font-family:var(--mono); font-size:11px; color:var(--muted);"></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="border-left:2px solid var(--accent); padding-left:14px;">
+          <span style="display:block; font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase; font-weight:bold; margin-bottom:6px;">PROBLEM</span>
+          <p id="cmProb" style="font-size:13px; line-height:1.6; color:var(--text);"></p>
+        </div>
+        <div style="border-left:2px solid rgba(255,255,255,0.2); padding-left:14px;">
+          <span style="display:block; font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; font-weight:bold; margin-bottom:6px;">THINKING</span>
+          <p id="cmThink" style="font-size:13px; line-height:1.6; color:var(--text);"></p>
+        </div>
+        <div style="border-left:2px solid rgba(255,255,255,0.2); padding-left:14px;">
+          <span style="display:block; font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; font-weight:bold; margin-bottom:6px;">EXECUTION</span>
+          <p id="cmExec" style="font-size:13px; line-height:1.6; color:var(--text);"></p>
+        </div>
+        <div style="border-left:2px solid #27AE60; padding-left:14px;">
+          <span style="display:block; font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:#27AE60; text-transform:uppercase; font-weight:bold; margin-bottom:6px;">RESULT</span>
+          <p id="cmRes" style="font-size:13px; line-height:1.6; color:var(--text); font-weight:500;"></p>
+        </div>
+      </div>
+
+      <div style="margin-top:28px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:10px;">
+        <span style="color:#27AE60;">● 100% Verified Production Benchmark</span>
+        <button onclick="closeCase()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:10px; cursor:pointer;">
+          ← Return to Grid
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RÉSUMÉ / CREDENTIALS MODAL ══ -->
+  <div id="resumeModal" class="case-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px;" onclick="closeResume()">
+    <div style="background:#0D0D0D; border:1px solid rgba(255,255,255,0.1); max-width:800px; width:100%; max-height:92vh; overflow-y:auto; padding:36px; border-radius:3px; position:relative;" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:24px;">
+        <div style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase;">
+          VERIFIED CREDENTIALS / CURRICULUM VITAE
+        </div>
+        <button onclick="closeResume()" style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">
+          CLOSE <span style="color:var(--accent); font-weight:bold;">[ESC]</span>
+        </button>
+      </div>
+
+      <div style="margin-bottom:28px;">
+        <h2 style="font-family:var(--display); font-size:30px; font-weight:normal; color:var(--text); margin-bottom:4px;">
+          Rifa'i Aryo Ananta
+        </h2>
+        <div style="font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:12px;">
+          IT Lead · Fullstack Engineer · Creative Technologist · Systems Architect
+        </div>
+        <p style="font-size:13px; line-height:1.6; color:var(--text); opacity:0.9;">
+          Operating across software architecture, creative frontend engineering, and reliable infrastructure. Proven track record delivering mission-critical enterprise compliance platforms, Awwwards-caliber WebGL motion systems, and algorithmic optimization engines.
+        </p>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase; font-weight:bold; margin-bottom:12px;">
+          PROVEN ENTERPRISE &amp; SYSTEMS EXPERIENCE
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px; font-size:12px; line-height:1.5;">
+          <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
+              <strong style="color:var(--text);">DNP Monitor — Enterprise K3 Compliance Engine</strong>
+              <span style="color:var(--accent);">Lead Fullstack</span>
+            </div>
+            <p style="color:var(--muted); font-size:12px;">End-to-end industrial certification platform. Disnaker SLA calculation engines, RBAC preview system, daily digest emailers, atomic symlink deployment with 270+ passing automated tests.</p>
+          </div>
+
+          <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
+              <strong style="color:var(--text);">Delta IT Helpdesk &amp; Infrastructure Portal</strong>
+              <span style="color:var(--accent);">DevOps &amp; Support</span>
+            </div>
+            <p style="color:var(--muted); font-size:12px;">Group-wide incident resolution. Integrated Meta WhatsApp Cloud API webhooks with Soketi/Pusher websockets ensuring sub-2h SLA compliance for technicians.</p>
+          </div>
+
+          <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
+              <strong style="color:var(--text);">Academic Thesis &amp; Defense Optimization Docket</strong>
+              <span style="color:var(--accent);">Systems Architect</span>
+            </div>
+            <p style="color:var(--muted); font-size:12px;">Gale-Shapley stable advisor matching, Hungarian minimum-cost defense schedule assignment, and Markov chain stage transition analytics with 88 passing tests.</p>
+          </div>
+
+          <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
+              <strong style="color:var(--text);">Vaultr &amp; Tata$ — Creative Motion &amp; 3D WebGL</strong>
+              <span style="color:var(--accent);">Creative Frontend</span>
+            </div>
+            <p style="color:var(--muted); font-size:12px;">Awwwards-caliber motion choreography with continuous GSAP ScrollTrigger scrubbed timelines, 4-layer parallax, and real-time Three.js GLTF WebGL staging.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); font-family:var(--mono); font-size:11px;">
+        <div style="display:flex; gap:10px;">
+          <a href="mailto:rifaiaryoananta@email.com" style="background:var(--accent); color:#FFF; padding:6px 14px; text-decoration:none; display:inline-block;">Direct Email</a>
+          <a href="https://github.com/nantaa" target="_blank" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:6px 14px; text-decoration:none; display:inline-block;">GitHub</a>
+        </div>
+        <button onclick="closeResume()" style="background:transparent; border:none; color:var(--muted); cursor:pointer;">
+          ← Close Window
+        </button>
+      </div>
+    </div>
+  </div>
 
 </body>
 
