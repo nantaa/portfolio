@@ -500,6 +500,15 @@
       overflow: hidden;
       cursor: pointer;
       background: var(--s1);
+      outline: none;
+    }
+
+    .wc:focus,
+    .wc:focus-visible,
+    .wc-interactive:focus,
+    .wc-interactive:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
     }
 
     .wc:nth-child(1) {
