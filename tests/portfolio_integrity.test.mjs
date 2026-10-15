@@ -88,7 +88,7 @@ test('DESIGN.md documents the approved project lineup', () => {
   assert.ok(content.includes('Tata$'), 'DESIGN.md must document Tata$');
 });
 
-test('CaseStudyModal component exists and implements DESIGN.md Case Framework', () => {
+test('CaseStudyModal component exists and implements readable DESIGN.md Case Framework without microscopic text', () => {
   const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
   assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
   const content = fs.readFileSync(modalPath, 'utf-8');
@@ -97,14 +97,23 @@ test('CaseStudyModal component exists and implements DESIGN.md Case Framework', 
   assert.ok(content.includes('EXECUTION'), 'Must have EXECUTION section');
   assert.ok(content.includes('RESULT'), 'Must have RESULT section');
   assert.ok(content.includes('Escape') || content.includes('onClose'), 'Must handle modal dismissal');
+
+  // Verify readability: widened container, readable body copy (15px-17px) rather than microscopic 12px
+  assert.ok(content.includes('max-w-[940px]') || content.includes('max-w-[920px]') || content.includes('max-w-4xl'), 'Modal container must be comfortably widened');
+  assert.ok(content.includes('text-[15px]') || content.includes('text-[16px]') || content.includes('text-base'), 'Dossier body paragraphs must use comfortable readable font size');
 });
 
-test('Frontend WorkGrid.tsx wires click-to-expand CaseStudyModal for projects', () => {
+test('Frontend WorkGrid.tsx wires dedicated button for CaseStudyModal to prevent 3D canvas click hijack', () => {
   const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
   const content = fs.readFileSync(workGridPath, 'utf-8');
   assert.ok(content.includes('CaseStudyModal'), 'WorkGrid must import CaseStudyModal');
   assert.ok(content.includes('selectedProject') || content.includes('activeProject'), 'WorkGrid must manage selected project state');
-  assert.ok(content.includes('onClick'), 'WorkGrid cards must trigger click handler');
+
+  // Must NOT attach modal onClick to the outer .wc card container (which hijacks 3D dragging/controls)
+  assert.ok(!content.includes('className={`wc wc-interactive cursor-pointer group focus:outline-none focus-visible:outline-none`}\n              onClick={() => setSelectedProject(project)}'), 'Outer card container must not hijack clicks with setSelectedProject');
+
+  // Must have dedicated button for opening case dossier
+  assert.ok(content.includes('case-dossier-btn') || content.includes('case-study-btn'), 'Must have dedicated button for opening case study');
 });
 
 test('Portfolio index.html implements interactive Case Framework modal', () => {
