@@ -212,106 +212,147 @@ jobs:
 
 ---
 
-### 4.1 Deploying to a Guarded VPS (WireGuard / VPN Protected SSH)
+### 4.1 Deploying to a Guarded VPS (WireGuard Gateway + Target VPS Topology)
 
-If your VPS firewall has closed SSH (port 22) to the public internet and only permits connections through a **WireGuard VPN tunnel** (e.g., `10.8.0.x` or `192.168.x.x`), public GitHub Actions runners cannot reach the server by default.
+In this secure architecture, you have two distinct servers:
+```
+                                 ┌───────────────────────────────┐
+                                 │   Server 1: WireGuard Gateway │
+                                 │   (Public IP:51820)           │
+                                 └──────────────┬────────────────┘
+                                                │
+                      ┌─────────────────────────┴─────────────────────────┐
+                      │ WireGuard VPN Network (e.g., 10.8.0.0/24)         │
+                      ▼                                                   ▼
+     ┌──────────────────────────────────┐               ┌──────────────────────────────────┐
+     │ Deployment Client                │               │ Server 2: Target VPS             │
+     │ (Your Laptop or GitHub Runner)   │  ── SSH ───►  │ (RiksaUjiServer)                 │
+     │ IP: 10.8.0.x                     │               │ Internal WireGuard IP: 10.8.0.x  │
+     │                                  │               │ Public Port 22 is BLOCKED        │
+     └──────────────────────────────────┘               └──────────────────────────────────┘
+```
 
-Choose **Method A** (full CI/CD automation) or **Method B** (direct local deployment):
+- **Server 1 (WireGuard Gateway)**: Central VPN server. If this server is stopped, SSH access to Server 2 is impossible.
+- **Server 2 (Target VPS / `RiksaUjiServer`)**: Runs Nginx, PHP, and MySQL. It connects as a client/peer to Server 1. Port 22 is only accessible via the WireGuard network.
 
-#### Method A: Automated GitHub Actions via WireGuard Tunnel
-GitHub Actions can connect to your WireGuard network at the beginning of the job, obtain an internal VPN IP, and then deploy over SSH.
+---
 
-##### Step 1: Generate a WireGuard Peer for GitHub Actions on your VPS
-On your VPS terminal (`delta@RiksaUjiServer`):
+#### Method A: Automated GitHub Actions CI/CD (Connects via Server 1)
+
+GitHub Actions connects to **Server 1 (WireGuard Gateway)** first, joins the VPN, and then reaches **Server 2 (`RiksaUjiServer`)** over its internal WireGuard IP.
+
+##### Step 1: Add a Peer for GitHub Actions on Server 1 (WireGuard Gateway)
+SSH into **Server 1 (WireGuard Gateway)**:
 ```bash
-# 1. Generate keys for the GitHub runner peer
-wg genkey | tee github_runner_private.key | wg pubkey > github_runner_public.key
+# 1. Generate keys for GitHub Actions runner peer
+wg genkey | tee /etc/wireguard/github_actions_private.key | wg pubkey > /etc/wireguard/github_actions_public.key
 
-# 2. Add peer to your WireGuard server config (/etc/wireguard/wg0.conf):
+# 2. Add peer to Server 1's /etc/wireguard/wg0.conf (assign unused IP, e.g. 10.8.0.50):
 sudo tee -a /etc/wireguard/wg0.conf <<EOF
 
 [Peer]
 # GitHub Actions Runner
-PublicKey = $(cat github_runner_public.key)
+PublicKey = $(cat /etc/wireguard/github_actions_public.key)
 AllowedIPs = 10.8.0.50/32
 EOF
 
-# 3. Reload WireGuard without interrupting current connections
+# 3. Reload WireGuard on Server 1 without disconnecting existing peers
 sudo wg addconf wg0 <(sed -n '/# GitHub Actions Runner/,$p' /etc/wireguard/wg0.conf)
 ```
 
-##### Step 2: Create the Client Configuration
-Prepare the client configuration content:
+##### Step 2: Prepare the Client Config for GitHub
+Using the keys and Server 1's public details:
 ```ini
 [Interface]
-PrivateKey = <CONTENT_OF_github_runner_private.key>
+PrivateKey = <CONTENT_OF_/etc/wireguard/github_actions_private.key>
 Address = 10.8.0.50/24
 DNS = 1.1.1.1
 
 [Peer]
-PublicKey = <YOUR_SERVER_PUBLIC_KEY>
-Endpoint = YOUR_VPS_PUBLIC_IP:51820
+PublicKey = <SERVER_1_WIREGUARD_PUBLIC_KEY>
+Endpoint = <SERVER_1_PUBLIC_IP_OR_DOMAIN>:51820
 AllowedIPs = 10.8.0.0/24
 PersistentKeepalive = 25
 ```
 
-##### Step 3: Add GitHub Secrets
-In your GitHub repo (**Settings** → **Secrets and variables** → **Actions**):
-- `WIREGUARD_CONFIG`: Paste the complete `.conf` content from Step 2.
-- `VPS_HOST`: Set to your VPS's **internal WireGuard IP** (e.g. `10.8.0.1`), NOT the public IP.
-- `VPS_SSH_KEY`: The private SSH key authorized on your VPS.
-- `VPS_USER`: Your SSH username (e.g., `delta`).
+##### Step 3: Configure GitHub Repository Secrets
+Go to your repo **Settings** → **Secrets and variables** → **Actions**:
 
-##### Step 4: Add the WireGuard Step to `.github/workflows/deploy.yml`
-Insert the `alessfg/wireguard-action@v1` step immediately before the deployment steps:
+| Secret Name | Value | Description |
+| :--- | :--- | :--- |
+| `WIREGUARD_CONFIG` | Full `.conf` content from Step 2 | Connects GitHub runner to **Server 1** |
+| `VPS_HOST` | **Server 2's internal WireGuard IP** (e.g. `10.8.0.2`) | NOT public IP, and NOT Server 1's IP |
+| `VPS_USER` | `delta` | Username on **Server 2** |
+| `VPS_SSH_KEY` | Private SSH key authorized in Server 2's `~/.ssh/authorized_keys` | Authentication for **Server 2** |
+
+##### Step 4: Add WireGuard Tunnel Step in `.github/workflows/deploy.yml`
 ```yaml
-      # 3. Build Next.js Static Export
+      # 3. Build Next.js Static Export on GitHub 16GB runner
       - name: Build Next.js Static Export
         working-directory: frontend
         run: |
           npm ci
           npm run build
 
-      # Connect to WireGuard VPN before SSH
-      - name: Connect to WireGuard
+      # Connect to Server 1 (WireGuard Gateway)
+      - name: Connect to WireGuard VPN
         uses: alessfg/wireguard-action@v1
         with:
           wireguard_conf: ${{ secrets.WIREGUARD_CONFIG }}
 
-      # 4. Deploy Frontend Static Files (routed securely through 10.8.0.1)
-      - name: Deploy Frontend Static Files to VPS
+      # Deploy static files directly to Server 2 over the WireGuard tunnel
+      - name: Deploy Frontend Static Files to Target VPS
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.VPS_HOST }}
-          REMOTE_USER: ${{ secrets.VPS_USER }}
+          REMOTE_HOST: ${{ secrets.VPS_HOST }}   # Server 2's WireGuard IP (e.g. 10.8.0.2)
+          REMOTE_USER: ${{ secrets.VPS_USER }}   # delta
           SOURCE: "frontend/out/"
           TARGET: "/var/www/portfolio/frontend_dist"
+
+      # Update Laravel backend on Server 2
+      - name: Update Backend on Target VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/portfolio
+            git pull --recurse-submodules origin main
+            cd backend
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan optimize:clear
+            php artisan optimize
+            sudo chown -R www-data:www-data storage bootstrap/cache
 ```
 
 ---
 
-#### Method B: Direct Local Deployment over WireGuard (Zero Cloud Setup)
-If your local computer is already connected to WireGuard, you can deploy in one command without storing VPN credentials on GitHub:
+#### Method B: Direct Local Deployment over WireGuard (Zero Cloud Config)
+Since your laptop is **already connected as a peer to Server 1**, your laptop can directly reach Server 2 (`RiksaUjiServer`) over WireGuard.
 
-##### Step 1: Ensure you can SSH into VPS over WireGuard
-Test from your local machine:
+##### Step 1: Find Server 2's WireGuard IP
+On Server 2 (`RiksaUjiServer`), run:
 ```bash
-ssh delta@10.8.0.1
+ip addr show wg0
+# Or: wg show
+# Note down the IP address (e.g., 10.8.0.2)
 ```
 
-##### Step 2: Build locally and push static files via SCP/rsync
-From your local `portfolio-website` directory:
+##### Step 2: Build Locally and Deploy in One Command
+From your local `portfolio-website` directory (with WireGuard active on your laptop):
 ```bash
-# Build the static export locally (takes ~15 seconds on your computer)
+# 1. Build the frontend export locally (~15 seconds on your PC, 0 MB server RAM)
 cd frontend
 npm run build
 
-# Copy static files directly through your local WireGuard tunnel to the VPS
-scp -r out/* delta@10.8.0.1:/var/www/portfolio/frontend_dist/
+# 2. Push static files directly to Server 2 (RiksaUjiServer) through WireGuard
+scp -r out/* delta@<SERVER_2_WIREGUARD_IP>:/var/www/portfolio/frontend_dist/
 
-# Pull latest backend code and optimize
-ssh delta@10.8.0.1 "cd /var/www/portfolio && git pull --recurse-submodules && cd backend && php artisan optimize:clear && php artisan optimize"
+# 3. Pull backend code and optimize on Server 2
+ssh delta@<SERVER_2_WIREGUARD_IP> "cd /var/www/portfolio && git pull --recurse-submodules && cd backend && php artisan optimize:clear && php artisan optimize"
 ```
 
 ## Step 5: Nginx Configuration on VPS1
