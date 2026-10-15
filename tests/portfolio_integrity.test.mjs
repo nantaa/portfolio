@@ -228,22 +228,25 @@ test('WorkGrid cards expand height and description spacing for 125% proportional
   assert.ok(globalsCss.includes('32px 36px') || globalsCss.includes('32px') || globalsCss.includes('36px'), '.wo must provide expanded breathing room padding');
 });
 
-test('ExpenseTrackerPreview faithfully mirrors the authentic AI expense tracker project features', () => {
+test('ExpenseTrackerPreview renders authentic architectural communication data nodes illustration', () => {
   const content = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ExpenseTrackerPreview.tsx'), 'utf-8');
   
-  // Must render genuine ReceiptUploader dropzone
-  assert.ok(content.includes('Click to upload') || content.includes('upload receipt') || content.includes('ReceiptUploader'), 'Must render genuine receipt uploader zone');
-  
-  // Must render real transaction ledger with category, date, and currency amounts
-  assert.ok(content.includes('Food') || content.includes('Dining') || content.includes('Transport') || content.includes('Infrastructure'), 'Must render real transaction categories');
-  assert.ok(content.includes('amount') || content.includes('$') || content.includes('Rp'), 'Must display transaction amounts');
+  // Must render architectural communication data nodes
+  assert.ok(content.includes('Ingest') || content.includes('Client'), 'Must model Client Ingest node');
+  assert.ok(content.includes('Express') || content.includes('Gateway') || content.includes('Multer'), 'Must model Express API Gateway node');
+  assert.ok(content.includes('Gemini') || content.includes('gemini-2.0-flash'), 'Must model Gemini 2.0 Flash node');
+  assert.ok(content.includes('Prisma') || content.includes('Ledger') || content.includes('Database'), 'Must model Database Ledger node');
 
-  // Must render authentic Gemini AI categorization telemetry
-  assert.ok(content.includes('Gemini') || content.includes('gemini-2.0-flash'), 'Must reference Gemini AI');
+  // Must model communication bus / packet flow
+  assert.ok(content.includes('BUS') || content.includes('PACKET') || content.includes('FLOW') || content.includes('canvas') || content.includes('packet'), 'Must model communication bus / data flow');
+
+  // Must display genuine data payload attributes
   assert.ok(content.includes('confidence') && content.includes('reasoning'), 'Must display Gemini confidence and reasoning attributes');
+  assert.ok(content.includes('Food & Dining') || content.includes('Food') || content.includes('Infrastructure'), 'Must display real categories');
+  assert.ok(content.includes('amount') || content.includes('$'), 'Must display transaction payload amounts');
 
-  // Must have non-empty active state
-  assert.ok(!content.includes('Ready for scanning\n          </div>\n        )}'), 'Must not display an empty barren idle screen');
+  // Must purge the giant cloud icon
+  assert.ok(!content.includes('M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'), 'Must eliminate giant cloud upload icon');
 });
 
 test('HeroTelemetryHUD renders authentic animated architecture topology visualizer instead of abstract spiderweb', () => {
