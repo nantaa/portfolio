@@ -372,6 +372,10 @@ test('VPS_LOW_RESOURCE_DEPLOYMENT.md and .github/workflows/deploy.yml document s
   // Must configure 3D model MIME types and media caching in Nginx
   assert.ok(docContent.includes('model/gltf-binary'), 'Nginx config must declare model/gltf-binary for .glb');
   assert.ok(docContent.includes('location ~* \\.(glb|gltf|bin|webp'), 'Nginx config must include dedicated 3D and image caching rule');
+
+  // Must document WireGuard-guarded VPS deployment options
+  assert.ok(docContent.includes('Deploying to a Guarded VPS (WireGuard'), 'Guide must document WireGuard guarded VPS deployment');
+  assert.ok(docContent.includes('alessfg/wireguard-action'), 'Guide must provide automated WireGuard action configuration');
 });
 
 

@@ -206,12 +206,113 @@ jobs:
             php artisan migrate --force
             php artisan optimize:clear
             php artisan optimize
-            sudo chown -R www-data:www-data storage bootstrap/cache
 ```
 
 *(Add `VPS_SSH_KEY`, `VPS_HOST`, and `VPS_USER` to your GitHub Repository Secrets).*
 
 ---
+
+### 4.1 Deploying to a Guarded VPS (WireGuard / VPN Protected SSH)
+
+If your VPS firewall has closed SSH (port 22) to the public internet and only permits connections through a **WireGuard VPN tunnel** (e.g., `10.8.0.x` or `192.168.x.x`), public GitHub Actions runners cannot reach the server by default.
+
+Choose **Method A** (full CI/CD automation) or **Method B** (direct local deployment):
+
+#### Method A: Automated GitHub Actions via WireGuard Tunnel
+GitHub Actions can connect to your WireGuard network at the beginning of the job, obtain an internal VPN IP, and then deploy over SSH.
+
+##### Step 1: Generate a WireGuard Peer for GitHub Actions on your VPS
+On your VPS terminal (`delta@RiksaUjiServer`):
+```bash
+# 1. Generate keys for the GitHub runner peer
+wg genkey | tee github_runner_private.key | wg pubkey > github_runner_public.key
+
+# 2. Add peer to your WireGuard server config (/etc/wireguard/wg0.conf):
+sudo tee -a /etc/wireguard/wg0.conf <<EOF
+
+[Peer]
+# GitHub Actions Runner
+PublicKey = $(cat github_runner_public.key)
+AllowedIPs = 10.8.0.50/32
+EOF
+
+# 3. Reload WireGuard without interrupting current connections
+sudo wg addconf wg0 <(sed -n '/# GitHub Actions Runner/,$p' /etc/wireguard/wg0.conf)
+```
+
+##### Step 2: Create the Client Configuration
+Prepare the client configuration content:
+```ini
+[Interface]
+PrivateKey = <CONTENT_OF_github_runner_private.key>
+Address = 10.8.0.50/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = <YOUR_SERVER_PUBLIC_KEY>
+Endpoint = YOUR_VPS_PUBLIC_IP:51820
+AllowedIPs = 10.8.0.0/24
+PersistentKeepalive = 25
+```
+
+##### Step 3: Add GitHub Secrets
+In your GitHub repo (**Settings** → **Secrets and variables** → **Actions**):
+- `WIREGUARD_CONFIG`: Paste the complete `.conf` content from Step 2.
+- `VPS_HOST`: Set to your VPS's **internal WireGuard IP** (e.g. `10.8.0.1`), NOT the public IP.
+- `VPS_SSH_KEY`: The private SSH key authorized on your VPS.
+- `VPS_USER`: Your SSH username (e.g., `delta`).
+
+##### Step 4: Add the WireGuard Step to `.github/workflows/deploy.yml`
+Insert the `alessfg/wireguard-action@v1` step immediately before the deployment steps:
+```yaml
+      # 3. Build Next.js Static Export
+      - name: Build Next.js Static Export
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      # Connect to WireGuard VPN before SSH
+      - name: Connect to WireGuard
+        uses: alessfg/wireguard-action@v1
+        with:
+          wireguard_conf: ${{ secrets.WIREGUARD_CONFIG }}
+
+      # 4. Deploy Frontend Static Files (routed securely through 10.8.0.1)
+      - name: Deploy Frontend Static Files to VPS
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.VPS_HOST }}
+          REMOTE_USER: ${{ secrets.VPS_USER }}
+          SOURCE: "frontend/out/"
+          TARGET: "/var/www/portfolio/frontend_dist"
+```
+
+---
+
+#### Method B: Direct Local Deployment over WireGuard (Zero Cloud Setup)
+If your local computer is already connected to WireGuard, you can deploy in one command without storing VPN credentials on GitHub:
+
+##### Step 1: Ensure you can SSH into VPS over WireGuard
+Test from your local machine:
+```bash
+ssh delta@10.8.0.1
+```
+
+##### Step 2: Build locally and push static files via SCP/rsync
+From your local `portfolio-website` directory:
+```bash
+# Build the static export locally (takes ~15 seconds on your computer)
+cd frontend
+npm run build
+
+# Copy static files directly through your local WireGuard tunnel to the VPS
+scp -r out/* delta@10.8.0.1:/var/www/portfolio/frontend_dist/
+
+# Pull latest backend code and optimize
+ssh delta@10.8.0.1 "cd /var/www/portfolio && git pull --recurse-submodules && cd backend && php artisan optimize:clear && php artisan optimize"
+```
 
 ## Step 5: Nginx Configuration on VPS1
 
