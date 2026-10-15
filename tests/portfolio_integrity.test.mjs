@@ -111,6 +111,21 @@ test('TataPreview showcases 3D bag as focal point with bold Tata$ name behind ba
   assert.ok(cssContent.includes('.tata-watermark') || cssContent.includes('.tata-backdrop-brand'), 'globals.css must style big name watermark element behind canvas');
 });
 
+test('TataPreview and HeroTelemetryHUD position Tata$ as an interactive 3D showcase landing page', () => {
+  const tataPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'TataPreview.tsx');
+  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
+
+  const tataContent = fs.readFileSync(tataPath, 'utf-8');
+  const hudContent = fs.readFileSync(hudPath, 'utf-8');
+  const workGridContent = fs.readFileSync(workGridPath, 'utf-8');
+
+  // Must describe as Showcase Landing Page rather than generic showroom
+  assert.ok(hudContent.includes('Showcase Landing Page'), 'HeroTelemetryHUD must describe ARCH-03 as Showcase Landing Page');
+  assert.ok(tataContent.includes('Showcase') || tataContent.includes('Landing Page'), 'TataPreview must position as 3D showcase landing page');
+  assert.ok(workGridContent.includes('Showcase Landing Page') || workGridContent.includes('Showcase'), 'WorkGrid Tata$ must describe as showcase landing page');
+});
+
 test('DESIGN.md documents the approved project lineup', () => {
   const designPath = path.join(rootDir, 'DESIGN.md');
   assert.ok(fs.existsSync(designPath), 'DESIGN.md must exist');

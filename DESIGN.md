@@ -53,7 +53,7 @@ Four primary showcase projects displayed as grid cells, always visible:
 |------|-------------------|------------------|-------------------------|
 | 01 | Enterprise Fullstack | **Industrial K3 Compliance Engine** (MORIKU / DNP) | Laravel 11 · PostgreSQL · React 19 Inertia · 270+ Tests |
 | 02 | 3D WebGL & Shaders | **Ulun Danu Bratan** | Three.js · Procedural Meru Architecture · GLSL Water & Atmospheric Moods |
-| 03 | 3D Web Graphics | **Tata$** | Vue 3 · Three.js · GLTF Orbit Stage · Giant Typographic Staging |
+| 03 | 3D Web Graphics | **Tata$** | Vue 3 · Three.js · Interactive 3D Bag Showcase Landing Page · Giant Typographic Staging |
 | 04 | Systems & Optimization | **Academic Thesis Docket** | Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests |
 
 Each cell: role label in monospace, indexed with a zero-padded number, minimal border
