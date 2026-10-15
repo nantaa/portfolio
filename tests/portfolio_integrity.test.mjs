@@ -63,7 +63,7 @@ test('Raja Ampat standalone static asset exists in public and root for low-resou
   assert.ok(fs.existsSync(rootHtmlPath), 'Root raja_ampat_snorkel_day.html must exist');
 });
 
-test('MaterialStudiesCarousel preview component embeds dual studies with click-to-load on-demand activation', () => {
+test('MaterialStudiesCarousel preview component embeds dual studies with Raja Ampat first and click-to-load activation', () => {
   const carouselPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaterialStudiesCarousel.tsx');
   const ulunDanuPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'UlunDanuPreview.tsx');
   assert.ok(fs.existsSync(carouselPath) || fs.existsSync(ulunDanuPath), 'Carousel component must exist');
@@ -76,9 +76,27 @@ test('MaterialStudiesCarousel preview component embeds dual studies with click-t
   assert.ok(content.includes('quality=low') || content.includes('quality='), 'Must pass quality parameter to cap DPR on low resource devices');
   assert.ok(content.includes('IntersectionObserver'), 'Must implement IntersectionObserver to gate rendering strictly to viewport');
   
+  // Verify Raja Ampat comes FIRST before Ulun Danu
+  const rajaIndex = content.indexOf('raja_ampat_snorkel_day.html');
+  const ulunIndex = content.indexOf('ulun_danu_lake_bratan_material_studies.html');
+  assert.ok(rajaIndex < ulunIndex, 'Raja Ampat must appear first in STUDIES before Ulun Danu');
+
   // Must implement on-demand click to load (not eager WebGL mounting)
   assert.ok(content.includes('Load Interactive 3D') || content.includes('isLoaded') || content.includes('hasActivated') || content.includes('activeSlide'), 'Must provide click-to-load activation for client GPU protection');
   assert.ok(content.includes('Open Full 3D Study') || content.includes('Launch 3D Diorama'), 'Must provide external action trigger for full unconstrained diorama');
+});
+
+test('Interactive project cards implement on-demand standby gating before mounting heavy simulators', () => {
+  const gatePath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ProjectPreviewGate.tsx');
+  assert.ok(fs.existsSync(gatePath), 'ProjectPreviewGate.tsx component must exist');
+  const gateContent = fs.readFileSync(gatePath, 'utf-8');
+  assert.ok(gateContent.includes('isActivated') || gateContent.includes('isOpen') || gateContent.includes('isLoaded'), 'Gate must manage activation state');
+  assert.ok(gateContent.includes('Launch') || gateContent.includes('Inspect') || gateContent.includes('Load'), 'Gate must render tactile activation CTA');
+
+  // TataPreview must use or implement standby gating
+  const tataPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'TataPreview.tsx');
+  const tataContent = fs.readFileSync(tataPath, 'utf-8');
+  assert.ok(tataContent.includes('ProjectPreviewGate') || tataContent.includes('isActivated') || tataContent.includes('hasActivated'), 'TataPreview must implement standby gate before spinning up WebGL');
 });
 
 test('TataPreview showcases 3D bag as focal point with bold Tata$ name behind bag', () => {
