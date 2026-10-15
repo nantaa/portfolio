@@ -9,12 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository with nested frontend submodule
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 1
 
+      # 2. Setup Node.js with package caching
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -22,6 +24,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      # 3. Offload compilation to GitHub's free 16GB runner (0 MB VPS RAM impact)
       - name: Build Next.js Static Export (Offloaded to GitHub 16GB RAM)
         working-directory: frontend
         env:
@@ -30,12 +33,13 @@ jobs:
           npm ci
           npm run build
 
-      # Connect into WireGuard VPN network to access the protected VPS
+      # 4. Connect into WireGuard VPN network to access the protected VPS
       - name: Connect to WireGuard VPN
         uses: alessfg/wireguard-action@v1
         with:
           wireguard_conf: ${{ secrets.WIREGUARD_CONFIG }}
 
+      # 5. Sync frontend static build files directly to the VPS over WireGuard
       - name: Deploy Frontend Static Files to VPS
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
@@ -46,6 +50,7 @@ jobs:
           TARGET: "/var/www/portfolio/frontend_dist"
           EXCLUDE: "/node_modules/"
 
+      # 6. Update Laravel backend & refresh caches over SSH
       - name: Update Backend on VPS via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
