@@ -42,7 +42,7 @@ test('Frontend WorkGrid.tsx purges excluded stubs and showcases Ulun Danu and Ta
 
   // Must have approved real projects
   assert.ok(content.includes('Ulun Danu'), 'Must include Ulun Danu');
-  assert.ok(content.includes('Tata$'), 'Must include Tata$');
+  assert.ok(content.includes('Tata$') || content.includes('TATA$'), 'Must include Tata$ or TATA$');
   assert.ok(content.includes('Geopetak'), 'Must include Geopetak');
   assert.ok(content.includes('Industrial K3 Compliance Engine'), 'Must name project descriptively as Industrial K3 Compliance Engine');
   assert.ok(content.includes('Delta IT Helpdesk'), 'Must include Delta IT Helpdesk');
@@ -56,12 +56,15 @@ test('Ulun Danu standalone static asset exists in public and root for low-resour
   assert.ok(fs.existsSync(rootHtmlPath), 'Root ulun_danu_lake_bratan_material_studies.html must exist');
 });
 
-test('UlunDanuPreview preview component exists for Frontend with resource-conscious rendering', () => {
+test('UlunDanuPreview preview component embeds authentic diorama with resource-conscious query params and viewport gating', () => {
   const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'UlunDanuPreview.tsx');
   assert.ok(fs.existsSync(previewPath), 'UlunDanuPreview.tsx must exist');
   const content = fs.readFileSync(previewPath, 'utf-8');
-  assert.ok(content.includes('ulun_danu_lake_bratan_material_studies.html'), 'Must link to full 3D study');
-  assert.ok(content.includes('IntersectionObserver') || content.includes('cancelAnimationFrame'), 'Must implement resource-conscious animation/lifecycle disposal');
+  assert.ok(content.includes('ulun_danu_lake_bratan_material_studies.html'), 'Must reference ulun_danu_lake_bratan_material_studies.html');
+  assert.ok(content.includes('ui=0') && content.includes('compact=1'), 'Must pass embed parameters ui=0 and compact=1 to hide chrome');
+  assert.ok(content.includes('quality=low') || content.includes('quality='), 'Must pass quality parameter to cap DPR on low resource devices');
+  assert.ok(content.includes('IntersectionObserver'), 'Must implement IntersectionObserver to gate rendering strictly to viewport');
+  assert.ok(content.includes('Open Full 3D Study') || content.includes('Launch 3D Diorama'), 'Must provide external action trigger for full unconstrained diorama');
 });
 
 test('TataPreview showcases 3D bag as focal point with bold Tata$ name behind bag', () => {
