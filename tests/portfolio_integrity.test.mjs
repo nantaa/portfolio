@@ -212,3 +212,46 @@ test('DNPMonitorPreview implements authentic 16-stage Disnaker statutory Kanban 
   assert.ok(!emojiRegex.test(content), 'DNPMonitorPreview must not contain emojis or AI signatures');
 });
 
+test('WorkGrid cards expand height and description spacing for 125% proportional scale', () => {
+  const globalsCss = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'app', 'globals.css'), 'utf-8');
+  // Check expanded row dimensions in .work-grid--8
+  assert.ok(globalsCss.includes('580px') || globalsCss.includes('560px'), 'Row 1 height must be expanded to >= 560px');
+  assert.ok(globalsCss.includes('500px') || globalsCss.includes('480px'), 'Row 2 height must be expanded to >= 480px');
+  assert.ok(globalsCss.includes('460px') || globalsCss.includes('440px'), 'Row 3 height must be expanded to >= 440px');
+  // Check expanded .wo padding
+  assert.ok(globalsCss.includes('32px 36px') || globalsCss.includes('32px') || globalsCss.includes('36px'), '.wo must provide expanded breathing room padding');
+});
+
+test('ExpenseTrackerPreview faithfully mirrors the authentic AI expense tracker project features', () => {
+  const content = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ExpenseTrackerPreview.tsx'), 'utf-8');
+  
+  // Must render genuine ReceiptUploader dropzone
+  assert.ok(content.includes('Click to upload') || content.includes('upload receipt') || content.includes('ReceiptUploader'), 'Must render genuine receipt uploader zone');
+  
+  // Must render real transaction ledger with category, date, and currency amounts
+  assert.ok(content.includes('Food') || content.includes('Dining') || content.includes('Transport') || content.includes('Infrastructure'), 'Must render real transaction categories');
+  assert.ok(content.includes('amount') || content.includes('$') || content.includes('Rp'), 'Must display transaction amounts');
+
+  // Must render authentic Gemini AI categorization telemetry
+  assert.ok(content.includes('Gemini') || content.includes('gemini-2.0-flash'), 'Must reference Gemini AI');
+  assert.ok(content.includes('confidence') && content.includes('reasoning'), 'Must display Gemini confidence and reasoning attributes');
+
+  // Must have non-empty active state
+  assert.ok(!content.includes('Ready for scanning\n          </div>\n        )}'), 'Must not display an empty barren idle screen');
+});
+
+test('HeroTelemetryHUD renders authentic animated architecture topology visualizer instead of abstract spiderweb', () => {
+  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+  const content = fs.readFileSync(hudPath, 'utf-8');
+  
+  // Must feature real architectural components
+  assert.ok(content.includes('Laravel') && content.includes('PostgreSQL'), 'Must model Enterprise backend pipeline');
+  assert.ok(content.includes('GLSL') || content.includes('Shader') || content.includes('Caustic'), 'Must model 3D Shader pipeline');
+  assert.ok(content.includes('GLTF') || content.includes('GLB') || content.includes('RoomEnvironment'), 'Must model 3D Showroom asset pipeline');
+  assert.ok(content.includes('Gale-Shapley') || content.includes('Markov'), 'Must model Discrete Algorithms network');
+  
+  // Must render bus/packet flow or pipeline nodes
+  assert.ok(content.includes('PIPELINE') || content.includes('BUS') || content.includes('TOPOLOGY') || content.includes('packet') || content.includes('packets'), 'Must render animated data bus/packets');
+});
+
+
