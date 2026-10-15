@@ -43,30 +43,30 @@ Design a minimalist personal portfolio for a multidisciplinary technologist — 
 ### Hero / Entry State
 - Name in large display type, left-aligned or offset-left
 - Single-line descriptor below: *"Solving problems across software, design, and infrastructure."*
-- No hero image. No background illustration. Negative space is intentional.
+- Hero Right: Active Architectural Wireframe Telemetry HUD (3D isometric perspective mesh, live system coordinates 06°14'S 107°00'E, and interactive TOPOLOGY vs TELEMETRY mode switch). Zero generic photo collages.
 - Subtle animated cursor or breathing opacity on the accent line beneath the name
 
-### Role Grid (Primary)
-Four primary roles displayed as grid cells, always visible:
+### Role Grid (Primary Showcase)
+Four primary showcase projects displayed as grid cells, always visible:
 
-| Cell | Role |
-|------|------|
-| 01 | Fullstack / Web Dev |
-| 02 | UI/UX Design |
-| 03 | AI Projects |
-| 04 | Photography |
+| Cell | Role / Discipline | Featured Project | Core Technology & Scale |
+|------|-------------------|------------------|-------------------------|
+| 01 | Enterprise Fullstack | **Industrial K3 Compliance Engine** (MORIKU / DNP) | Laravel 11 · PostgreSQL · React 19 Inertia · 270+ Tests |
+| 02 | Creative Motion | **Vaultr** | Vue 3 · Three.js · GSAP ScrollTrigger · Lenis Smooth Scroll |
+| 03 | 3D Web Graphics | **Tata$** | Vue 3 · Three.js · GLTF Orbit Stage · RoomEnvironment |
+| 04 | Systems & Optimization | **Academic Thesis Docket** | Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests |
 
 Each cell: role label in monospace, indexed with a zero-padded number, minimal border
 
-### Role Grid (Secondary — Hidden by Default)
-Four secondary roles revealed only on interaction (hover on a "+" glyph or subtle "expand" trigger):
+### Role Grid (Secondary — Hidden by Default / Interactive Reveals)
+Four secondary disciplines and systems revealed on interaction:
 
-| Cell | Role |
-|------|------|
-| 05 | IT Support |
-| 06 | Network Engineering |
-| 07 | Electrical Engineering |
-| 08 | Multimedia |
+| Cell | Role / Discipline | Featured Project | Core Technology & Scale |
+|------|-------------------|------------------|-------------------------|
+| 05 | Enterprise Support | **Delta IT Helpdesk** | Next.js 16 · Laravel 11 · WhatsApp Cloud API · Soketi |
+| 06 | Spatial AI & GIS | **Geopetak Web** | Vue 3 · Spatial AI X-Ray · GSAP · Tailwind CSS |
+| 07 | AI Full-Stack | **AI Expense Tracker** | Next.js · Express · Prisma · Gemini 2.0 Flash |
+| 08 | Visual Identity & Photo | **Ambient Studies** | Monochrome Portraiture · Architectural Light & Form |
 
 Secondary cells appear with a subtle fade-in + slight upward translate. They should feel *discovered*, not presented.
 
