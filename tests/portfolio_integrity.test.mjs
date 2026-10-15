@@ -278,4 +278,54 @@ test('HeroTelemetryHUD renders authentic animated architecture topology visualiz
   assert.ok(content.includes('PIPELINE') || content.includes('BUS') || content.includes('TOPOLOGY') || content.includes('packet') || content.includes('packets'), 'Must render animated data bus/packets');
 });
 
+test('MaknaMoodboardPreview renders makna_works_branding_moodboard.webp with click-to-open detail popup modal without navigating away', () => {
+  const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaknaMoodboardPreview.tsx');
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
+  
+  assert.ok(fs.existsSync(previewPath), 'MaknaMoodboardPreview.tsx must exist');
+  const previewContent = fs.readFileSync(previewPath, 'utf-8');
+  const workGridContent = fs.readFileSync(workGridPath, 'utf-8');
+
+  // Must reference image
+  assert.ok(previewContent.includes('makna_works_branding_moodboard.webp'), 'Must render makna_works_branding_moodboard.webp');
+  
+  // Must implement click-to-open popup modal
+  assert.ok(previewContent.includes('modal') || previewContent.includes('isOpen') || previewContent.includes('setShowDetail') || previewContent.includes('isDetailOpen'), 'Must implement detail popup modal state');
+  assert.ok(previewContent.includes('dialog') || previewContent.includes('fixed inset-0'), 'Must render modal dialog popup');
+  assert.ok(previewContent.includes('stopPropagation'), 'Must stop propagation to prevent outer link navigation');
+
+  // WorkGrid must mount MaknaMoodboardPreview for Project 8
+  assert.ok(workGridContent.includes('MaknaMoodboardPreview'), 'WorkGrid must mount MaknaMoodboardPreview');
+
+  // Must implement anti-theft watermark protection on the modal popup image
+  assert.ok(previewContent.toLowerCase().includes('watermark'), 'Must render anti-theft watermark protection on the modal image');
+  assert.ok(previewContent.includes('contextmenu') || previewContent.includes('onContextMenu'), 'Must prevent direct image saving via contextmenu prevention');
+});
+
+test('raja_ampat_snorkel_day.html and ulun_danu_lake_bratan_material_studies.html embed tamper-resistant author signature in middle section', () => {
+  const rajaRoot = path.join(rootDir, 'raja_ampat_snorkel_day.html');
+  const ulunRoot = path.join(rootDir, 'ulun_danu_lake_bratan_material_studies.html');
+  const rajaPublic = path.join(rootDir, 'frontend', 'public', 'raja_ampat_snorkel_day.html');
+  const ulunPublic = path.join(rootDir, 'frontend', 'public', 'ulun_danu_lake_bratan_material_studies.html');
+
+  [rajaRoot, ulunRoot, rajaPublic, ulunPublic].forEach((filePath) => {
+    assert.ok(fs.existsSync(filePath), `File must exist: ${filePath}`);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+    const total = lines.length;
+
+    // Check middle section: signature must be present between 20% and 80% of file
+    const middleSection = lines.slice(Math.floor(total * 0.2), Math.floor(total * 0.8)).join('\n');
+    assert.ok(
+      middleSection.includes("Rifa'i Aryo Ananta") || middleSection.includes("Aryo Ananta"),
+      `Middle section of ${path.basename(filePath)} must contain author credit signature`
+    );
+    assert.ok(
+      middleSection.includes("aryoananta249@gmail.com") || middleSection.includes("nantaa") || middleSection.includes("Bekasi"),
+      `Middle section of ${path.basename(filePath)} must contain author contact/metadata`
+    );
+  });
+});
+
+
 

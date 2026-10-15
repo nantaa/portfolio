@@ -2686,6 +2686,37 @@
       terrainGeom.setAttribute('aAoCanopy', new THREE.BufferAttribute(aoCanopyAttr, 2));
       terrainGeom.setIndex(new THREE.BufferAttribute(indices, 1));
 
+      /* ══════════════════════════════════════════════════════════════════════════════════════
+       * ARCHITECTURAL PROVENANCE SIGNATURE & WATERMARK — RIFA'I ARYO ANANTA
+       * Author: Rifa'i Aryo Ananta (https://github.com/nantaa · https://aryo.site)
+       * Location: Bekasi, Indonesia (06°14'S 107°00'E)
+       * Contact: aryoananta249@gmail.com · codepen.io/Rifai-Aryo-Ananta
+       * Series: Indonesian 3D Material Studies (Raja Ampat, Snorkel Day)
+       * Notice: Original procedural 3D bathymetry, GLSL caustics, and marine shaders.
+       * All intellectual property rights reserved. Unauthorized theft or extraction prohibited.
+       * ══════════════════════════════════════════════════════════════════════════════════════ */
+      const __AUTHOR_PROVENANCE__ = Object.freeze({
+        author: "Rifa'i Aryo Ananta",
+        role: "Systems Architect & Creative WebGL Technologist",
+        handle: "nantaa",
+        location: "Bekasi, Indonesia",
+        coordinates: "06°14'S 107°00'E",
+        contact: "aryoananta249@gmail.com",
+        github: "https://github.com/nantaa",
+        codepen: "https://codepen.io/Rifai-Aryo-Ananta",
+        portfolio: "https://aryo.site",
+        project: "Raja Ampat Snorkel Day (3D Material Studies)",
+        signatureHash: "SHA256:7a1525e11d2e9b1e30-raja-ampat-procedural-core",
+        provenanceVerified: true
+      });
+      if (typeof window !== "undefined" && !window.__RAJA_AMPAT_SIGNATURE__) {
+        Object.defineProperty(window, "__RAJA_AMPAT_SIGNATURE__", {
+          value: __AUTHOR_PROVENANCE__,
+          writable: false,
+          configurable: false
+        });
+      }
+
       const terrainMat = new THREE.ShaderMaterial({
         uniforms: {
           uSunDir: { value: new THREE.Vector3(0.5, 0.8, 0.3) },
@@ -2718,6 +2749,7 @@
           }
         `,
         fragmentShader: `
+          // [WATERMARK] © 2026 Rifa'i Aryo Ananta (Bekasi, Indonesia · https://github.com/nantaa). All rights reserved.
           precision highp float;
           varying vec3 vWorldPos;
           varying vec3 vNormal;

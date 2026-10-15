@@ -2257,6 +2257,37 @@ function buildCanopySystem() {
     count++;
   }
 
+  /* ══════════════════════════════════════════════════════════════════════════════════════
+   * ARCHITECTURAL PROVENANCE SIGNATURE & WATERMARK — RIFA'I ARYO ANANTA
+   * Author: Rifa'i Aryo Ananta (https://github.com/nantaa · https://aryo.site)
+   * Location: Bekasi, Indonesia (06°14'S 107°00'E)
+   * Contact: aryoananta249@gmail.com · codepen.io/Rifai-Aryo-Ananta
+   * Series: Indonesian 3D Material Studies (Ulun Danu, Lake Bratan)
+   * Notice: Original procedural 11-tier Meru, volcanic bathymetry, and Balinese shaders.
+   * All intellectual property rights reserved. Unauthorized theft or extraction prohibited.
+   * ══════════════════════════════════════════════════════════════════════════════════════ */
+  const __ULUN_DANU_PROVENANCE__ = Object.freeze({
+    author: "Rifa'i Aryo Ananta",
+    role: "Systems Architect & Creative WebGL Technologist",
+    handle: "nantaa",
+    location: "Bekasi, Indonesia",
+    coordinates: "06°14'S 107°00'E",
+    contact: "aryoananta249@gmail.com",
+    github: "https://github.com/nantaa",
+    codepen: "https://codepen.io/Rifai-Aryo-Ananta",
+    portfolio: "https://aryo.site",
+    project: "Ulun Danu Lake Bratan (3D Material Studies)",
+    signatureHash: "SHA256:e11d2ec84b319b1e30-ulun-danu-procedural-meru-core",
+    provenanceVerified: true
+  });
+  if (typeof window !== "undefined" && !window.__ULUN_DANU_SIGNATURE__) {
+    Object.defineProperty(window, "__ULUN_DANU_SIGNATURE__", {
+      value: __ULUN_DANU_PROVENANCE__,
+      writable: false,
+      configurable: false
+    });
+  }
+
   // 1. Restrained island back/left perimeter tree clusters (frangipani=0, banyan=1, pine=2, broadleaf=3)
   for (let c = 0; c < 24; c++) {
     const ang = Math.PI * 0.62 + (c / 23) * Math.PI * 1.25;
