@@ -30,6 +30,12 @@ jobs:
           npm ci
           npm run build
 
+      # Connect into WireGuard VPN network to access the protected VPS
+      - name: Connect to WireGuard VPN
+        uses: alessfg/wireguard-action@v1
+        with:
+          wireguard_conf: ${{ secrets.WIREGUARD_CONFIG }}
+
       - name: Deploy Frontend Static Files to VPS
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
