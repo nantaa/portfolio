@@ -56,14 +56,28 @@ test('Ulun Danu standalone static asset exists in public and root for low-resour
   assert.ok(fs.existsSync(rootHtmlPath), 'Root ulun_danu_lake_bratan_material_studies.html must exist');
 });
 
-test('UlunDanuPreview preview component embeds authentic diorama with resource-conscious query params and viewport gating', () => {
-  const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'UlunDanuPreview.tsx');
-  assert.ok(fs.existsSync(previewPath), 'UlunDanuPreview.tsx must exist');
-  const content = fs.readFileSync(previewPath, 'utf-8');
+test('Raja Ampat standalone static asset exists in public and root for low-resource zero-daemon hosting', () => {
+  const publicPath = path.join(rootDir, 'frontend', 'public', 'raja_ampat_snorkel_day.html');
+  const rootHtmlPath = path.join(rootDir, 'raja_ampat_snorkel_day.html');
+  assert.ok(fs.existsSync(publicPath), 'frontend/public/raja_ampat_snorkel_day.html must exist');
+  assert.ok(fs.existsSync(rootHtmlPath), 'Root raja_ampat_snorkel_day.html must exist');
+});
+
+test('MaterialStudiesCarousel preview component embeds dual studies with click-to-load on-demand activation', () => {
+  const carouselPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaterialStudiesCarousel.tsx');
+  const ulunDanuPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'UlunDanuPreview.tsx');
+  assert.ok(fs.existsSync(carouselPath) || fs.existsSync(ulunDanuPath), 'Carousel component must exist');
+  
+  const targetPath = fs.existsSync(carouselPath) ? carouselPath : ulunDanuPath;
+  const content = fs.readFileSync(targetPath, 'utf-8');
   assert.ok(content.includes('ulun_danu_lake_bratan_material_studies.html'), 'Must reference ulun_danu_lake_bratan_material_studies.html');
+  assert.ok(content.includes('raja_ampat_snorkel_day.html'), 'Must reference raja_ampat_snorkel_day.html');
   assert.ok(content.includes('ui=0') && content.includes('compact=1'), 'Must pass embed parameters ui=0 and compact=1 to hide chrome');
   assert.ok(content.includes('quality=low') || content.includes('quality='), 'Must pass quality parameter to cap DPR on low resource devices');
   assert.ok(content.includes('IntersectionObserver'), 'Must implement IntersectionObserver to gate rendering strictly to viewport');
+  
+  // Must implement on-demand click to load (not eager WebGL mounting)
+  assert.ok(content.includes('Load Interactive 3D') || content.includes('isLoaded') || content.includes('hasActivated') || content.includes('activeSlide'), 'Must provide click-to-load activation for client GPU protection');
   assert.ok(content.includes('Open Full 3D Study') || content.includes('Launch 3D Diorama'), 'Must provide external action trigger for full unconstrained diorama');
 });
 
