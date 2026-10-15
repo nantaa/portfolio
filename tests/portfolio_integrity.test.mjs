@@ -333,5 +333,47 @@ test('raja_ampat_snorkel_day.html and ulun_danu_lake_bratan_material_studies.htm
   });
 });
 
+test('Photography and Other Works placeholder strip is cleanly suppressed in both Next.js and static index.html', () => {
+  const homeClientPath = path.join(rootDir, 'frontend', 'src', 'components', 'HomeClient.tsx');
+  const indexHtmlPath = path.join(rootDir, 'index.html');
+
+  const homeClientContent = fs.readFileSync(homeClientPath, 'utf-8');
+  const indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf-8');
+
+  // Verify that the photo grid / other works section is commented out or hidden in HomeClient.tsx
+  assert.ok(
+    homeClientContent.includes('{/* Photography / Other Works Strip — Temporarily hidden') ||
+    !homeClientContent.includes('<span className="sec-lbl">Other works</span>'),
+    'HomeClient.tsx must suppress active Other Works photography strip'
+  );
+
+  // Verify that the photo grid is commented out in index.html
+  assert.ok(
+    indexHtmlContent.includes('<!-- ══ PHOTOGRAPHY STRIP (Temporarily hidden)') ||
+    !indexHtmlContent.includes('<span class="sec-lbl">Photography</span>\n    <span class="sec-ct">Used as texture'),
+    'index.html must suppress active photography strip'
+  );
+});
+
+test('VPS_LOW_RESOURCE_DEPLOYMENT.md and .github/workflows/deploy.yml document submodule support, 3D MIME caching, and static export', () => {
+  const docPath = path.join(rootDir, 'docs', 'VPS_LOW_RESOURCE_DEPLOYMENT.md');
+  const workflowPath = path.join(rootDir, '.github', 'workflows', 'deploy.yml');
+
+  assert.ok(fs.existsSync(docPath), 'VPS_LOW_RESOURCE_DEPLOYMENT.md must exist');
+  assert.ok(fs.existsSync(workflowPath), '.github/workflows/deploy.yml must exist');
+
+  const docContent = fs.readFileSync(docPath, 'utf-8');
+  const workflowContent = fs.readFileSync(workflowPath, 'utf-8');
+
+  // Must configure submodules for monorepo cloning
+  assert.ok(docContent.includes('--recurse-submodules'), 'Guide must instruct cloning with --recurse-submodules');
+  assert.ok(workflowContent.includes('submodules: recursive'), 'Workflow must checkout with submodules: recursive');
+
+  // Must configure 3D model MIME types and media caching in Nginx
+  assert.ok(docContent.includes('model/gltf-binary'), 'Nginx config must declare model/gltf-binary for .glb');
+  assert.ok(docContent.includes('location ~* \\.(glb|gltf|bin|webp'), 'Nginx config must include dedicated 3D and image caching rule');
+});
+
+
 
 

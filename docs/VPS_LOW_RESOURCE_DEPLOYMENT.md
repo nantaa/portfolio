@@ -107,7 +107,7 @@ FLUSH PRIVILEGES;
 sudo mkdir -p /var/www/portfolio
 sudo chown -R $USER:www-data /var/www/portfolio
 cd /var/www/portfolio
-git clone https://github.com/nantaa/portfolio.git .
+git clone --recurse-submodules https://github.com/nantaa/portfolio.git .
 
 # 3. Setup Laravel Backend
 cd /var/www/portfolio/backend
@@ -153,6 +153,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -187,7 +190,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/portfolio
-            git pull origin main
+            git pull --recurse-submodules origin main
             cd backend
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
@@ -214,12 +217,28 @@ server {
 
     client_max_body_size 20M;
 
+    # Explicit MIME types for 3D GLB/GLTF and WebP
+    types {
+        text/html                             html htm shtml;
+        text/css                              css;
+        text/xml                              xml;
+        image/webp                            webp;
+        image/jpeg                            jpeg jpg;
+        image/png                             png;
+        image/svg+xml                         svg svgz;
+        model/gltf-binary                     glb;
+        model/gltf+json                       gltf;
+        application/octet-stream              bin;
+        application/javascript                js;
+        application/json                      json;
+    }
+
     # Gzip Compression
     gzip on;
     gzip_vary on;
     gzip_proxied any;
     gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml application/json application/javascript image/svg+xml;
+    gzip_types text/plain text/css text/xml application/json application/javascript image/svg+xml model/gltf+json;
 
     # 1. Laravel API Backend & Filament Admin
     location ^~ /api {
@@ -229,6 +248,7 @@ server {
         location ~ \.php$ {
             include fastcgi_params;
             fastcgi_param SCRIPT_FILENAME /var/www/portfolio/backend/public/index.php;
+            # Note: verify your PHP socket version with `ls /var/run/php/php*-fpm.sock`
             fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
             fastcgi_index index.php;
         }
@@ -242,6 +262,7 @@ server {
         location ~ \.php$ {
             include fastcgi_params;
             fastcgi_param SCRIPT_FILENAME /var/www/portfolio/backend/public/index.php;
+            # Note: verify your PHP socket version with `ls /var/run/php/php*-fpm.sock`
             fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
             fastcgi_index index.php;
         }
@@ -251,14 +272,23 @@ server {
         rewrite ^/(?:api|admin)(/.*)?$ /index.php?$1 last;
     }
 
-    # 2. Next.js Static Export Assets Caching
+    # 2. Next.js Static Export Scripts & Chunks Caching
     location /_next/static/ {
         alias /var/www/portfolio/frontend_dist/_next/static/;
         expires 365d;
         access_log off;
     }
 
-    # 3. Frontend Static Routes (Single-Page App fallback)
+    # 3. 3D GLB Models, WebP Images, and Media Caching
+    location ~* \.(glb|gltf|bin|webp|png|jpg|jpeg|svg|ico)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # 4. Standalone 3D Diorama HTMLs & SPA Routes
+    # (Serves raja_ampat_snorkel_day.html & ulun_danu_lake_bratan_material_studies.html directly)
     location / {
         try_files $uri $uri/ /index.html;
     }
