@@ -115,11 +115,21 @@ cp .env.example .env
 
 # Configure .env with your MySQL credentials:
 # DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
+# DB_HOST=127.0.0.1  # Note: If you get "Connection refused", change to "localhost" or verify MySQL is running
 # DB_PORT=3306
 # DB_DATABASE=portfolio_db
 # DB_USERNAME=portfolio_user
 # DB_PASSWORD=STRONG_PASSWORD_HERE
+
+# Troubleshooting "SQLSTATE[HY000] [2002] Connection refused":
+# 1. Check if MySQL service is running:
+#    sudo systemctl status mysql (or `sudo systemctl status mariadb`)
+#    sudo systemctl start mysql
+# 2. If MySQL is only listening on Unix socket (common on Ubuntu):
+#    Change DB_HOST=127.0.0.1 to DB_HOST=localhost in .env
+# 3. Alternatively, for 0 MB DB RAM usage, use SQLite instead:
+#    DB_CONNECTION=sqlite
+#    touch /var/www/portfolio/backend/database/database.sqlite
 
 composer install --no-dev --optimize-autoloader
 php artisan key:generate
