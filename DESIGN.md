@@ -64,7 +64,7 @@ Four secondary disciplines and systems revealed on interaction:
 | Cell | Role / Discipline | Featured Project | Core Technology & Scale |
 |------|-------------------|------------------|-------------------------|
 | 05 | Enterprise Support | **Delta IT Helpdesk** | Next.js 16 · Laravel 11 · WhatsApp Cloud API · Soketi |
-| 06 | Spatial AI & GIS | **Geopetak Web** | Vue 3 · Spatial AI X-Ray · GSAP · Tailwind CSS |
+| 06 | Spatial AI & GIS | **Geopetak Web** | Vue 3 · Spatial AI X-Ray · GSAP (Bekasi Aerial Photo Sample) |
 | 07 | AI Full-Stack | **AI Expense Tracker** | Next.js · Express · Prisma · Gemini 2.0 Flash |
 | 08 | Visual Identity & Photo | **Ambient Studies** | Monochrome Portraiture · Architectural Light & Form |
 

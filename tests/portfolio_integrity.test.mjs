@@ -155,14 +155,20 @@ test('Portfolio index.html implements interactive Case Framework modal', () => {
   assert.ok(content.includes('openCase') || content.includes('showCase'), 'index.html must have function to open case study');
 });
 
-test('GeopetakPreview loads authentic Bekasi GIS layers (xray, saturated, mesh)', () => {
+test('GeopetakPreview and WorkGrid note Bekasi Aerial Photo sample on Geopetak case', () => {
   const geoPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'GeopetakPreview.tsx');
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
   assert.ok(fs.existsSync(geoPath), 'GeopetakPreview.tsx must exist');
-  const content = fs.readFileSync(geoPath, 'utf-8');
+  const geoContent = fs.readFileSync(geoPath, 'utf-8');
+  const workGridContent = fs.readFileSync(workGridPath, 'utf-8');
 
-  assert.ok(content.includes('bekasi_saturated.jpg'), 'Geopetak must load bekasi_saturated.jpg');
-  assert.ok(content.includes('bekasi_xray.jpg'), 'Geopetak must load bekasi_xray.jpg');
-  assert.ok(content.includes('bekasi_mesh.jpg'), 'Geopetak must load bekasi_mesh.jpg');
+  assert.ok(geoContent.includes('bekasi_saturated.jpg'), 'Geopetak must load bekasi_saturated.jpg');
+  assert.ok(geoContent.includes('bekasi_xray.jpg'), 'Geopetak must load bekasi_xray.jpg');
+  assert.ok(geoContent.includes('bekasi_mesh.jpg'), 'Geopetak must load bekasi_mesh.jpg');
+
+  // Must explicitly note Bekasi Aerial Photo sample in Geopetak preview and case study
+  assert.ok(geoContent.includes('Bekasi Aerial Photo') || geoContent.includes('Bekasi Aerial Sample'), 'GeopetakPreview must note Bekasi Aerial Photo sample');
+  assert.ok(workGridContent.includes('Bekasi Aerial Photo') || workGridContent.includes('Bekasi Aerial'), 'WorkGrid Geopetak case study must note Bekasi Aerial Photo as sample');
 });
 
 test('DNPMonitorPreview implements Docket-inspired 3-tab architecture and horizontal side-scroll', () => {
