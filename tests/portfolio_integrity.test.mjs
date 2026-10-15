@@ -19,17 +19,18 @@ test('Portfolio static index.html has zero legacy dummy placeholders', () => {
   assert.ok(!content.includes('Document Intelligence Pipeline'), 'Placeholder Document Intelligence Pipeline must be replaced');
 });
 
-test('Portfolio static index.html showcases verified real projects', () => {
+test('Portfolio static index.html showcases verified real projects including Ulun Danu', () => {
   const indexPath = path.join(rootDir, 'index.html');
   const content = fs.readFileSync(indexPath, 'utf-8');
 
   assert.ok(content.includes('Industrial K3 Compliance Engine') || content.includes('K3 Statutory Compliance'), 'Must showcase descriptive Industrial K3 Compliance Engine');
-  assert.ok(content.includes('Vaultr'), 'Must showcase Vaultr');
+  assert.ok(content.includes('Ulun Danu'), 'Must showcase Ulun Danu Material Studies');
   assert.ok(content.includes('Tata$'), 'Must showcase Tata$');
   assert.ok(content.includes('Thesis') || content.includes('Docket'), 'Must showcase Academic Thesis Docket');
+  assert.ok(!content.includes('w-title">Vaultr</div>'), 'Vaultr must be replaced in active cards');
 });
 
-test('Frontend WorkGrid.tsx purges excluded stubs and includes Academic Docket', () => {
+test('Frontend WorkGrid.tsx purges excluded stubs and showcases Ulun Danu and Tata$', () => {
   const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
   assert.ok(fs.existsSync(workGridPath), 'WorkGrid.tsx must exist');
   const content = fs.readFileSync(workGridPath, 'utf-8');
@@ -37,9 +38,10 @@ test('Frontend WorkGrid.tsx purges excluded stubs and includes Academic Docket',
   // Must not have excluded stub / halfbaked projects
   assert.ok(!content.includes('Report Automation'), 'Report Automation stub must be removed');
   assert.ok(!content.includes('Kukujang'), 'Kukujang template must be replaced');
+  assert.ok(!content.includes('title: "Vaultr"'), 'Vaultr must be replaced by Ulun Danu');
 
   // Must have approved real projects
-  assert.ok(content.includes('Vaultr'), 'Must include Vaultr');
+  assert.ok(content.includes('Ulun Danu'), 'Must include Ulun Danu');
   assert.ok(content.includes('Tata$'), 'Must include Tata$');
   assert.ok(content.includes('Geopetak'), 'Must include Geopetak');
   assert.ok(content.includes('Industrial K3 Compliance Engine'), 'Must name project descriptively as Industrial K3 Compliance Engine');
@@ -47,11 +49,31 @@ test('Frontend WorkGrid.tsx purges excluded stubs and includes Academic Docket',
   assert.ok(content.includes('Academic') || content.includes('Docket'), 'Must include Academic Docket');
 });
 
-test('AcademicDocketPreview preview component exists for Frontend', () => {
-  const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'AcademicDocketPreview.tsx');
-  assert.ok(fs.existsSync(previewPath), 'AcademicDocketPreview.tsx must exist');
+test('Ulun Danu standalone static asset exists in public and root for low-resource zero-daemon hosting', () => {
+  const publicPath = path.join(rootDir, 'frontend', 'public', 'ulun_danu_lake_bratan_material_studies.html');
+  const rootHtmlPath = path.join(rootDir, 'ulun_danu_lake_bratan_material_studies.html');
+  assert.ok(fs.existsSync(publicPath), 'frontend/public/ulun_danu_lake_bratan_material_studies.html must exist');
+  assert.ok(fs.existsSync(rootHtmlPath), 'Root ulun_danu_lake_bratan_material_studies.html must exist');
+});
+
+test('UlunDanuPreview preview component exists for Frontend with resource-conscious rendering', () => {
+  const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'UlunDanuPreview.tsx');
+  assert.ok(fs.existsSync(previewPath), 'UlunDanuPreview.tsx must exist');
   const content = fs.readFileSync(previewPath, 'utf-8');
-  assert.ok(content.includes('Gale-Shapley') || content.includes('Hungarian'), 'Must reference defense optimization algorithms');
+  assert.ok(content.includes('ulun_danu_lake_bratan_material_studies.html'), 'Must link to full 3D study');
+  assert.ok(content.includes('IntersectionObserver') || content.includes('cancelAnimationFrame'), 'Must implement resource-conscious animation/lifecycle disposal');
+});
+
+test('TataPreview showcases 3D bag as focal point with bold Tata$ name behind bag', () => {
+  const previewPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'TataPreview.tsx');
+  const globalsCss = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  assert.ok(fs.existsSync(previewPath), 'TataPreview.tsx must exist');
+  const previewContent = fs.readFileSync(previewPath, 'utf-8');
+  const cssContent = fs.readFileSync(globalsCss, 'utf-8');
+
+  // Must render big name Tata$ backdrop
+  assert.ok(previewContent.includes('tata-watermark') || previewContent.includes('tata-backdrop-brand'), 'TataPreview must render big name watermark element');
+  assert.ok(cssContent.includes('.tata-watermark') || cssContent.includes('.tata-backdrop-brand'), 'globals.css must style big name watermark element behind canvas');
 });
 
 test('DESIGN.md documents the approved project lineup', () => {
@@ -59,7 +81,7 @@ test('DESIGN.md documents the approved project lineup', () => {
   assert.ok(fs.existsSync(designPath), 'DESIGN.md must exist');
   const content = fs.readFileSync(designPath, 'utf-8');
   assert.ok(content.includes('K3 Compliance Engine') || content.includes('DNP Monitor'), 'DESIGN.md must document K3 Compliance Engine');
-  assert.ok(content.includes('Vaultr'), 'DESIGN.md must document Vaultr');
+  assert.ok(content.includes('Ulun Danu'), 'DESIGN.md must document Ulun Danu');
   assert.ok(content.includes('Tata$'), 'DESIGN.md must document Tata$');
 });
 

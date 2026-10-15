@@ -52,8 +52,8 @@ Four primary showcase projects displayed as grid cells, always visible:
 | Cell | Role / Discipline | Featured Project | Core Technology & Scale |
 |------|-------------------|------------------|-------------------------|
 | 01 | Enterprise Fullstack | **Industrial K3 Compliance Engine** (MORIKU / DNP) | Laravel 11 · PostgreSQL · React 19 Inertia · 270+ Tests |
-| 02 | Creative Motion | **Vaultr** | Vue 3 · Three.js · GSAP ScrollTrigger · Lenis Smooth Scroll |
-| 03 | 3D Web Graphics | **Tata$** | Vue 3 · Three.js · GLTF Orbit Stage · RoomEnvironment |
+| 02 | 3D WebGL & Shaders | **Ulun Danu Bratan** | Three.js · Procedural Meru Architecture · GLSL Water & Atmospheric Moods |
+| 03 | 3D Web Graphics | **Tata$** | Vue 3 · Three.js · GLTF Orbit Stage · Giant Typographic Staging |
 | 04 | Systems & Optimization | **Academic Thesis Docket** | Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests |
 
 Each cell: role label in monospace, indexed with a zero-padded number, minimal border
