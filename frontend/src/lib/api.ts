@@ -22,9 +22,15 @@ export interface Project {
 export type Settings = Record<string, string | null>;
 
 export async function fetchProjects(): Promise<Project[]> {
+  // During build-time static page generation with a relative API path,
+  // return empty array immediately so Next.js export doesn't hang.
+  if (typeof window === 'undefined' && !API_BASE.startsWith('http')) {
+    return [];
+  }
+
   try {
     const res = await fetch(`${API_BASE}/projects`, {
-      next: { revalidate: 60 }, // ISR — re-fetch every 60s
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -35,9 +41,13 @@ export async function fetchProjects(): Promise<Project[]> {
 }
 
 export async function fetchSettings(): Promise<Settings> {
+  if (typeof window === 'undefined' && !API_BASE.startsWith('http')) {
+    return {};
+  }
+
   try {
     const res = await fetch(`${API_BASE}/settings`, {
-      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) return {};
     const json = await res.json();
