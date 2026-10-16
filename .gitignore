@@ -15,6 +15,7 @@ dist/
 .system_dump/
 .serena/
 *.log
+**/.git_backup/
 
 # Environment variables & secrets
 .env
