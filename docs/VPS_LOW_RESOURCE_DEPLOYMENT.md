@@ -296,9 +296,12 @@ Go to your repo **Settings** → **Secrets and variables** → **Actions**:
 
       # Connect to Server 1 (WireGuard Gateway)
       - name: Connect to WireGuard VPN
-        uses: alessfg/wireguard-action@v1
-        with:
-          wireguard_conf: ${{ secrets.WIREGUARD_CONFIG }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq wireguard-tools
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
 
       # Deploy static files directly to Server 2 over the WireGuard tunnel
       - name: Deploy Frontend Static Files to Target VPS

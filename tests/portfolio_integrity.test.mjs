@@ -365,8 +365,9 @@ test('VPS_LOW_RESOURCE_DEPLOYMENT.md and .github/workflows/deploy.yml document s
   const docContent = fs.readFileSync(docPath, 'utf-8');
   const workflowContent = fs.readFileSync(workflowPath, 'utf-8');
 
-  // Must configure actions/checkout in deploy workflow
-  assert.ok(workflowContent.includes('actions/checkout@v4'), 'Workflow must use actions/checkout@v4');
+  // Must configure submodules for monorepo cloning
+  assert.ok(docContent.includes('--recurse-submodules'), 'Guide must instruct cloning with --recurse-submodules');
+  assert.ok(workflowContent.includes('submodules: recursive'), 'Workflow must checkout with submodules: recursive');
 
   // Must configure 3D model MIME types and media caching in Nginx
   assert.ok(docContent.includes('model/gltf-binary'), 'Nginx config must declare model/gltf-binary for .glb');
@@ -374,7 +375,7 @@ test('VPS_LOW_RESOURCE_DEPLOYMENT.md and .github/workflows/deploy.yml document s
 
   // Must document WireGuard-guarded VPS deployment options
   assert.ok(docContent.includes('Deploying to a Guarded VPS (WireGuard'), 'Guide must document WireGuard guarded VPS deployment');
-  assert.ok(docContent.includes('alessfg/wireguard-action'), 'Guide must provide automated WireGuard action configuration');
+  assert.ok(docContent.includes('wireguard-tools') && workflowContent.includes('wireguard-tools'), 'Guide and workflow must configure native wireguard-tools');
 });
 
 
