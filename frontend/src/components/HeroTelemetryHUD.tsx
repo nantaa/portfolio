@@ -532,7 +532,7 @@ export default function HeroTelemetryHUD() {
           </div>
 
           {/* Live Architecture Descriptor Box */}
-          <div className="z-10 mt-auto p-5 sm:p-6 w-full max-w-[560px] bg-[var(--modal-bg)] border border-[var(--card-border)] backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
+          <div className="z-10 mt-auto p-3.5 sm:p-6 w-full max-w-[560px] bg-[var(--modal-bg)] border border-[var(--card-border)] backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)] font-mono text-[10.5px] sm:text-[11.5px]">
               <span className="text-[var(--accent2)] font-bold uppercase tracking-wider">
                 {activeArch.category}

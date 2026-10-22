@@ -50,7 +50,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[940px] max-h-[92vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-6 sm:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors"
+        className="relative w-full max-w-[940px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header / Metadata Ribbon */}
@@ -75,7 +75,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         {/* Project Title & Stack Ribbon */}
         <div className="mb-8">
           <div className="flex flex-wrap items-baseline gap-3.5 mb-3">
-            <h2 id="case-modal-title" className="text-3xl sm:text-4xl font-display font-medium text-[var(--text)] tracking-tight">
+            <h2 id="case-modal-title" className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-[var(--text)] tracking-tight">
               {project.title}
             </h2>
             {project.year && (
