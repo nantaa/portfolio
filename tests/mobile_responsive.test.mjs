@@ -60,3 +60,53 @@ test('Nav.tsx implements responsive mobile menu or compact mobile layout', () =>
 
   assert.ok(content.includes('nav-links') && (content.includes('hidden') || content.includes('md:flex') || content.includes('mobile-menu') || content.includes('nav-menu-btn') || content.includes('nav-links-mobile')), 'Nav must adapt for mobile viewports');
 });
+
+test('globals.css applies restrained mobile hero typography and card proportions', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+
+  const mobileStartIndex = css.indexOf('@media (max-width: 768px)');
+  assert.ok(mobileStartIndex !== -1, 'Mobile block must exist');
+  const mobileContent = css.slice(mobileStartIndex);
+
+  // Check restrained card height (<= 340px)
+  assert.ok(
+    mobileContent.includes('min-height: 320px') || 
+    mobileContent.includes('min-height: 330px') || 
+    mobileContent.includes('min-height: 340px'),
+    'Work card min-height must be restrained to <= 340px on mobile'
+  );
+
+  // Check about photo constraint
+  assert.ok(
+    mobileContent.includes('max-height: 240px') || 
+    mobileContent.includes('max-height: 220px') ||
+    mobileContent.includes('aspect-ratio: 16'),
+    'About preview must be capped on mobile'
+  );
+});
+
+test('globals.css implements theme-aware work overlay gradients', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+
+  assert.ok(
+    css.includes('--wo-gradient') || 
+    (css.includes('[data-theme="light"]') && css.includes('.wo')),
+    'Must provide theme-specific card gradient for light mode'
+  );
+});
+
+test('HeroTelemetryHUD adapts node distribution for mobile screens', () => {
+  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+  const content = fs.readFileSync(hudPath, 'utf-8');
+
+  assert.ok(
+    content.includes('isMobile') || 
+    content.includes('width < 600') || 
+    content.includes('w < 600') ||
+    content.includes('mobileHomeNorm'),
+    'HeroTelemetryHUD must adapt coordinates for narrow mobile viewports'
+  );
+});
+

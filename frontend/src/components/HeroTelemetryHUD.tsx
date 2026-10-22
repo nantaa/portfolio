@@ -200,6 +200,38 @@ export default function HeroTelemetryHUD() {
     const SPRING_CONSTANT = 0.045;
     const DAMPING = 0.86;
 
+    const getHomeCoordinates = (node: PipelineNode, idx: number, total: number, w: number, h: number) => {
+      const isMobile = w < 600;
+      if (!isMobile) {
+        return {
+          x: node.homeNormX * w,
+          y: node.homeNormY * h,
+        };
+      }
+
+      // Mobile adaptive topology: staggered 2-column layout to prevent clipping on narrow screens
+      if (total === 4) {
+        const coords = [
+          { x: 0.28, y: 0.26 },
+          { x: 0.72, y: 0.26 },
+          { x: 0.28, y: 0.68 },
+          { x: 0.72, y: 0.68 },
+        ];
+        const c = coords[idx] || { x: node.homeNormX, y: node.homeNormY };
+        return { x: c.x * w, y: c.y * h };
+      } else {
+        const coords = [
+          { x: 0.26, y: 0.20 },
+          { x: 0.74, y: 0.20 },
+          { x: 0.50, y: 0.48 },
+          { x: 0.26, y: 0.76 },
+          { x: 0.74, y: 0.76 },
+        ];
+        const c = coords[idx] || { x: node.homeNormX, y: node.homeNormY };
+        return { x: c.x * w, y: c.y * h };
+      }
+    };
+
     const updateDimensions = () => {
       const rect = container.getBoundingClientRect();
       width = rect.width;
@@ -211,10 +243,11 @@ export default function HeroTelemetryHUD() {
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      nodesRef.current.forEach((node) => {
+      nodesRef.current.forEach((node, idx) => {
         if (node.x === 0 && node.y === 0) {
-          node.x = node.homeNormX * width;
-          node.y = node.homeNormY * height;
+          const home = getHomeCoordinates(node, idx, nodesRef.current.length, width, height);
+          node.x = home.x;
+          node.y = home.y;
         }
       });
     };
@@ -286,8 +319,9 @@ export default function HeroTelemetryHUD() {
       // ── 1. Update Spring Kinematics (Hooke's Spring Law) ──
       nodesRef.current.forEach((node, idx) => {
         if (idx !== draggedNodeIndex) {
-          const homeX = node.homeNormX * width;
-          const homeY = node.homeNormY * height;
+          const home = getHomeCoordinates(node, idx, nodesRef.current.length, width, height);
+          const homeX = home.x;
+          const homeY = home.y;
 
           const forceX = (homeX - node.x) * SPRING_CONSTANT;
           const forceY = (homeY - node.y) * SPRING_CONSTANT;
@@ -392,18 +426,19 @@ export default function HeroTelemetryHUD() {
       });
 
       // ── 6. Render Pipeline Nodes ──
+      const isMobile = width < 600;
       nodesRef.current.forEach((node, idx) => {
         const isSelected = selectedNodeId === node.id;
         const isDragged = draggedNodeIndex === idx;
 
-        const boxW = 88;
-        const boxH = 46;
+        const boxW = isMobile ? 74 : 88;
+        const boxH = isMobile ? 38 : 46;
         const bx = node.x - boxW * 0.5;
         const by = node.y - boxH * 0.5;
 
         // Pulse ring on selected or dragged
         if (isSelected || isDragged) {
-          const pulseR = 30 + Math.sin(frame * 0.08) * 3;
+          const pulseR = (isMobile ? 24 : 30) + Math.sin(frame * 0.08) * 3;
           ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.4)" : "rgba(155, 30, 48, 0.4)";
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -430,20 +465,20 @@ export default function HeroTelemetryHUD() {
         ctx.fill();
 
         // Node title
-        ctx.font = "bold 8.5px 'Syne', sans-serif";
+        ctx.font = isMobile ? "bold 7.5px 'Syne', sans-serif" : "bold 8.5px 'Syne', sans-serif";
         ctx.fillStyle = isLight ? "#161615" : "#EEEBE5";
         ctx.textAlign = "center";
-        ctx.fillText(node.name, node.x, by + 16);
+        ctx.fillText(node.name, node.x, by + (isMobile ? 13 : 16));
 
         // Tech subtitle
-        ctx.font = "7px 'Syne Mono', monospace";
+        ctx.font = isMobile ? "6px 'Syne Mono', monospace" : "7px 'Syne Mono', monospace";
         ctx.fillStyle = isSelected ? (isLight ? "#851726" : "#9B1E30") : (isLight ? "#6E6A62" : "#888880");
-        ctx.fillText(node.tech, node.x, by + 28);
+        ctx.fillText(node.tech, node.x, by + (isMobile ? 23 : 28));
 
         // Status label
-        ctx.font = "6px 'Syne Mono', monospace";
+        ctx.font = isMobile ? "5.5px 'Syne Mono', monospace" : "6px 'Syne Mono', monospace";
         ctx.fillStyle = isLight ? "rgba(22, 22, 21, 0.5)" : "rgba(255, 255, 255, 0.4)";
-        ctx.fillText(node.status, node.x, by + 38);
+        ctx.fillText(node.status, node.x, by + (isMobile ? 32 : 38));
       });
     };
 
@@ -552,7 +587,7 @@ export default function HeroTelemetryHUD() {
             </div>
 
             {/* Real stack indicators */}
-            <div className="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-white/10 font-mono text-[9px] sm:text-[10px]">
+            <div className="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-[var(--wire)] font-mono text-[9px] sm:text-[10px]">
               {activeArch.initialNodes.map((n) => (
                 <button
                   key={n.id}
