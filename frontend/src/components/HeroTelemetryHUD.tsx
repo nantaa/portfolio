@@ -151,7 +151,6 @@ export default function HeroTelemetryHUD() {
   const [mode, setMode] = useState<HUDMode>("TOPOLOGY");
   const [activeKey, setActiveKey] = useState<ArchitectureKey>("K3_ENTERPRISE");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -159,32 +158,6 @@ export default function HeroTelemetryHUD() {
 
   // Dynamic spring physics state for the active architecture nodes
   const nodesRef = useRef<PipelineNode[]>([]);
-
-  useEffect(() => {
-    const current = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
-    setTheme(current);
-
-    const onThemeChange = (e: Event) => {
-      const custom = e as CustomEvent<"dark" | "light">;
-      if (custom.detail) setTheme(custom.detail);
-      else {
-        const up = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
-        setTheme(up);
-      }
-    };
-
-    const observer = new MutationObserver(() => {
-      const up = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
-      setTheme(up);
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    window.addEventListener("portfolio-theme-change", onThemeChange);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("portfolio-theme-change", onThemeChange);
-    };
-  }, []);
 
   // Synchronize nodes on architecture change
   useEffect(() => {
@@ -213,7 +186,7 @@ export default function HeroTelemetryHUD() {
     let frame = 0;
 
     let draggedNodeIndex: number | null = null;
-    let mouse = { x: -9999, y: -9999, isDown: false };
+    const mouse = { x: -9999, y: -9999, isDown: false };
     const ripples: Shockwave[] = [];
 
     // Animated packets on connections
@@ -335,7 +308,7 @@ export default function HeroTelemetryHUD() {
         }
       });
 
-      const isLight = theme === "light";
+      const isLight = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light";
 
       // ── 2. Grid Background ──
       ctx.strokeStyle = isLight ? "rgba(22, 22, 21, 0.04)" : "rgba(255, 255, 255, 0.03)";
@@ -483,7 +456,7 @@ export default function HeroTelemetryHUD() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [mode, activeKey, selectedNodeId, activeArch, theme]);
+  }, [mode, activeKey, selectedNodeId, activeArch]);
 
   return (
     <div

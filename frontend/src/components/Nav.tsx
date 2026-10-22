@@ -1,34 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribe(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  window.addEventListener("portfolio-theme-change", callback);
+  return () => {
+    observer.disconnect();
+    window.removeEventListener("portfolio-theme-change", callback);
+  };
+}
+
+function getSnapshot(): "dark" | "light" {
+  if (typeof document === "undefined") return "dark";
+  return (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+}
+
+function getServerSnapshot(): "dark" | "light" {
+  return "dark";
+}
 
 export default function Nav() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    const current = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
-    setTheme(current);
-
-    const observer = new MutationObserver(() => {
-      const updated = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
-      setTheme(updated);
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
     document.documentElement.setAttribute("data-theme", nextTheme);
     try {
       localStorage.setItem("portfolio-theme", nextTheme);
-    } catch (e) {}
+    } catch {}
     window.dispatchEvent(new CustomEvent("portfolio-theme-change", { detail: nextTheme }));
   };
 
