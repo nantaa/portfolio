@@ -1,18 +1,45 @@
 @import "tailwindcss";
 /* force reload HMR */
-    :root {
+    :root,
+    [data-theme="dark"] {
       --bg: #0A0A0A;
       --s1: #0F0F0F;
       --s2: #141414;
       --s3: #1C1C1C;
       --text: #EEEBE5;
-      --muted: #6B6860;
+      --muted: #888880;
       --faint: #252522;
       --accent: #7A1525;
       --accent2: #9B1E30;
       --accentd: #4A0C18;
       --wire: rgba(255, 255, 255, 0.055);
       --wire-h: rgba(122, 21, 37, 0.22);
+      --modal-bg: #0D0D0E;
+      --card-bg: #111111;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --nav-bg: rgba(10, 10, 10, 0.9);
+      --display: 'Playfair Display', Georgia, serif;
+      --sans: 'Syne', sans-serif;
+      --mono: 'Syne Mono', monospace;
+    }
+
+    [data-theme="light"] {
+      --bg: #F7F4EE;
+      --s1: #FFFFFF;
+      --s2: #EFECE4;
+      --s3: #E5E0D5;
+      --text: #161615;
+      --muted: #6E6A62;
+      --faint: #DDD8CD;
+      --accent: #851726;
+      --accent2: #A31F32;
+      --accentd: #610E1A;
+      --wire: rgba(22, 22, 21, 0.065);
+      --wire-h: rgba(133, 23, 38, 0.25);
+      --modal-bg: #FAF8F3;
+      --card-bg: #FFFFFF;
+      --card-border: rgba(22, 22, 21, 0.09);
+      --nav-bg: rgba(247, 244, 238, 0.92);
       --display: 'Playfair Display', Georgia, serif;
       --sans: 'Syne', sans-serif;
       --mono: 'Syne Mono', monospace;
@@ -37,6 +64,7 @@
       cursor: none;
       user-select: none;
       -webkit-user-select: none;
+      transition: background-color 220ms ease, color 220ms ease;
     }
 
     /* SELECTION PURGE */
@@ -102,7 +130,7 @@
       align-items: center;
       padding: 18px 52px;
       border-bottom: 0.5px solid var(--wire);
-      background: rgba(10, 10, 10, 0.9);
+      background: var(--nav-bg);
       backdrop-filter: blur(14px);
       animation: rise 600ms ease 0ms both;
     }

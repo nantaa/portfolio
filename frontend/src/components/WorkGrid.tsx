@@ -217,15 +217,15 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                 <span className="w-num">{String(i + 1).padStart(2, "0")}</span>
                 <div className="w-bottom-bar flex items-end justify-between pointer-events-auto">
                   <div className="flex-1 pr-4">
-                    <div className="w-cat text-[#9b1e30] font-mono text-xs font-bold tracking-widest uppercase mb-1">{project.category}</div>
-                    <div className="w-title text-2xl font-serif text-neutral-100">{project.title}</div>
+                    <div className="w-cat text-[var(--accent2)] font-mono text-xs font-bold tracking-widest uppercase mb-1">{project.category}</div>
+                    <div className="w-title text-2xl font-serif text-[var(--text)]">{project.title}</div>
                     {project.subtitle && (
-                      <div className="w-sub text-neutral-300 font-mono text-[13px] mt-1 line-clamp-1">{project.subtitle}</div>
+                      <div className="w-sub text-[var(--muted)] font-mono text-[13px] mt-1 line-clamp-1">{project.subtitle}</div>
                     )}
                   </div>
                   <button
                     type="button"
-                    className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-white/10 hover:bg-[#7a1525] text-white border border-white/20 hover:border-[#9b1e30] rounded-[2px] transition-all flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
+                    className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedProject(project);

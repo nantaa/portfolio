@@ -34,7 +34,7 @@ export default function HomeClient({ projects, settings }: HomeClientProps) {
     const removeSq = () => cur.classList.remove("sq");
 
     document
-      .querySelectorAll("a, .nav-cta, .wc, .pc, .about-left, .ci, .hero-btn, .hero-img-cell")
+      .querySelectorAll("a, .nav-cta, .wc, .pc, .about-left, .ci, .hero-btn, .hero-img-cell, .theme-toggle")
       .forEach((el) => {
         el.addEventListener("mouseenter", addBig);
         el.addEventListener("mouseleave", removeBig);

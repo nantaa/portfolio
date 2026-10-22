@@ -151,6 +151,7 @@ export default function HeroTelemetryHUD() {
   const [mode, setMode] = useState<HUDMode>("TOPOLOGY");
   const [activeKey, setActiveKey] = useState<ArchitectureKey>("K3_ENTERPRISE");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -158,6 +159,32 @@ export default function HeroTelemetryHUD() {
 
   // Dynamic spring physics state for the active architecture nodes
   const nodesRef = useRef<PipelineNode[]>([]);
+
+  useEffect(() => {
+    const current = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+    setTheme(current);
+
+    const onThemeChange = (e: Event) => {
+      const custom = e as CustomEvent<"dark" | "light">;
+      if (custom.detail) setTheme(custom.detail);
+      else {
+        const up = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+        setTheme(up);
+      }
+    };
+
+    const observer = new MutationObserver(() => {
+      const up = (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+      setTheme(up);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    window.addEventListener("portfolio-theme-change", onThemeChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("portfolio-theme-change", onThemeChange);
+    };
+  }, []);
 
   // Synchronize nodes on architecture change
   useEffect(() => {
@@ -308,8 +335,10 @@ export default function HeroTelemetryHUD() {
         }
       });
 
+      const isLight = theme === "light";
+
       // ── 2. Grid Background ──
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = isLight ? "rgba(22, 22, 21, 0.04)" : "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
       const step = 36;
       for (let x = 0; x < width; x += step) {
@@ -331,7 +360,9 @@ export default function HeroTelemetryHUD() {
         rip.radius += 4.5;
         rip.opacity *= 0.94;
 
-        ctx.strokeStyle = `rgba(155, 30, 48, ${rip.opacity * 0.45})`;
+        ctx.strokeStyle = isLight
+          ? `rgba(133, 23, 38, ${rip.opacity * 0.4})`
+          : `rgba(155, 30, 48, ${rip.opacity * 0.45})`;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
@@ -343,7 +374,7 @@ export default function HeroTelemetryHUD() {
       }
 
       // ── 4. Main Topology Bus & Directed Pipeline Traces ──
-      ctx.strokeStyle = "rgba(122, 21, 37, 0.22)";
+      ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.2)" : "rgba(122, 21, 37, 0.22)";
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(width * 0.08, height * 0.35);
@@ -356,7 +387,7 @@ export default function HeroTelemetryHUD() {
         const tgt = nodesRef.current[targetIdx];
         if (!src || !tgt) return;
 
-        ctx.strokeStyle = "rgba(155, 30, 48, 0.35)";
+        ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.3)" : "rgba(155, 30, 48, 0.35)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(src.x, src.y);
@@ -376,12 +407,12 @@ export default function HeroTelemetryHUD() {
         const px = src.x + (tgt.x - src.x) * p.t;
         const py = src.y + (tgt.y - src.y) * p.t;
 
-        ctx.fillStyle = "rgba(238, 235, 229, 0.95)";
+        ctx.fillStyle = isLight ? "rgba(22, 22, 21, 0.85)" : "rgba(238, 235, 229, 0.95)";
         ctx.beginPath();
         ctx.arc(px, py, 2.2, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = "rgba(155, 30, 48, 0.55)";
+        ctx.fillStyle = isLight ? "rgba(133, 23, 38, 0.45)" : "rgba(155, 30, 48, 0.55)";
         ctx.beginPath();
         ctx.arc(px, py, 5, 0, Math.PI * 2);
         ctx.fill();
@@ -400,15 +431,21 @@ export default function HeroTelemetryHUD() {
         // Pulse ring on selected or dragged
         if (isSelected || isDragged) {
           const pulseR = 30 + Math.sin(frame * 0.08) * 3;
-          ctx.strokeStyle = "rgba(155, 30, 48, 0.4)";
+          ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.4)" : "rgba(155, 30, 48, 0.4)";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.arc(node.x, node.y, pulseR, 0, Math.PI * 2);
           ctx.stroke();
         }
 
-        ctx.fillStyle = isSelected ? "rgba(122, 21, 37, 0.35)" : "rgba(12, 13, 14, 0.88)";
-        ctx.strokeStyle = isSelected ? "#9B1E30" : "rgba(255, 255, 255, 0.16)";
+        ctx.fillStyle = isLight
+          ? (isSelected ? "rgba(133, 23, 38, 0.12)" : "rgba(255, 255, 255, 0.95)")
+          : (isSelected ? "rgba(122, 21, 37, 0.35)" : "rgba(12, 13, 14, 0.88)");
+
+        ctx.strokeStyle = isSelected
+          ? (isLight ? "#851726" : "#9B1E30")
+          : (isLight ? "rgba(22, 22, 21, 0.18)" : "rgba(255, 255, 255, 0.16)");
+
         ctx.lineWidth = isSelected ? 1.5 : 1;
         ctx.fillRect(bx, by, boxW, boxH);
         ctx.strokeRect(bx, by, boxW, boxH);
@@ -421,18 +458,18 @@ export default function HeroTelemetryHUD() {
 
         // Node title
         ctx.font = "bold 8.5px 'Syne', sans-serif";
-        ctx.fillStyle = "#EEEBE5";
+        ctx.fillStyle = isLight ? "#161615" : "#EEEBE5";
         ctx.textAlign = "center";
         ctx.fillText(node.name, node.x, by + 16);
 
         // Tech subtitle
         ctx.font = "7px 'Syne Mono', monospace";
-        ctx.fillStyle = isSelected ? "#9B1E30" : "#888880";
+        ctx.fillStyle = isSelected ? (isLight ? "#851726" : "#9B1E30") : (isLight ? "#6E6A62" : "#888880");
         ctx.fillText(node.tech, node.x, by + 28);
 
         // Status label
         ctx.font = "6px 'Syne Mono', monospace";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillStyle = isLight ? "rgba(22, 22, 21, 0.5)" : "rgba(255, 255, 255, 0.4)";
         ctx.fillText(node.status, node.x, by + 38);
       });
     };
@@ -446,7 +483,7 @@ export default function HeroTelemetryHUD() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [mode, activeKey, selectedNodeId, activeArch]);
+  }, [mode, activeKey, selectedNodeId, activeArch, theme]);
 
   return (
     <div
@@ -454,28 +491,28 @@ export default function HeroTelemetryHUD() {
       className="hero-telemetry-hud relative w-full h-full flex flex-col justify-between p-6 sm:p-8 select-none"
     >
       {/* ── Top Header / Mode Switcher ── */}
-      <div className="z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10 font-mono text-[10px]">
+      <div className="z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--wire)] font-mono text-[10px]">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#7a1525] animate-pulse"></span>
-          <span className="text-neutral-200 font-bold tracking-wider uppercase">
+          <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
+          <span className="text-[var(--text)] font-bold tracking-wider uppercase">
             SYSTEM ARCHITECTURE {mode === "TOPOLOGY" ? `// TOPOLOGY [${activeArch.code}]` : "// TELEMETRY BENCHMARKS"}
           </span>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <span className="text-[#7a1525] font-bold tracking-widest hidden md:inline">
+          <span className="text-[var(--accent2)] font-bold tracking-widest hidden md:inline">
             BEKASI LATENCY: {activeArch.latency}
           </span>
 
           {/* Mode Switcher: TOPOLOGY vs TELEMETRY */}
-          <div className="flex items-center border border-white/10 rounded-[2px] overflow-hidden bg-black/50">
+          <div className="flex items-center border border-[var(--wire)] rounded-[2px] overflow-hidden bg-[var(--s2)]">
             <button
               type="button"
               onClick={() => setMode("TOPOLOGY")}
               className={`px-2.5 py-1 text-[8.5px] uppercase tracking-wider transition-all cursor-pointer ${
                 mode === "TOPOLOGY"
-                  ? "bg-[#7a1525] text-white font-bold"
-                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+                  ? "bg-[var(--accent)] text-white font-bold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
               }`}
             >
               TOPOLOGY
@@ -485,8 +522,8 @@ export default function HeroTelemetryHUD() {
               onClick={() => setMode("TELEMETRY")}
               className={`px-2.5 py-1 text-[8.5px] uppercase tracking-wider transition-all cursor-pointer ${
                 mode === "TELEMETRY"
-                  ? "bg-[#7a1525] text-white font-bold"
-                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+                  ? "bg-[var(--accent)] text-white font-bold"
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
               }`}
             >
               TELEMETRY
@@ -501,7 +538,7 @@ export default function HeroTelemetryHUD() {
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
           {/* Architecture Selector Tabs */}
-          <div className="z-10 flex gap-1.5 self-start bg-black/60 p-1 border border-white/10 rounded-[2px] backdrop-blur-md">
+          <div className="z-10 flex gap-1.5 self-start bg-[var(--s2)] p-1 border border-[var(--wire)] rounded-[2px] backdrop-blur-md">
             {ARCHITECTURES.map((a) => (
               <button
                 key={a.key}
@@ -512,8 +549,8 @@ export default function HeroTelemetryHUD() {
                 }}
                 className={`px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
                   activeKey === a.key
-                    ? "bg-[#7a1525] text-white font-bold"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    ? "bg-[var(--accent)] text-white font-bold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
                 }`}
               >
                 {a.code}
@@ -522,21 +559,21 @@ export default function HeroTelemetryHUD() {
           </div>
 
           {/* Live Architecture Descriptor Box */}
-          <div className="z-10 mt-auto p-5 sm:p-6 w-full max-w-[560px] bg-[#0c0d0e]/95 border border-white/12 backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 font-mono text-[10.5px] sm:text-[11.5px]">
-              <span className="text-[#9B1E30] font-bold uppercase tracking-wider">
+          <div className="z-10 mt-auto p-5 sm:p-6 w-full max-w-[560px] bg-[var(--modal-bg)] border border-[var(--card-border)] backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)] font-mono text-[10.5px] sm:text-[11.5px]">
+              <span className="text-[var(--accent2)] font-bold uppercase tracking-wider">
                 {activeArch.category}
               </span>
-              <span className="text-neutral-400 font-mono">
+              <span className="text-[var(--muted)] font-mono">
                 BUS: {activeArch.throughput}
               </span>
             </div>
 
             <div>
-              <div className="text-[17px] sm:text-[20px] font-serif text-white font-bold tracking-tight">
+              <div className="text-[17px] sm:text-[20px] font-serif text-[var(--text)] font-bold tracking-tight">
                 {activeArch.title}
               </div>
-              <div className="text-[12px] sm:text-[13px] text-neutral-300 mt-1.5 leading-relaxed">
+              <div className="text-[12px] sm:text-[13px] text-[var(--muted)] mt-1.5 leading-relaxed">
                 {activeArch.summary}
               </div>
             </div>
