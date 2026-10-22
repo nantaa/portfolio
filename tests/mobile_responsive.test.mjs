@@ -86,14 +86,24 @@ test('globals.css applies restrained mobile hero typography and card proportions
   );
 });
 
-test('globals.css implements theme-aware work overlay gradients', () => {
+test('globals.css eliminates card gradient fog in favor of architectural dock', () => {
   const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
   const css = fs.readFileSync(cssPath, 'utf-8');
 
+  // Verify --wo-gradient has been removed from design tokens
+  assert.ok(!css.includes('--wo-gradient'), '--wo-gradient must be completely purged');
+
+  // Verify .wo rule has transparent background
+  const woMatch = css.match(/\.wo\s*\{([^}]+)\}/);
+  assert.ok(woMatch && (woMatch[1].includes('background: transparent') || woMatch[1].includes('background: none')), '.wo must define transparent background');
+
+  // Verify .w-bottom-bar implements architectural dock styling with backdrop blur
+  const bottomBarMatch = css.match(/\.w-bottom-bar\s*\{([^}]+)\}/);
   assert.ok(
-    css.includes('--wo-gradient') || 
-    (css.includes('[data-theme="light"]') && css.includes('.wo')),
-    'Must provide theme-specific card gradient for light mode'
+    bottomBarMatch && 
+    bottomBarMatch[1].includes('backdrop-filter') && 
+    (bottomBarMatch[1].includes('var(--nav-bg)') || bottomBarMatch[1].includes('var(--card-bg)')),
+    'w-bottom-bar must be styled as a crisp architectural dock with backdrop-filter'
   );
 });
 

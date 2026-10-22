@@ -18,7 +18,6 @@
       --card-bg: #111111;
       --card-border: rgba(255, 255, 255, 0.08);
       --nav-bg: rgba(10, 10, 10, 0.9);
-      --wo-gradient: linear-gradient(170deg, transparent 30%, rgba(10, 10, 10, 0.92) 100%);
       --display: 'Playfair Display', Georgia, serif;
       --sans: 'Syne', sans-serif;
       --mono: 'Syne Mono', monospace;
@@ -41,7 +40,6 @@
       --card-bg: #FFFFFF;
       --card-border: rgba(22, 22, 21, 0.09);
       --nav-bg: rgba(247, 244, 238, 0.92);
-      --wo-gradient: linear-gradient(170deg, transparent 30%, rgba(247, 244, 238, 0.94) 100%);
       --display: 'Playfair Display', Georgia, serif;
       --sans: 'Syne', sans-serif;
       --mono: 'Syne Mono', monospace;
@@ -634,33 +632,58 @@
     .wo {
       position: absolute;
       inset: 0;
-      padding: 32px 36px;
+      padding: 24px 28px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      background: var(--wo-gradient);
-      transition: background 400ms, opacity 400ms ease;
+      justify-content: space-between;
+      background: transparent;
       pointer-events: none;
       z-index: 3;
     }
 
     .wc:hover .wo {
-      background: var(--wo-gradient);
+      background: transparent;
     }
 
     .wc-interactive:hover .wo {
       opacity: 1;
-      background: var(--wo-gradient);
+      background: transparent;
+    }
+
+    .w-bottom-bar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 0.5px solid var(--wire);
+      border-radius: 3px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+      pointer-events: auto;
+      transition: border-color 220ms ease, transform 220ms ease;
+    }
+
+    .wc:hover .w-bottom-bar {
+      border-color: var(--wire-h);
     }
 
     .w-num {
-      position: absolute;
-      top: 22px;
-      right: 26px;
+      position: static;
+      align-self: flex-start;
       font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      color: rgba(255, 255, 255, 0.15);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--text);
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 0.5px solid var(--wire);
+      padding: 4px 10px;
+      border-radius: 2px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .w-arrow {
@@ -2876,7 +2899,8 @@
       }
 
       .wo {
-        padding: 16px 16px 14px;
+        padding: 12px;
+        background: transparent !important;
       }
 
       .w-bottom-bar {
@@ -2884,6 +2908,8 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: 10px;
+        padding: 12px 14px;
+        border-radius: 2px;
       }
 
       .w-title {
