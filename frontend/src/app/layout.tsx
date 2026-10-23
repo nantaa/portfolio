@@ -22,6 +22,14 @@ const syneMono = Syne_Mono({
 export const metadata: Metadata = {
   title: "Aryo \u2014 Portfolio",
   description: "Solving problems across software, design, and infrastructure.",
+  icons: {
+    icon: [
+      { url: "/logo-svg.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/logo-svg.svg",
+    apple: "/logo-svg.svg",
+  },
 };
 
 export default function RootLayout({
@@ -37,6 +45,9 @@ export default function RootLayout({
       className={`${playfair.variable} ${syne.variable} ${syneMono.variable} antialiased`}
     >
       <head>
+        <link rel="icon" type="image/svg+xml" href="/logo-svg.svg" />
+        <link rel="alternate icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/logo-svg.svg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

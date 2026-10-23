@@ -136,12 +136,28 @@
     }
 
     .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-family: var(--sans);
       font-weight: 800;
       font-size: 15px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      flex-shrink: 0;
+      transition: transform 300ms ease;
+    }
+
+    .nav-logo:hover .nav-logo-icon {
+      transform: scale(1.05);
     }
 
     .nav-logo em {

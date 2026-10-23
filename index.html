@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aryo — Portfolio</title>
+  <link rel="icon" type="image/svg+xml" href="logo-svg.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="logo-svg.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -118,12 +121,28 @@
     }
 
     .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-family: var(--sans);
       font-weight: 800;
       font-size: 15px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      flex-shrink: 0;
+      transition: transform 300ms ease;
+    }
+
+    .nav-logo:hover .nav-logo-icon {
+      transform: scale(1.05);
     }
 
     .nav-logo em {
@@ -1180,7 +1199,10 @@
 
   <!-- NAV -->
   <nav>
-    <div class="nav-logo">Aryo<em>.</em></div>
+    <a href="#" class="nav-logo">
+      <img src="logo-svg.svg" alt="Aryo Logo" class="nav-logo-icon" width="26" height="26">
+      <span>Aryo<em>.</em></span>
+    </a>
     <div class="nav-right">
       <ul class="nav-links">
         <li><a href="#work">Work</a></li>

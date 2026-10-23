@@ -41,9 +41,16 @@ export default function Nav() {
   return (
     <>
       <nav>
-        <div className="nav-logo">
-          Aryo<em>.</em>
-        </div>
+        <a href="#" className="nav-logo flex items-center gap-2.5 group cursor-pointer" style={{ textDecoration: "none" }}>
+          <img
+            src="/logo-svg.svg"
+            alt="Aryo Logo"
+            width={26}
+            height={26}
+            className="nav-logo-icon w-[26px] h-[26px] object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+          <span>Aryo<em>.</em></span>
+        </a>
         <div className="nav-right">
           <ul className="nav-links hidden md:flex">
             <li><a href="#work">Work</a></li>
@@ -156,7 +163,10 @@ export default function Nav() {
             <span className="text-[var(--accent2)]">→</span>
           </a>
           <div className="pt-2 flex justify-between items-center text-[10px] text-[var(--muted)]">
-            <span>Aryo — Systems Technologist</span>
+            <span className="flex items-center gap-1.5">
+              <img src="/logo-svg.svg" alt="Aryo Logo" width={14} height={14} className="w-3.5 h-3.5 object-contain" />
+              Aryo — Systems Technologist
+            </span>
             <span className="text-[var(--accent2)]">Available for work</span>
           </div>
         </div>
