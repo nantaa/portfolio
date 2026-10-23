@@ -23,6 +23,11 @@ dist/
 .env.test.local
 .env.production.local
 
+# Internal documentation, plans, and markdown files (hidden from public GitHub)
+docs/
+*.md
+**/*.md
+
 # OS files
 .DS_Store
 Thumbs.db
