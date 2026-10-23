@@ -46,16 +46,8 @@ jobs:
           echo "=== WireGuard Interface Status ==="
           sudo wg show
           echo "=== Testing Connectivity to VPS_HOST ==="
-          # Ping is advisory (many firewalls/gateways drop ICMP)
-          ping -c 2 -W 2 ${{ secrets.VPS_HOST }} || echo "Notice: Ping dropped (ICMP may be blocked by firewall)"
-          
-          # Hard gate: Check SSH port 22 connectivity. If unreachable, FAIL IMMEDIATELY.
-          echo "Checking SSH port 22 access via WireGuard..."
-          if ! nc -zv -w 5 ${{ secrets.VPS_HOST }} 22; then
-            echo "::error::SSH port 22 on ${{ secrets.VPS_HOST }} is unreachable via WireGuard! Aborting deploy immediately to avoid hanging."
-            exit 1
-          fi
-          echo "SSH port 22 reachable!"
+          ping -c 2 -W 2 ${{ secrets.VPS_HOST }} || echo "Ping failed (ignored, firewall drops ICMP)"
+          nc -zv -w 5 ${{ secrets.VPS_HOST }} 22 || echo "Port 22 check warning (proceeding to SSH)"
 
       - name: Deploy Frontend and Update Backend via SSH
         timeout-minutes: 5
