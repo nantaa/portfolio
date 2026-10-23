@@ -29,7 +29,7 @@ const NODES: ArchNode[] = [
     latency: "0ms",
     status: "ACTIVE",
     xNorm: 0.14,
-    yNorm: 0.38,
+    yNorm: 0.48,
   },
   {
     id: "gateway",
@@ -40,7 +40,7 @@ const NODES: ArchNode[] = [
     latency: "8ms",
     status: "ACTIVE",
     xNorm: 0.38,
-    yNorm: 0.38,
+    yNorm: 0.48,
   },
   {
     id: "gemini",
@@ -51,7 +51,7 @@ const NODES: ArchNode[] = [
     latency: "~820ms",
     status: "INFERENCE",
     xNorm: 0.63,
-    yNorm: 0.38,
+    yNorm: 0.48,
   },
   {
     id: "prisma",
@@ -62,7 +62,7 @@ const NODES: ArchNode[] = [
     latency: "12ms",
     status: "VERIFIED",
     xNorm: 0.88,
-    yNorm: 0.38,
+    yNorm: 0.48,
   },
 ];
 
@@ -127,8 +127,10 @@ export default function ExpenseTrackerPreview() {
       { from: 2, to: 3, t: 0.78, speed: 0.008 },
     ];
 
+    const wrapper = canvas.parentElement || container;
+
     const updateDimensions = () => {
-      const rect = container.getBoundingClientRect();
+      const rect = wrapper.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -141,10 +143,10 @@ export default function ExpenseTrackerPreview() {
 
     updateDimensions();
     const ro = new ResizeObserver(updateDimensions);
-    ro.observe(container);
+    ro.observe(wrapper);
 
     const onPointerDown = (e: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
 
@@ -152,14 +154,14 @@ export default function ExpenseTrackerPreview() {
         const nx = n.xNorm * width;
         const ny = n.yNorm * height;
         const dist = Math.hypot(nx - px, ny - py);
-        if (dist <= 38) {
+        if (dist <= 42) {
           setActiveNodeId(n.id);
           setPayloadIndex((prev) => prev + 1);
         }
       });
     };
 
-    container.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointerdown", onPointerDown);
 
     const render = () => {
       animId = requestAnimationFrame(render);
@@ -284,7 +286,7 @@ export default function ExpenseTrackerPreview() {
     return () => {
       cancelAnimationFrame(animId);
       ro.disconnect();
-      container.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointerdown", onPointerDown);
     };
   }, [activeNodeId]);
 
@@ -343,32 +345,52 @@ export default function ExpenseTrackerPreview() {
         </div>
       </div>
 
-      {/* ── Main Canvas View: Interactive Architecture Bus ── */}
-      <div style={{ position: "relative", flex: 1, minHeight: "140px", cursor: "crosshair" }}>
-        <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-      </div>
-
-      {/* ── Active Node & Live Payload Inspector ── */}
+      {/* ── Active Node & Live Payload Inspector (Positioned at TOP to prevent card dock overlay) ── */}
       <div
+        className="et-payload-dock"
         style={{
           background: "var(--s1)",
           border: "0.5px solid var(--wire)",
           borderRadius: "3px",
-          padding: "10px 14px",
+          padding: "8px 12px",
           display: "flex",
           flexDirection: "column",
-          gap: "6px",
+          gap: "5px",
           marginTop: "6px",
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+          zIndex: 2,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "7.5px" }}>
           <span style={{ color: "var(--accent)", fontWeight: 700, letterSpacing: "0.12em" }}>
             NODE [{activeNode.num}] {activeNode.title.toUpperCase()} · {activeNode.role}
           </span>
-          <span style={{ color: "var(--muted)" }}>
-            CLICK NODES TO INSPECT PAYLOADS
-          </span>
+          <div style={{ display: "flex", gap: "4px" }}>
+            {NODES.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveNodeId(n.id);
+                  setPayloadIndex((prev) => prev + 1);
+                }}
+                style={{
+                  padding: "2px 5px",
+                  fontSize: "6.5px",
+                  fontFamily: "var(--mono)",
+                  background: activeNodeId === n.id ? "var(--accent)" : "var(--s2)",
+                  color: activeNodeId === n.id ? "#FFF" : "var(--muted)",
+                  border: "0.5px solid var(--wire)",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  transition: "all 150ms ease",
+                }}
+              >
+                [{n.num}] {n.title}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Real Structured JSON Schema Telemetry */}
@@ -377,13 +399,13 @@ export default function ExpenseTrackerPreview() {
             background: "var(--s2)",
             border: "0.5px solid var(--wire)",
             borderRadius: "2px",
-            padding: "6px 8px",
+            padding: "5px 8px",
             fontSize: "7.5px",
             lineHeight: "1.4",
             color: "var(--text)",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1px" }}>
             <span style={{ color: "var(--text)", fontWeight: 600 }}>
               {activePayload.merchant} · <span style={{ color: "#E67E22" }}>{activePayload.category}</span>
             </span>
@@ -398,35 +420,11 @@ export default function ExpenseTrackerPreview() {
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Fast Node Selector Strip */}
-        <div style={{ display: "flex", gap: "6px" }}>
-          {NODES.map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveNodeId(n.id);
-                setPayloadIndex((prev) => prev + 1);
-              }}
-              style={{
-                flex: 1,
-                padding: "3px 4px",
-                fontSize: "7px",
-                fontFamily: "var(--mono)",
-                background: activeNodeId === n.id ? "var(--accent)" : "var(--s2)",
-                color: activeNodeId === n.id ? "#FFF" : "var(--muted)",
-                border: "0.5px solid var(--wire)",
-                borderRadius: "2px",
-                cursor: "pointer",
-                transition: "all 150ms ease",
-              }}
-            >
-              [{n.num}] {n.title}
-            </button>
-          ))}
-        </div>
+      {/* ── Main Canvas View: Interactive Architecture Bus with dock clearance ── */}
+      <div style={{ position: "relative", flex: 1, minHeight: "170px", cursor: "crosshair", marginBottom: "120px" }}>
+        <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
       </div>
     </div>
   );

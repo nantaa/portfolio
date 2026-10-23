@@ -121,7 +121,7 @@ const ARCHITECTURES: ArchitectureSchematic[] = [
       { id: "m2", name: "Gale-Shapley Matcher", tech: "Deferred Acceptance", role: "Stable Blocking Pair Elimination", status: "VERIFIED", homeNormX: 0.40, homeNormY: 0.22 },
       { id: "m3", name: "Hungarian Matrix", tech: "Cost-Matrix Solver", role: "Global Minima Optimization", status: "OPTIMIZED", homeNormX: 0.40, homeNormY: 0.48 },
       { id: "m4", name: "Markov Verifier", tech: "9-Stage Markov Chain", role: "Deadlock-Free State Traversal", status: "VERIFIED", homeNormX: 0.70, homeNormY: 0.35 },
-      { id: "m5", name: "Docket Registry", tech: "Disnaker / Academic DB", role: "Statutory Defense Docket", status: "ACTIVE", homeNormX: 0.90, homeNormY: 0.35 },
+      { id: "m5", name: "Docket Registry", tech: "MySQL / Academic DB", role: "Thesis Defense Registry", status: "ACTIVE", homeNormX: 0.90, homeNormY: 0.35 },
     ],
     connections: [
       [0, 1],
@@ -465,20 +465,20 @@ export default function HeroTelemetryHUD() {
         ctx.fill();
 
         // Node title
-        ctx.font = isMobile ? "bold 7.5px 'Syne', sans-serif" : "bold 8.5px 'Syne', sans-serif";
-        ctx.fillStyle = isLight ? "#161615" : "#EEEBE5";
+        ctx.font = isMobile ? "bold 8px 'Syne', sans-serif" : "bold 9px 'Syne', sans-serif";
+        ctx.fillStyle = isLight ? "#111110" : "#F4F1EA";
         ctx.textAlign = "center";
-        ctx.fillText(node.name, node.x, by + (isMobile ? 13 : 16));
+        ctx.fillText(node.name, node.x, by + (isMobile ? 14 : 17));
 
-        // Tech subtitle
-        ctx.font = isMobile ? "6px 'Syne Mono', monospace" : "7px 'Syne Mono', monospace";
-        ctx.fillStyle = isSelected ? (isLight ? "#851726" : "#9B1E30") : (isLight ? "#6E6A62" : "#888880");
-        ctx.fillText(node.tech, node.x, by + (isMobile ? 23 : 28));
+        // Tech subtitle (clear, high-contrast)
+        ctx.font = isMobile ? "6.5px 'Syne Mono', monospace" : "7.5px 'Syne Mono', monospace";
+        ctx.fillStyle = isSelected ? (isLight ? "#851726" : "#B3263B") : (isLight ? "#383632" : "#B8B5AE");
+        ctx.fillText(node.tech, node.x, by + (isMobile ? 24 : 29));
 
         // Status label
-        ctx.font = isMobile ? "5.5px 'Syne Mono', monospace" : "6px 'Syne Mono', monospace";
-        ctx.fillStyle = isLight ? "rgba(22, 22, 21, 0.5)" : "rgba(255, 255, 255, 0.4)";
-        ctx.fillText(node.status, node.x, by + (isMobile ? 32 : 38));
+        ctx.font = isMobile ? "6px 'Syne Mono', monospace" : "6.5px 'Syne Mono', monospace";
+        ctx.fillStyle = isLight ? "rgba(22, 22, 21, 0.7)" : "rgba(255, 255, 255, 0.6)";
+        ctx.fillText(node.status, node.x, by + (isMobile ? 33 : 39));
       });
     };
 
@@ -496,7 +496,7 @@ export default function HeroTelemetryHUD() {
   return (
     <div
       ref={containerRef}
-      className="hero-telemetry-hud relative w-full h-full flex flex-col justify-between p-6 sm:p-8 select-none"
+      className="hero-telemetry-hud relative w-full h-full flex flex-col justify-between p-4 sm:p-6 lg:p-7 select-none"
     >
       {/* ── Top Header / Mode Switcher ── */}
       <div className="z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--wire)] font-mono text-[10px]">
@@ -567,7 +567,7 @@ export default function HeroTelemetryHUD() {
           </div>
 
           {/* Live Architecture Descriptor Box */}
-          <div className="z-10 mt-auto p-3.5 sm:p-6 w-full max-w-[560px] bg-[var(--modal-bg)] border border-[var(--card-border)] backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
+          <div className="z-10 mt-auto p-3 sm:p-5 w-full max-w-[560px] bg-[var(--modal-bg)] border border-[var(--card-border)] backdrop-blur-md rounded-[3px] pointer-events-auto shadow-2xl">
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)] font-mono text-[10.5px] sm:text-[11.5px]">
               <span className="text-[var(--accent2)] font-bold uppercase tracking-wider">
                 {activeArch.category}
@@ -598,8 +598,8 @@ export default function HeroTelemetryHUD() {
                   }}
                   className={`px-2 py-0.5 rounded-[2px] transition-all cursor-pointer ${
                     selectedNodeId === n.id
-                      ? "bg-[#7a1525] text-white font-bold shadow-[0_0_12px_rgba(155,30,48,0.5)]"
-                      : "bg-white/5 text-neutral-300 hover:bg-white/12 hover:text-white border border-white/5"
+                      ? "bg-[var(--accent)] text-white font-bold shadow-[0_0_12px_rgba(155,30,48,0.4)]"
+                      : "bg-[var(--s2)] text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)] font-semibold"
                   }`}
                 >
                   {n.tech}
@@ -613,41 +613,41 @@ export default function HeroTelemetryHUD() {
       {/* ── Mode 2: TELEMETRY Production Matrix ── */}
       {mode === "TELEMETRY" && (
         <div className="relative flex-1 my-3 space-y-2 font-mono text-[10px] animate-fadeIn overflow-y-auto">
-          <div className="text-[9px] text-neutral-500 uppercase tracking-widest pb-1 border-b border-white/5 flex justify-between">
+          <div className="text-[9px] text-[var(--muted)] uppercase tracking-widest pb-1 border-b border-[var(--wire)] flex justify-between">
             <span>Core Engineering Domains &amp; Production Scale</span>
-            <span className="text-[#7a1525]">VERIFIED BENCHMARKS</span>
+            <span className="text-[var(--accent)] font-bold">VERIFIED BENCHMARKS</span>
           </div>
 
           <div className="grid grid-cols-1 gap-2">
             {ARCHITECTURES.map((arch) => (
               <div
                 key={arch.key}
-                className="p-3 bg-white/[0.02] border border-white/5 rounded-[2px] hover:border-white/15 transition-all"
+                className="p-3 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] hover:border-[var(--wire-h)] transition-all"
               >
-                <div className="flex justify-between items-center text-[10px] font-bold text-white mb-0.5">
-                  <span className="text-[#f39c12]">[{arch.code}] {arch.category}</span>
-                  <span className="text-[8px] text-neutral-400 font-normal">{arch.throughput}</span>
+                <div className="flex justify-between items-center text-[10px] font-bold text-[var(--text)] mb-0.5">
+                  <span className="text-[var(--accent2)]">[{arch.code}] {arch.category}</span>
+                  <span className="text-[8px] text-[var(--muted)] font-normal">{arch.throughput}</span>
                 </div>
-                <div className="text-white text-xs font-serif mt-1 font-bold">{arch.title}</div>
-                <div className="text-neutral-400 text-[10px] leading-relaxed mt-1">
-                  Latency: <span className="text-neutral-200">{arch.latency}</span> · {arch.summary}
+                <div className="text-[var(--text)] text-xs font-serif mt-1 font-bold">{arch.title}</div>
+                <div className="text-[var(--muted)] text-[10px] leading-relaxed mt-1">
+                  Latency: <span className="text-[var(--text)] font-semibold">{arch.latency}</span> · {arch.summary}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-2.5 bg-white/[0.03] border border-white/10 rounded-[2px] flex justify-between items-center text-[9px]">
-            <span className="text-white font-bold">● 350+ Passing Automated Tests</span>
-            <span className="text-neutral-400">Zero SLA Calculation Errors</span>
+          <div className="p-2.5 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] flex justify-between items-center text-[9px]">
+            <span className="text-[var(--text)] font-bold">● 350+ Passing Automated Tests</span>
+            <span className="text-[var(--muted)]">Zero SLA Calculation Errors</span>
             <span className="text-[#27ae60] font-bold">Production Verified</span>
           </div>
         </div>
       )}
 
       {/* ── Bottom Availability Status Ticker ── */}
-      <div className="z-10 pt-3 border-t border-white/10 flex flex-wrap justify-between items-end font-mono text-[9px] text-neutral-400 tracking-wider">
-        <span className="text-neutral-300">BEKASI, INDONESIA · 06°14&apos;S 107°00&apos;E</span>
-        <span className="text-white font-bold">AVAILABLE FOR SYSTEMS ARCHITECTURE &amp; FULLSTACK ENGINEERING</span>
+      <div className="z-10 pt-2.5 border-t border-[var(--wire)] flex flex-wrap justify-between items-end font-mono text-[9px] text-[var(--muted)] tracking-wider">
+        <span className="text-[var(--text)] font-semibold">BEKASI, INDONESIA · 06°14&apos;S 107°00&apos;E</span>
+        <span className="text-[var(--text)] font-bold">AVAILABLE FOR SYSTEMS ARCHITECTURE &amp; FULLSTACK ENGINEERING</span>
       </div>
     </div>
   );

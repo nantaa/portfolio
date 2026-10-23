@@ -276,6 +276,10 @@ test('HeroTelemetryHUD renders authentic animated architecture topology visualiz
   
   // Must render bus/packet flow or pipeline nodes
   assert.ok(content.includes('PIPELINE') || content.includes('BUS') || content.includes('TOPOLOGY') || content.includes('packet') || content.includes('packets'), 'Must render animated data bus/packets');
+
+  // ARCH-04 must NOT contain Disnaker references (must be Academic DB / MySQL)
+  assert.ok(!content.includes('Disnaker / Academic DB'), 'ARCH-04 must not conflate Disnaker with Academic Docket');
+  assert.ok(content.includes('Academic DB') || content.includes('MySQL'), 'ARCH-04 must model academic database docket');
 });
 
 test('MaknaMoodboardPreview renders makna_works_branding_moodboard.webp with click-to-open detail popup modal without navigating away', () => {
