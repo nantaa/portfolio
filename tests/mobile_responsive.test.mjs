@@ -120,3 +120,20 @@ test('HeroTelemetryHUD adapts node distribution for mobile screens', () => {
   );
 });
 
+test('work preview components eliminate hardcoded #07090b and radial-gradient spotlights', () => {
+  const gatePath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ProjectPreviewGate.tsx');
+  const carouselPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaterialStudiesCarousel.tsx');
+
+  const gateContent = fs.readFileSync(gatePath, 'utf-8');
+  const carouselContent = fs.readFileSync(carouselPath, 'utf-8');
+
+  // Verify radial-gradient is purged
+  assert.ok(!gateContent.includes('radial-gradient'), 'ProjectPreviewGate must not use radial-gradient');
+  assert.ok(!carouselContent.includes('radial-gradient'), 'MaterialStudiesCarousel must not use radial-gradient');
+
+  // Verify hardcoded #07090b is purged in favor of theme-aware tokens
+  assert.ok(!gateContent.includes('#07090b'), 'ProjectPreviewGate must not hardcode #07090b');
+  assert.ok(!carouselContent.includes('#07090b'), 'MaterialStudiesCarousel must not hardcode #07090b');
+});
+
+

@@ -100,7 +100,7 @@ export default function MaterialStudiesCarousel() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden bg-[#07090b] flex flex-col justify-between select-none"
+      className="relative w-full h-full overflow-hidden bg-[var(--s2)] flex flex-col justify-between select-none"
     >
       {/* ── 3D Viewport / Lazy Canvas Area ── */}
       <div className="absolute inset-0 z-0">
@@ -114,12 +114,7 @@ export default function MaterialStudiesCarousel() {
           />
         ) : (
           /* High-Contrast Click-to-Load Poster Placeholder */
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-all duration-300"
-            style={{
-              background: `radial-gradient(circle at 50% 45%, ${currentStudy.accentSoft} 0%, #07090b 75%)`,
-            }}
-          >
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-all duration-300 bg-[var(--s2)]">
             <div className="max-w-[340px] flex flex-col items-center gap-3">
               <span
                 className="font-mono text-[10px] uppercase tracking-[0.2em] px-2.5 py-0.5 rounded border"
@@ -132,23 +127,11 @@ export default function MaterialStudiesCarousel() {
                 {currentStudy.location}
               </span>
 
-              <h4 className="font-serif text-xl sm:text-2xl text-neutral-100 font-normal tracking-wide">
-                {currentStudy.name}
-              </h4>
-
-              <p className="font-sans text-[13px] text-neutral-300 leading-relaxed line-clamp-2">
-                {currentStudy.description}
-              </p>
-
-              <div className="font-mono text-[11px] text-neutral-400 mt-1">
-                {currentStudy.techSpecs}
-              </div>
-
               {/* On-Demand Click Trigger */}
               <button
                 type="button"
                 onClick={handleActivate}
-                className="mt-3 px-4 py-2 font-mono text-xs uppercase tracking-wider text-white font-semibold rounded transition-all duration-200 flex items-center gap-2 shadow-lg shadow-black/80 hover:scale-[1.03] active:scale-[0.98] border cursor-pointer pointer-events-auto"
+                className="mt-3 px-4 py-2 font-mono text-xs uppercase tracking-wider text-white font-semibold rounded transition-all duration-200 flex items-center gap-2 shadow-md hover:scale-[1.03] active:scale-[0.98] border cursor-pointer pointer-events-auto"
                 style={{
                   backgroundColor: currentStudy.accent,
                   borderColor: `${currentStudy.accent}80`,
@@ -158,7 +141,7 @@ export default function MaterialStudiesCarousel() {
                 <span className="text-[10px] opacity-75 font-normal">(WebGL)</span>
               </button>
 
-              <span className="font-mono text-[10px] text-neutral-500 tracking-tight">
+              <span className="font-mono text-[10px] text-[var(--muted)] tracking-tight">
                 Click to mount 60fps WebGL canvas (saves client GPU)
               </span>
             </div>
@@ -167,7 +150,7 @@ export default function MaterialStudiesCarousel() {
       </div>
 
       {/* ── Top Header Bar & Carousel Switcher Pills ── */}
-      <div className="relative z-20 flex items-center justify-between p-3 pointer-events-auto bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+      <div className="relative z-20 flex items-center justify-between p-2.5 pointer-events-auto bg-[var(--nav-bg)] border-b border-[var(--wire)] backdrop-blur-md">
         {/* Cultural Tag */}
         <div className="flex flex-col gap-0.5 pointer-events-none">
           <span
@@ -176,13 +159,13 @@ export default function MaterialStudiesCarousel() {
           >
             {currentStudy.location}
           </span>
-          <span className="font-serif text-sm text-neutral-200 tracking-wide font-normal">
+          <span className="font-serif text-sm text-[var(--text)] tracking-wide font-normal">
             {currentStudy.name}
           </span>
         </div>
 
         {/* Carousel Slide Switcher Pills */}
-        <div className="flex items-center gap-1 bg-black/80 border border-white/10 rounded p-1 backdrop-blur-md shadow-md">
+        <div className="flex items-center gap-1 bg-[var(--s1)] border border-[var(--wire)] rounded p-1 backdrop-blur-md shadow-sm">
           {STUDIES.map((study, idx) => {
             const isActive = activeSlide === idx;
             return (
@@ -192,8 +175,8 @@ export default function MaterialStudiesCarousel() {
                 onClick={(e) => handleSlideSelect(idx, e)}
                 className={`px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer ${
                   isActive
-                    ? "bg-white/20 text-white font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-neutral-200 hover:bg-white/5"
+                    ? "bg-[var(--accent)] text-white font-bold shadow-sm"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
                 }`}
                 style={
                   isActive
@@ -211,25 +194,25 @@ export default function MaterialStudiesCarousel() {
       </div>
 
       {/* ── Bottom Controls & External Link ── */}
-      <div className="relative z-20 flex items-center justify-between p-3 pointer-events-auto bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+      <div className="relative z-20 flex items-center justify-between p-2 pointer-events-auto bg-[var(--nav-bg)] border-t border-[var(--wire)] backdrop-blur-md">
         {/* Prev / Next Slide Arrows */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Previous Study"
-            className="w-7 h-7 flex items-center justify-center bg-black/70 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/15 rounded text-xs font-mono transition-all cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center bg-[var(--s1)] hover:bg-[var(--s3)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--wire)] rounded text-xs font-mono transition-all cursor-pointer"
           >
             ←
           </button>
-          <span className="font-mono text-[11px] text-neutral-400 px-1">
+          <span className="font-mono text-[11px] text-[var(--muted)] px-1">
             0{activeSlide + 1} / 0{STUDIES.length}
           </span>
           <button
             type="button"
             onClick={handleNext}
             aria-label="Next Study"
-            className="w-7 h-7 flex items-center justify-center bg-black/70 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/15 rounded text-xs font-mono transition-all cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center bg-[var(--s1)] hover:bg-[var(--s3)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--wire)] rounded text-xs font-mono transition-all cursor-pointer"
           >
             →
           </button>
@@ -238,16 +221,16 @@ export default function MaterialStudiesCarousel() {
         {/* Live Status & Launch Fullscreen */}
         <div className="flex items-center gap-2">
           {isCurrentLoaded ? (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-black/80 border border-emerald-500/30 rounded backdrop-blur-md">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-[var(--s1)] border border-emerald-500/30 rounded backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono text-[9px] text-emerald-300 uppercase tracking-wider">
+              <span className="font-mono text-[9px] text-emerald-400 uppercase tracking-wider">
                 Live 3D Active
               </span>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-black/80 border border-neutral-700 rounded backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-              <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-wider">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-[var(--s1)] border border-[var(--wire)] rounded backdrop-blur-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
+              <span className="font-mono text-[9px] text-[var(--muted)] uppercase tracking-wider">
                 Standby (Click to Load)
               </span>
             </div>

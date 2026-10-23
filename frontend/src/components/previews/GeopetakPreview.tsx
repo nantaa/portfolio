@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import ProjectPreviewGate from "./ProjectPreviewGate";
 
 // ─── Geopetak — 3-Layer Canvas XRay Tile Effect ──────────────────────────────
 // Ported directly from HeroXray.vue in the Geopetak project.
@@ -292,24 +291,5 @@ function GeopetakStage() {
 }
 
 export default function GeopetakPreview() {
-  return (
-    <ProjectPreviewGate
-      title="Geopetak Spatial GIS Engine"
-      category="Spatial AI & GIS"
-      specs="Vue 3 · Three.js Canvas · 3-Layer Spatial X-Ray · GSAP · Sample: Bekasi Aerial Photo"
-      description="Interactive multi-layer geospatial interface utilizing a real-world Bekasi Aerial Photo sample to reveal physical aerial photography, underground infrastructure, and vector cadastral mesh layers."
-      actionLabel="▶ Inspect GIS Layers"
-      actionSubtext="Interactive 3-layer canvas inspection · Bekasi Aerial Photo Sample"
-      badge="STANDBY · ON DEMAND"
-      accentColor="#0ea5e9"
-      accentSoft="rgba(14, 165, 233, 0.15)"
-      backdropPattern={
-        <div className="font-mono text-xs text-cyan-500/10 tracking-widest uppercase">
-          BEKASI CADASTRE · BEKASI AERIAL PHOTO SAMPLE · 06°14'S 107°00'E
-        </div>
-      }
-    >
-      <GeopetakStage />
-    </ProjectPreviewGate>
-  );
+  return <GeopetakStage />;
 }
