@@ -189,4 +189,41 @@ test('ProjectPreviewGate renders rich architectural SVG blueprint background whe
   );
 });
 
+test('DNPMonitorPreview hides bottom status ticker and uses scrollbar-none for invisible horizontal scrolling', () => {
+  const dnpPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'DNPMonitorPreview.tsx');
+  const content = fs.readFileSync(dnpPath, 'utf-8');
+
+  // Must purge native chunky scrollbar-thin class
+  assert.ok(!content.includes('scrollbar-thin'), 'DNPMonitorPreview must not use chunky native scrollbar-thin');
+
+  // Must use invisible scrollbar-none for horizontal scrolling
+  assert.ok(content.includes('scrollbar-none'), 'DNPMonitorPreview must use scrollbar-none for sleek scrolling');
+
+  // Must purge cluttered bottom status footer
+  assert.ok(!content.includes('PT Delta Nusantara Persada · Disnaker PJK3 Accredited'), 'Must purge cluttered bottom ticker footer');
+});
+
+test('DNPMonitorPreview eliminates redundant phase filter button strip to reduce cognitive clutter', () => {
+  const dnpPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'DNPMonitorPreview.tsx');
+  const content = fs.readFileSync(dnpPath, 'utf-8');
+
+  // Must purge redundant 5-button phase filter row
+  assert.ok(!content.includes('F1: Berkas'), 'Must purge redundant phase filter buttons');
+
+  // Must have SVG icon-enhanced concise tab names (conforming to DESIGN.md zero-emoji rule)
+  assert.ok(content.includes('Kanban') && content.includes('<svg'), 'Tabs must be concise and SVG icon-enhanced');
+});
+
+test('HeroTelemetryHUD uses compact single-token tech chips and streamlined summary', () => {
+  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+  const content = fs.readFileSync(hudPath, 'utf-8');
+
+  // Must purge verbose multi-word sentence chips
+  assert.ok(!content.includes('{n.name} · {n.tech}'), 'Must purge verbose {n.name} · {n.tech} chip strings');
+
+  // Must render concise tech badge
+  assert.ok(content.includes('{n.tech}'), 'Must render concise tech badge');
+});
+
+
 

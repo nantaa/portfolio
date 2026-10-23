@@ -48,7 +48,7 @@ const ARCHITECTURES: ArchitectureSchematic[] = [
     code: "ARCH-01",
     title: "Industrial K3 Statutory Compliance Engine",
     category: "ENTERPRISE EVENT-DRIVEN BACKEND",
-    summary: "Disnaker PJK3 statutory lifecycle with ACID immutable audit ledger and real-time inspector updates.",
+    summary: "ACID immutable audit ledger & real-time Disnaker inspector updates.",
     throughput: "1,200 req/sec",
     latency: "14ms p99",
     initialNodes: [
@@ -587,7 +587,7 @@ export default function HeroTelemetryHUD() {
             </div>
 
             {/* Real stack indicators */}
-            <div className="hidden sm:flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-[var(--wire)] font-mono text-[9px] sm:text-[10px]">
+            <div className="hidden sm:flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-[var(--wire)] font-mono text-[9px] sm:text-[9.5px]">
               {activeArch.initialNodes.map((n) => (
                 <button
                   key={n.id}
@@ -596,13 +596,13 @@ export default function HeroTelemetryHUD() {
                     e.stopPropagation();
                     setSelectedNodeId(n.id);
                   }}
-                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[2px] transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-[2px] transition-all cursor-pointer ${
                     selectedNodeId === n.id
                       ? "bg-[#7a1525] text-white font-bold shadow-[0_0_12px_rgba(155,30,48,0.5)]"
                       : "bg-white/5 text-neutral-300 hover:bg-white/12 hover:text-white border border-white/5"
                   }`}
                 >
-                  {n.name} · {n.tech}
+                  {n.tech}
                 </button>
               ))}
             </div>

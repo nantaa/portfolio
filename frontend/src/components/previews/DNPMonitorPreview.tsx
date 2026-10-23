@@ -10,7 +10,10 @@ import { useState } from "react";
 // Phase 3: Disnaker (Stage 7 - 9: Verifikasi Dinas, Proses Disnaker [30d SLA], Pengurusan Suket)
 // Phase 4: Tagihan & Suket (Stage 10 - 16: Invoice, Penagihan, Verifikasi Lunas, Kirim Suket, Closing Kas, Selesai)
 
-const TABS = ["Inspection Kanban", "SLA Pipeline", "Statutory Forms"] as const;
+// Docket-inspired statutory compliance views: Inspection Kanban, SLA Pipeline, Statutory Forms
+export const DOCKET_TABS = ["Inspection Kanban", "SLA Pipeline", "Statutory Forms"] as const;
+
+const TABS = ["Kanban", "SLA", "Forms"] as const;
 type Tab = (typeof TABS)[number];
 
 export type RoleCode = "MKT" | "ADM" | "TRU" | "AHLI" | "FIN" | "SUP";
@@ -116,13 +119,6 @@ const INITIAL_JOBS: KanbanJob[] = [
   },
 ];
 
-const PHASES = [
-  { id: "all", label: "16 Tahap" },
-  { id: "p1", label: "F1: Berkas [1-3]" },
-  { id: "p2", label: "F2: Lapangan [4-6]" },
-  { id: "p3", label: "F3: Disnaker [7-9]" },
-  { id: "p4", label: "F4: Suket & Fin [10-16]" },
-] as const;
 
 const ROLE_STYLES: Record<RoleCode, string> = {
   MKT: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -141,7 +137,7 @@ const STATUTORY_FORMS = [
 ];
 
 export default function DNPMonitorPreview() {
-  const [tab, setTab] = useState<Tab>("Inspection Kanban");
+  const [tab, setTab] = useState<Tab>("Kanban");
   const [phaseFilter, setPhaseFilter] = useState<PhaseCode>("all");
   const [jobs, setJobs] = useState<KanbanJob[]>(INITIAL_JOBS);
   const [selectedForm, setSelectedForm] = useState<string>("Form 6");
@@ -216,12 +212,9 @@ export default function DNPMonitorPreview() {
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse"></span>
             <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
-              MORIKU <span className="hidden md:inline">· Industrial K3 Compliance Engine</span>
+              MORIKU <span className="hidden md:inline">// K3 COMPLIANCE ENGINE</span>
             </span>
           </div>
-          <span className="text-[9px] text-[#f39c12] tracking-widest uppercase">
-            Disnaker Jawa Barat
-          </span>
         </div>
 
         {/* View Switcher Tabs */}
@@ -235,24 +228,40 @@ export default function DNPMonitorPreview() {
                   e.stopPropagation();
                   setTab(t);
                 }}
-                className={`px-2.5 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer ${
-                  tab === t
-                    ? "bg-[#f39c12] text-black font-bold shadow-sm"
-                    : "bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)]"
-                }`}
+                className={`px-2.5 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer flex items-center gap-1.5 ${tab === t
+                  ? "bg-[#f39c12] text-black font-bold shadow-sm"
+                  : "bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)]"
+                  }`}
               >
-                {t}
+                {t === "Kanban" ? (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                    <rect x="3" y="3" width="7" height="18" rx="1" />
+                    <rect x="14" y="3" width="7" height="10" rx="1" />
+                  </svg>
+                ) : t === "SLA" ? (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                ) : (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                )}
+                <span>{t}</span>
               </button>
             ))}
           </div>
 
-          {tab === "Inspection Kanban" && (
+          {tab === "Kanban" && (
             <button
               type="button"
               onClick={resetPipeline}
-              className="px-2 py-0.5 text-[8px] uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-all cursor-pointer"
+              className="px-2 py-0.5 text-[8px] uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-all cursor-pointer flex items-center gap-1"
             >
-              Reset Data Demo
+              <span>↺</span>
+              <span>Reset</span>
             </button>
           )}
         </div>
@@ -261,37 +270,13 @@ export default function DNPMonitorPreview() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col justify-center min-h-0">
         {/* VIEW 1: 16-STAGE STATUTORY KANBAN SIMULATOR */}
-        {tab === "Inspection Kanban" && (
+        {tab === "Kanban" && (
           <div className="flex-1 flex flex-col justify-between animate-fadeIn min-h-0">
-            {/* Phase Filter Bar */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1.5 mb-1.5 border-b border-[var(--wire)] text-[8px] scrollbar-none">
-              <span className="text-[var(--muted)] uppercase tracking-wider shrink-0 pr-1">Fase:</span>
-              {PHASES.map((ph) => (
-                <button
-                  key={ph.id}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPhaseFilter(ph.id as PhaseCode);
-                  }}
-                  className={`px-2 py-0.5 rounded-[2px] whitespace-nowrap transition-all cursor-pointer ${
-                    phaseFilter === ph.id
-                      ? "bg-[var(--accent)] text-white font-bold border border-[var(--accent2)] shadow-sm"
-                      : "text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] border border-[var(--wire)]"
-                  }`}
-                >
-                  {ph.label}
-                </button>
-              ))}
-              <span className="ml-auto text-[8px] text-[var(--muted)] shrink-0 pl-2">
-                16 Stages Pipeline
-              </span>
-            </div>
-
             {/* Side-Scrolling Kanban Columns */}
             <div
               onClick={(e) => e.stopPropagation()}
-              className="flex-1 overflow-x-auto overflow-y-hidden pb-1 scrollbar-thin"
+              className="flex-1 overflow-x-auto overflow-y-hidden pb-1 scrollbar-none"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               <div className="flex gap-2 min-w-max h-full">
                 {visibleStages.map((stage) => {
@@ -311,9 +296,8 @@ export default function DNPMonitorPreview() {
                         e.stopPropagation();
                         handleDrop(stage.id);
                       }}
-                      className={`w-[210px] flex-shrink-0 bg-[var(--s1)] border rounded-[2px] p-2 flex flex-col justify-between transition-colors ${
-                        isDragTarget ? "border-[var(--accent)]" : "border-[var(--wire)]"
-                      }`}
+                      className={`w-[210px] flex-shrink-0 bg-[var(--s1)] border rounded-[2px] p-2 flex flex-col justify-between transition-colors ${isDragTarget ? "border-[var(--accent)]" : "border-[var(--wire)]"
+                        }`}
                     >
                       <div className="flex flex-col h-full">
                         {/* Column Header */}
@@ -323,7 +307,7 @@ export default function DNPMonitorPreview() {
                               {stage.displayId}
                             </span>
                             <span className="text-[9px] font-bold text-[var(--text)] truncate" title={stage.name}>
-                              {stage.name}
+                              {stage.short}
                             </span>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
@@ -357,11 +341,10 @@ export default function DNPMonitorPreview() {
                                   <span className="text-[var(--muted)] font-bold">{job.spk}</span>
                                   {job.sla && (
                                     <span
-                                      className={`text-[7px] font-semibold px-1 rounded ${
-                                        job.sla.includes("OVERDUE")
-                                          ? "text-rose-400 bg-rose-500/10"
-                                          : "text-emerald-500 bg-emerald-500/10 font-bold"
-                                      }`}
+                                      className={`text-[7px] font-semibold px-1 rounded ${job.sla.includes("OVERDUE")
+                                        ? "text-rose-400 bg-rose-500/10"
+                                        : "text-emerald-500 bg-emerald-500/10 font-bold"
+                                        }`}
                                     >
                                       {job.sla}
                                     </span>
@@ -421,7 +404,7 @@ export default function DNPMonitorPreview() {
         )}
 
         {/* VIEW 2: SLA PIPELINE OVERVIEW */}
-        {tab === "SLA Pipeline" && (
+        {tab === "SLA" && (
           <div className="space-y-2 animate-fadeIn py-1">
             <div className="grid grid-cols-3 gap-2">
               <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
@@ -453,17 +436,17 @@ export default function DNPMonitorPreview() {
                 <div style={{ width: "20%" }} className="bg-[#27ae60]" title="Fase 4: Suket & Fin"></div>
               </div>
               <div className="flex justify-between text-[8px] text-[var(--muted)] pt-0.5">
-                <span>F1: Berkas [1-3]</span>
-                <span>F2: Lapangan [4-6]</span>
-                <span>F3: Disnaker [7-9]</span>
-                <span>F4: Suket &amp; Fin [10-16]</span>
+                <span>Berkas [1-3]</span>
+                <span>Lapangan [4-6]</span>
+                <span>Disnaker [7-9]</span>
+                <span>Suket &amp; Fin [10-16]</span>
               </div>
             </div>
           </div>
         )}
 
         {/* VIEW 3: STATUTORY FORMS SPECIFICATION */}
-        {tab === "Statutory Forms" && (
+        {tab === "Forms" && (
           <div className="space-y-1.5 animate-fadeIn py-1">
             <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
               <span>Disnaker Statutory Form</span>
@@ -476,11 +459,10 @@ export default function DNPMonitorPreview() {
                   e.stopPropagation();
                   setSelectedForm(form.code);
                 }}
-                className={`p-1.5 rounded-[2px] transition-all cursor-pointer border ${
-                  selectedForm === form.code
-                    ? "bg-[#f39c12]/15 border-[#f39c12]/60 text-[var(--text)]"
-                    : "bg-[var(--s1)] border-[var(--wire)] text-[var(--muted)] hover:bg-[var(--s3)] hover:text-[var(--text)]"
-                }`}
+                className={`p-1.5 rounded-[2px] transition-all cursor-pointer border ${selectedForm === form.code
+                  ? "bg-[#f39c12]/15 border-[#f39c12]/60 text-[var(--text)]"
+                  : "bg-[var(--s1)] border-[var(--wire)] text-[var(--muted)] hover:bg-[var(--s3)] hover:text-[var(--text)]"
+                  }`}
               >
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="font-bold text-[#f39c12]">
@@ -493,15 +475,6 @@ export default function DNPMonitorPreview() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Bottom Status Footer */}
-      <div className="pt-2 border-t border-[var(--wire)] flex justify-between items-center text-[9px] text-[var(--muted)]">
-        <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#27ae60]"></span>
-          <span>PT Delta Nusantara Persada · Disnaker PJK3 Accredited</span>
-        </span>
-        <span className="text-[var(--muted)]">16 Statutory Stages · {jobs.length} Active Units</span>
       </div>
     </div>
   );
