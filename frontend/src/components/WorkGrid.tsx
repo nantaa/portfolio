@@ -214,10 +214,14 @@ export default function WorkGrid({ projects }: WorkGridProps) {
               )}
 
               <div className="wo">
-                <span className="w-num">{String(i + 1).padStart(2, "0")}</span>
                 <div className="w-bottom-bar flex items-end justify-between pointer-events-auto">
                   <div className="flex-1 pr-4">
-                    <div className="w-cat text-[var(--accent2)] font-mono text-xs font-bold tracking-widest uppercase mb-1">{project.category}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-num-dock font-mono text-[11px] font-bold tracking-widest text-[var(--accent2)] bg-[var(--wire)] px-1.5 py-0.5 rounded-[2px]">
+                        [{String(i + 1).padStart(2, "0")}]
+                      </span>
+                      <div className="w-cat text-[var(--accent2)] font-mono text-xs font-bold tracking-widest uppercase">{project.category}</div>
+                    </div>
                     <div className="w-title text-2xl font-serif text-[var(--text)]">{project.title}</div>
                     {project.subtitle && (
                       <div className="w-sub text-[var(--muted)] font-mono text-[13px] mt-1 line-clamp-1">{project.subtitle}</div>

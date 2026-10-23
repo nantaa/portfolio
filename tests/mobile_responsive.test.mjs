@@ -136,4 +136,57 @@ test('work preview components eliminate hardcoded #07090b and radial-gradient sp
   assert.ok(!carouselContent.includes('#07090b'), 'MaterialStudiesCarousel must not hardcode #07090b');
 });
 
+test('WorkGrid.tsx places .w-num-dock inside .w-bottom-bar alongside category to eliminate preview header collisions', () => {
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
+  const content = fs.readFileSync(workGridPath, 'utf-8');
+
+  // Must not have floating .w-num directly under .wo
+  assert.ok(!content.includes('<span className="w-num">'), 'Must not have floating top-left .w-num overlay');
+
+  // Must have dock-integrated w-num alongside category
+  assert.ok(content.includes('w-num-dock'), 'Must render w-num-dock integrated into the card dock');
+});
+
+test('globals.css eliminates absolute top-left .w-num overlay styling', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+
+  assert.ok(!css.includes('.w-num {'), 'globals.css must purge legacy floating .w-num overlay class');
+  assert.ok(css.includes('.w-num-dock'), 'globals.css must define .w-num-dock dock styling');
+});
+
+test('HeroTelemetryHUD hides secondary chip clutter on compact mobile viewports', () => {
+  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+  const content = fs.readFileSync(hudPath, 'utf-8');
+
+  // The 4 secondary node chips must have responsive hiding (e.g., hidden sm:flex or md:flex)
+  assert.ok(
+    content.includes('hidden sm:flex') || 
+    content.includes('hidden md:flex'),
+    'HeroTelemetryHUD secondary chips must hide on narrow viewports to prevent coordinate ticker clipping'
+  );
+});
+
+test('DNPMonitorPreview suppresses secondary statutory sub-label on mobile viewports', () => {
+  const dnpPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'DNPMonitorPreview.tsx');
+  const content = fs.readFileSync(dnpPath, 'utf-8');
+
+  assert.ok(
+    content.includes('hidden md:inline') || 
+    content.includes('hidden sm:inline') ||
+    content.includes('hidden md:block'),
+    'DNPMonitorPreview must hide verbose statutory subtitle on mobile'
+  );
+});
+
+test('ProjectPreviewGate renders rich architectural SVG blueprint background when in standby state', () => {
+  const gatePath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ProjectPreviewGate.tsx');
+  const content = fs.readFileSync(gatePath, 'utf-8');
+
+  assert.ok(
+    content.includes('<svg') && (content.includes('blueprint') || content.includes('contour') || content.includes('grid-pattern') || content.includes('meru') || content.includes('topography')),
+    'ProjectPreviewGate must render an architectural SVG blueprint background rather than an empty blank box'
+  );
+});
+
 

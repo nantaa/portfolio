@@ -216,7 +216,7 @@ export default function DNPMonitorPreview() {
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse"></span>
             <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
-              MORIKU · Industrial K3 Compliance Engine
+              MORIKU <span className="hidden md:inline">· Industrial K3 Compliance Engine</span>
             </span>
           </div>
           <span className="text-[9px] text-[#f39c12] tracking-widest uppercase">

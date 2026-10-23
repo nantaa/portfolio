@@ -587,7 +587,7 @@ export default function HeroTelemetryHUD() {
             </div>
 
             {/* Real stack indicators */}
-            <div className="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-[var(--wire)] font-mono text-[9px] sm:text-[10px]">
+            <div className="hidden sm:flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-[var(--wire)] font-mono text-[9px] sm:text-[10px]">
               {activeArch.initialNodes.map((n) => (
                 <button
                   key={n.id}
