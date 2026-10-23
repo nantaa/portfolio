@@ -48,3 +48,30 @@ test('HeroTelemetryHUD.tsx contains theme-aware palette configuration', () => {
 
   assert.ok(content.includes('data-theme') || content.includes('isLight') || content.includes('theme'), 'Canvas HUD must detect or receive theme');
 });
+
+test('Selected Work preview components eliminate hardcoded dark hex backgrounds in favor of semantic CSS tokens', () => {
+  const dnpPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'DNPMonitorPreview.tsx');
+  const dnpContent = fs.readFileSync(dnpPath, 'utf-8');
+  assert.ok(!dnpContent.includes('#0b0c0d'), 'DNPMonitorPreview must not hardcode #0b0c0d');
+  assert.ok(!dnpContent.includes('#121315'), 'DNPMonitorPreview must not hardcode #121315');
+
+  const docketPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'AcademicDocketPreview.tsx');
+  const docketContent = fs.readFileSync(docketPath, 'utf-8');
+  assert.ok(!docketContent.includes('#0e0e0e'), 'AcademicDocketPreview must not hardcode #0e0e0e');
+
+  const expensePath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'ExpenseTrackerPreview.tsx');
+  const expenseContent = fs.readFileSync(expensePath, 'utf-8');
+  assert.ok(!expenseContent.includes('#0a0b0c'), 'ExpenseTrackerPreview must not hardcode #0a0b0c');
+
+  const maknaPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaknaMoodboardPreview.tsx');
+  const maknaContent = fs.readFileSync(maknaPath, 'utf-8');
+  assert.ok(!maknaContent.includes('#0a0a0a'), 'MaknaMoodboardPreview must not hardcode #0a0a0a');
+  assert.ok(!maknaContent.includes('#0b0c0d'), 'MaknaMoodboardPreview must not hardcode #0b0c0d');
+
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const cssContent = fs.readFileSync(cssPath, 'utf-8');
+  assert.ok(!cssContent.includes('background: #0d0d0d;'), 'globals.css must not have hardcoded background: #0d0d0d for hd-preview or et-preview');
+  assert.ok(cssContent.includes('.hd-preview') && cssContent.includes('background: var(--s2)'), 'HelpdeskPreview must use var(--s2)');
+  assert.ok(cssContent.includes('[data-theme="light"] .tata-bg'), 'Tata preview must have light theme background adaptation');
+});
+

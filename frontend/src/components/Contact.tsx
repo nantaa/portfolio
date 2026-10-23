@@ -7,7 +7,7 @@ interface ContactProps {
 }
 
 export default function Contact({ settings = {} }: ContactProps) {
-  const email = settings["contact_email"] ?? "rifaiaryoananta@email.com";
+  const email = settings["contact_email"] ?? "rifai.aryo@email.com";
   const linkedin = settings["contact_linkedin"] ?? "linkedin.com/in/rifai-aryo-ananta";
   const github = settings["contact_github"] ?? "github.com/nantaa";
   const instagram = settings["contact_instagram"] ?? "@rfrynny";

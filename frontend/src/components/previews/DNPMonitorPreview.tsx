@@ -209,13 +209,13 @@ export default function DNPMonitorPreview() {
   };
 
   return (
-    <div className="w-full h-full p-4 flex flex-col justify-between bg-[#0b0c0d] text-[#e5e7eb] font-mono text-[11px] select-none overflow-hidden border border-white/5">
+    <div className="w-full h-full p-4 flex flex-col justify-between bg-[var(--s2)] text-[var(--text)] font-mono text-[11px] select-none overflow-hidden border border-[var(--wire)]">
       {/* Top Header / View Controller */}
       <div>
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)]">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse"></span>
-            <span className="text-[10px] tracking-wider text-neutral-300 uppercase font-bold">
+            <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
               MORIKU · Industrial K3 Compliance Engine
             </span>
           </div>
@@ -237,8 +237,8 @@ export default function DNPMonitorPreview() {
                 }}
                 className={`px-2.5 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer ${
                   tab === t
-                    ? "bg-[#f39c12] text-black font-bold"
-                    : "bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10"
+                    ? "bg-[#f39c12] text-black font-bold shadow-sm"
+                    : "bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)]"
                 }`}
               >
                 {t}
@@ -250,7 +250,7 @@ export default function DNPMonitorPreview() {
             <button
               type="button"
               onClick={resetPipeline}
-              className="px-2 py-0.5 text-[8px] uppercase tracking-wider text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-[2px] transition-all cursor-pointer"
+              className="px-2 py-0.5 text-[8px] uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-all cursor-pointer"
             >
               Reset Data Demo
             </button>
@@ -264,8 +264,8 @@ export default function DNPMonitorPreview() {
         {tab === "Inspection Kanban" && (
           <div className="flex-1 flex flex-col justify-between animate-fadeIn min-h-0">
             {/* Phase Filter Bar */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1.5 mb-1.5 border-b border-white/5 text-[8px] scrollbar-none">
-              <span className="text-neutral-500 uppercase tracking-wider shrink-0 pr-1">Fase:</span>
+            <div className="flex items-center gap-1 overflow-x-auto pb-1.5 mb-1.5 border-b border-[var(--wire)] text-[8px] scrollbar-none">
+              <span className="text-[var(--muted)] uppercase tracking-wider shrink-0 pr-1">Fase:</span>
               {PHASES.map((ph) => (
                 <button
                   key={ph.id}
@@ -276,14 +276,14 @@ export default function DNPMonitorPreview() {
                   }}
                   className={`px-2 py-0.5 rounded-[2px] whitespace-nowrap transition-all cursor-pointer ${
                     phaseFilter === ph.id
-                      ? "bg-white/15 text-white font-bold border border-white/20"
-                      : "text-neutral-400 hover:text-neutral-200 bg-white/[0.02]"
+                      ? "bg-[var(--accent)] text-white font-bold border border-[var(--accent2)] shadow-sm"
+                      : "text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] border border-[var(--wire)]"
                   }`}
                 >
                   {ph.label}
                 </button>
               ))}
-              <span className="ml-auto text-[8px] text-neutral-500 shrink-0 pl-2">
+              <span className="ml-auto text-[8px] text-[var(--muted)] shrink-0 pl-2">
                 16 Stages Pipeline
               </span>
             </div>
@@ -311,18 +311,18 @@ export default function DNPMonitorPreview() {
                         e.stopPropagation();
                         handleDrop(stage.id);
                       }}
-                      className={`w-[210px] flex-shrink-0 bg-white/[0.02] border rounded-[2px] p-2 flex flex-col justify-between transition-colors ${
-                        isDragTarget ? "border-white/20 hover:border-[#f39c12]/50" : "border-white/5"
+                      className={`w-[210px] flex-shrink-0 bg-[var(--s1)] border rounded-[2px] p-2 flex flex-col justify-between transition-colors ${
+                        isDragTarget ? "border-[var(--accent)]" : "border-[var(--wire)]"
                       }`}
                     >
                       <div className="flex flex-col h-full">
                         {/* Column Header */}
-                        <div className="flex justify-between items-center pb-1.5 mb-1.5 border-b border-white/5 gap-1.5">
+                        <div className="flex justify-between items-center pb-1.5 mb-1.5 border-b border-[var(--wire)] gap-1.5">
                           <div className="flex items-center gap-1.5 truncate">
-                            <span className="w-4 h-4 rounded bg-white/5 text-[8px] text-neutral-300 font-bold flex items-center justify-center shrink-0">
+                            <span className="w-4 h-4 rounded bg-[var(--s2)] text-[8px] text-[var(--muted)] font-bold flex items-center justify-center shrink-0 border border-[var(--wire)]">
                               {stage.displayId}
                             </span>
-                            <span className="text-[9px] font-bold text-neutral-200 truncate" title={stage.name}>
+                            <span className="text-[9px] font-bold text-[var(--text)] truncate" title={stage.name}>
                               {stage.name}
                             </span>
                           </div>
@@ -332,7 +332,7 @@ export default function DNPMonitorPreview() {
                             >
                               {stage.role}
                             </span>
-                            <span className="text-[7px] px-1 bg-white/5 text-neutral-400 rounded">
+                            <span className="text-[7px] px-1 bg-[var(--s2)] text-[var(--muted)] rounded border border-[var(--wire)]">
                               {stageJobs.length}
                             </span>
                           </div>
@@ -351,42 +351,42 @@ export default function DNPMonitorPreview() {
                                 draggable
                                 onDragStart={() => handleDragStart(job.id)}
                                 onClick={(e) => e.stopPropagation()}
-                                className="p-2 bg-[#121315] border border-white/5 rounded-[2px] hover:border-[#f39c12]/40 transition-all cursor-grab active:cursor-grabbing"
+                                className="p-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] hover:border-[#f39c12]/60 transition-all cursor-grab active:cursor-grabbing shadow-sm"
                               >
                                 <div className="flex justify-between items-start text-[8px]">
-                                  <span className="text-neutral-400 font-bold">{job.spk}</span>
+                                  <span className="text-[var(--muted)] font-bold">{job.spk}</span>
                                   {job.sla && (
                                     <span
                                       className={`text-[7px] font-semibold px-1 rounded ${
                                         job.sla.includes("OVERDUE")
                                           ? "text-rose-400 bg-rose-500/10"
-                                          : "text-emerald-400 bg-emerald-500/10"
+                                          : "text-emerald-500 bg-emerald-500/10 font-bold"
                                       }`}
                                     >
                                       {job.sla}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[9px] font-bold text-white mt-1 truncate">
+                                <div className="text-[9px] font-bold text-[var(--text)] mt-1 truncate">
                                   {job.client}
                                 </div>
-                                <div className="text-[8px] text-neutral-400 truncate mt-0.5">
+                                <div className="text-[8px] text-[var(--muted)] truncate mt-0.5">
                                   {job.units}
                                 </div>
 
                                 {job.inspector && (
-                                  <div className="mt-1 text-[7px] text-[#f39c12]/90 bg-[#f39c12]/5 px-1 py-0.5 rounded border border-[#f39c12]/15">
+                                  <div className="mt-1 text-[7px] text-[#f39c12] bg-[#f39c12]/10 px-1 py-0.5 rounded border border-[#f39c12]/20">
                                     TIM RIKSA UJI: {job.inspector}
                                   </div>
                                 )}
 
                                 {/* Forward / Backward Stepper Buttons */}
-                                <div className="flex gap-1 mt-2 pt-1.5 border-t border-white/5">
+                                <div className="flex gap-1 mt-2 pt-1.5 border-t border-[var(--wire)]">
                                   <button
                                     type="button"
                                     disabled={!hasPrev}
                                     onClick={(e) => moveJobBackward(job.id, e)}
-                                    className="flex-1 py-0.5 text-[8px] bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-white/5 text-neutral-300 rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
+                                    className="flex-1 py-0.5 text-[8px] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] disabled:opacity-20 disabled:hover:bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
                                     title="Mundur 1 Tahap"
                                   >
                                     [ Prev ]
@@ -395,7 +395,7 @@ export default function DNPMonitorPreview() {
                                     type="button"
                                     disabled={!hasNext}
                                     onClick={(e) => moveJobForward(job.id, e)}
-                                    className="flex-1 py-0.5 text-[8px] bg-[#f39c12]/15 hover:bg-[#f39c12] text-[#f39c12] hover:text-black font-bold disabled:opacity-20 disabled:hover:bg-white/5 disabled:text-neutral-400 rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
+                                    className="flex-1 py-0.5 text-[8px] bg-[#f39c12]/15 hover:bg-[#f39c12] text-[#f39c12] hover:text-black font-bold disabled:opacity-20 disabled:hover:bg-[var(--s1)] disabled:text-[var(--muted)] rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
                                     title="Maju 1 Tahap"
                                   >
                                     [ Next ]
@@ -406,7 +406,7 @@ export default function DNPMonitorPreview() {
                           })}
 
                           {stageJobs.length === 0 && (
-                            <div className="text-[8px] text-neutral-600 italic py-5 text-center border border-dashed border-white/5 rounded">
+                            <div className="text-[8px] text-[var(--muted)] italic py-5 text-center border border-dashed border-[var(--wire)] rounded">
                               Tarik kartu ke sini
                             </div>
                           )}
@@ -424,35 +424,35 @@ export default function DNPMonitorPreview() {
         {tab === "SLA Pipeline" && (
           <div className="space-y-2 animate-fadeIn py-1">
             <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 bg-white/[0.03] border border-white/5 rounded-[2px]">
-                <div className="text-[9px] text-neutral-500 uppercase">Compliance SLA</div>
+              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
+                <div className="text-[9px] text-[var(--muted)] uppercase">Compliance SLA</div>
                 <div className="text-sm font-bold text-[#27ae60] mt-0.5">94.2%</div>
-                <div className="text-[8px] text-neutral-400">Within statutory window</div>
+                <div className="text-[8px] text-[var(--muted)]">Within statutory window</div>
               </div>
-              <div className="p-2 bg-white/[0.03] border border-white/5 rounded-[2px]">
-                <div className="text-[9px] text-neutral-500 uppercase">Active Riksa Uji</div>
-                <div className="text-sm font-bold text-white mt-0.5">{jobs.length} Orders</div>
-                <div className="text-[8px] text-neutral-400">Boiler, Pressure, Electrical</div>
+              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
+                <div className="text-[9px] text-[var(--muted)] uppercase">Active Riksa Uji</div>
+                <div className="text-sm font-bold text-[var(--text)] mt-0.5">{jobs.length} Orders</div>
+                <div className="text-[8px] text-[var(--muted)]">Boiler, Pressure, Electrical</div>
               </div>
-              <div className="p-2 bg-white/[0.03] border border-white/5 rounded-[2px]">
-                <div className="text-[9px] text-neutral-500 uppercase">Disnaker Overdue</div>
+              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
+                <div className="text-[9px] text-[var(--muted)] uppercase">Disnaker Overdue</div>
                 <div className="text-sm font-bold text-[#e74c3c] mt-0.5">1 Order</div>
                 <div className="text-[8px] text-[#e74c3c]/80">Attention required</div>
               </div>
             </div>
 
-            <div className="p-2 bg-white/[0.02] border border-white/5 rounded-[2px] space-y-1.5">
-              <div className="flex justify-between text-[9px] text-neutral-400">
+            <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] space-y-1.5">
+              <div className="flex justify-between text-[9px] text-[var(--muted)]">
                 <span>Statutory 16-Stage Pipeline Velocity</span>
-                <span className="text-[#f39c12]">Avg 4.8 Days / Stage</span>
+                <span className="text-[#f39c12] font-semibold">Avg 4.8 Days / Stage</span>
               </div>
-              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden flex">
+              <div className="w-full bg-[var(--wire)] h-1.5 rounded-full overflow-hidden flex">
                 <div style={{ width: "25%" }} className="bg-[#f39c12]" title="Fase 1: Berkas"></div>
                 <div style={{ width: "30%" }} className="bg-[#3498db]" title="Fase 2: Lapangan"></div>
                 <div style={{ width: "25%" }} className="bg-[#9b59b6]" title="Fase 3: Disnaker"></div>
                 <div style={{ width: "20%" }} className="bg-[#27ae60]" title="Fase 4: Suket & Fin"></div>
               </div>
-              <div className="flex justify-between text-[8px] text-neutral-500 pt-0.5">
+              <div className="flex justify-between text-[8px] text-[var(--muted)] pt-0.5">
                 <span>F1: Berkas [1-3]</span>
                 <span>F2: Lapangan [4-6]</span>
                 <span>F3: Disnaker [7-9]</span>
@@ -465,7 +465,7 @@ export default function DNPMonitorPreview() {
         {/* VIEW 3: STATUTORY FORMS SPECIFICATION */}
         {tab === "Statutory Forms" && (
           <div className="space-y-1.5 animate-fadeIn py-1">
-            <div className="flex justify-between text-[9px] text-neutral-500 pb-0.5 border-b border-white/5">
+            <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
               <span>Disnaker Statutory Form</span>
               <span>Regulatory Standard &amp; Inspection Protocol</span>
             </div>
@@ -478,17 +478,17 @@ export default function DNPMonitorPreview() {
                 }}
                 className={`p-1.5 rounded-[2px] transition-all cursor-pointer border ${
                   selectedForm === form.code
-                    ? "bg-[#f39c12]/10 border-[#f39c12]/40 text-white"
-                    : "bg-white/[0.02] border-white/5 text-neutral-300 hover:bg-white/[0.05]"
+                    ? "bg-[#f39c12]/15 border-[#f39c12]/60 text-[var(--text)]"
+                    : "bg-[var(--s1)] border-[var(--wire)] text-[var(--muted)] hover:bg-[var(--s3)] hover:text-[var(--text)]"
                 }`}
               >
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="font-bold text-[#f39c12]">
                     {form.code} · {form.name}
                   </span>
-                  <span className="text-[8px] text-neutral-400 bg-white/5 px-1 rounded">{form.standard}</span>
+                  <span className="text-[8px] text-[var(--muted)] bg-[var(--s2)] border border-[var(--wire)] px-1 rounded">{form.standard}</span>
                 </div>
-                <div className="text-[9px] text-neutral-400 mt-0.5">Protocol: {form.protocol}</div>
+                <div className="text-[9px] text-[var(--muted)] mt-0.5">Protocol: {form.protocol}</div>
               </div>
             ))}
           </div>
@@ -496,12 +496,12 @@ export default function DNPMonitorPreview() {
       </div>
 
       {/* Bottom Status Footer */}
-      <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[9px] text-neutral-500">
+      <div className="pt-2 border-t border-[var(--wire)] flex justify-between items-center text-[9px] text-[var(--muted)]">
         <span className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#27ae60]"></span>
           <span>PT Delta Nusantara Persada · Disnaker PJK3 Accredited</span>
         </span>
-        <span className="text-neutral-400">16 Statutory Stages · {jobs.length} Active Units</span>
+        <span className="text-[var(--muted)]">16 Statutory Stages · {jobs.length} Active Units</span>
       </div>
     </div>
   );

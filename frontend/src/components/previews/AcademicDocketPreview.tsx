@@ -44,17 +44,17 @@ export default function AcademicDocketPreview() {
   }, []);
 
   return (
-    <div className="w-full h-full p-4 flex flex-col justify-between bg-[#0e0e0e] text-[#eeebe5] font-mono text-[11px] select-none overflow-hidden border border-white/5">
+    <div className="w-full h-full p-4 flex flex-col justify-between bg-[var(--s2)] text-[var(--text)] font-mono text-[11px] select-none overflow-hidden border border-[var(--wire)]">
       {/* Top Header / Tab Switcher */}
       <div>
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)]">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#7a1525] animate-pulse"></span>
-            <span className="text-[10px] tracking-wider text-neutral-400 uppercase font-bold">
+            <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
               Kaprodi Algorithm Center
             </span>
           </div>
-          <span className="text-[9px] text-[#7a1525] tracking-widest uppercase">
+          <span className="text-[9px] text-[#7a1525] tracking-widest uppercase font-semibold">
             Live Cohort UPI-CS-2026
           </span>
         </div>
@@ -68,10 +68,10 @@ export default function AcademicDocketPreview() {
                 e.stopPropagation();
                 setTab(t);
               }}
-              className={`px-2 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] ${
+              className={`px-2 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer ${
                 tab === t
-                  ? "bg-[#7a1525] text-white font-bold"
-                  : "bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10"
+                  ? "bg-[#7a1525] text-white font-bold shadow-sm"
+                  : "bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)]"
               }`}
             >
               {t}
@@ -84,21 +84,21 @@ export default function AcademicDocketPreview() {
       <div className="flex-1 flex flex-col justify-center gap-1.5">
         {tab === "Gale-Shapley" && (
           <div className="space-y-1.5 animate-fadeIn">
-            <div className="flex justify-between text-[9px] text-neutral-500 pb-0.5 border-b border-white/5">
+            <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
               <span>Student Candidate</span>
-              <span>Matched Advisor & Score</span>
+              <span>Matched Advisor &amp; Score</span>
             </div>
             {MATCH_DATA.map((row, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-1.5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[2px] transition-colors"
+                className="flex items-center justify-between p-1.5 bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-colors shadow-xs"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-[#7a1525] text-[9px]">#{i + 1}</span>
-                  <span className="text-neutral-200 text-[10px]">{row.student}</span>
+                  <span className="text-[#7a1525] text-[9px] font-bold">#{i + 1}</span>
+                  <span className="text-[var(--text)] text-[10px] font-medium">{row.student}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-neutral-400 text-[10px]">{row.advisor}</span>
+                  <span className="text-[var(--muted)] text-[10px]">{row.advisor}</span>
                   <span className="text-[#27ae60] text-[9px] font-bold">{row.score}</span>
                 </div>
               </div>
@@ -108,21 +108,21 @@ export default function AcademicDocketPreview() {
 
         {tab === "Hungarian Schedule" && (
           <div className="space-y-1.5 animate-fadeIn">
-            <div className="flex justify-between text-[9px] text-neutral-500 pb-0.5 border-b border-white/5">
+            <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
               <span>Time Slot / Room</span>
-              <span>Candidate & Examiner Panel</span>
+              <span>Candidate &amp; Examiner Panel</span>
             </div>
             {SCHEDULE_DATA.map((row, i) => (
               <div
                 key={i}
-                className="p-1.5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[2px] transition-colors flex flex-col gap-0.5"
+                className="p-1.5 bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-colors flex flex-col gap-0.5 shadow-xs"
               >
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="text-[#7a1525] font-bold">{row.time} · {row.room}</span>
-                  <span className="text-emerald-400 text-[9px]">{row.slot}</span>
+                  <span className="text-emerald-500 font-semibold text-[9px]">{row.slot}</span>
                 </div>
-                <div className="flex justify-between items-center text-[9px] text-neutral-400">
-                  <span className="text-neutral-200">{row.candidate}</span>
+                <div className="flex justify-between items-center text-[9px] text-[var(--muted)]">
+                  <span className="text-[var(--text)] font-medium">{row.candidate}</span>
                   <span>{row.examiner}</span>
                 </div>
               </div>
@@ -132,18 +132,18 @@ export default function AcademicDocketPreview() {
 
         {tab === "Markov Analytics" && (
           <div className="space-y-1.5 animate-fadeIn">
-            <div className="flex justify-between text-[9px] text-neutral-500 pb-0.5 border-b border-white/5">
+            <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
               <span>Defense Stage Pipeline</span>
               <span>Transition Probability</span>
             </div>
             {MARKOV_DATA.map((row, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-1.5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[2px] transition-colors"
+                className="flex items-center justify-between p-1.5 bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-colors shadow-xs"
               >
-                <span className="text-neutral-200 text-[10px]">{row.stage}</span>
+                <span className="text-[var(--text)] text-[10px] font-medium">{row.stage}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-neutral-400 text-[9px]">{row.status}</span>
+                  <span className="text-[var(--muted)] text-[9px]">{row.status}</span>
                   <span className="text-[#7a1525] text-[10px] font-bold">{row.probability}</span>
                 </div>
               </div>
@@ -153,9 +153,9 @@ export default function AcademicDocketPreview() {
       </div>
 
       {/* Footer Metrics */}
-      <div className="pt-2 mt-2 border-t border-white/10 flex justify-between items-center text-[9px] text-neutral-500">
+      <div className="pt-2 mt-2 border-t border-[var(--wire)] flex justify-between items-center text-[9px] text-[var(--muted)]">
         <span>Active Model: Bipartite Optimal Matching</span>
-        <span className="text-emerald-400">88 Passing Tests (100%)</span>
+        <span className="text-emerald-500 font-semibold">88 Passing Tests (100%)</span>
       </div>
     </div>
   );

@@ -167,8 +167,10 @@ export default function ExpenseTrackerPreview() {
 
       ctx.clearRect(0, 0, width, height);
 
+      const isLight = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light";
+
       // ── 1. Coordinate Bus Grid ──
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
+      ctx.strokeStyle = isLight ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 0.025)";
       ctx.lineWidth = 1;
       const step = 28;
       for (let x = 0; x < width; x += step) {
@@ -185,7 +187,7 @@ export default function ExpenseTrackerPreview() {
       }
 
       // ── 2. Data Communication Bus Line ──
-      ctx.strokeStyle = "rgba(122, 21, 37, 0.3)";
+      ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.35)" : "rgba(122, 21, 37, 0.3)";
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
@@ -208,13 +210,13 @@ export default function ExpenseTrackerPreview() {
         const py = sy + (ty - sy) * p.t;
 
         // Packet Core
-        ctx.fillStyle = "#EEEBE5";
+        ctx.fillStyle = isLight ? "#851726" : "#EEEBE5";
         ctx.beginPath();
         ctx.arc(px, py, 2.4, 0, Math.PI * 2);
         ctx.fill();
 
         // Packet Glow
-        ctx.fillStyle = "rgba(155, 30, 48, 0.6)";
+        ctx.fillStyle = isLight ? "rgba(133, 23, 38, 0.3)" : "rgba(155, 30, 48, 0.6)";
         ctx.beginPath();
         ctx.arc(px, py, 5.5, 0, Math.PI * 2);
         ctx.fill();
@@ -234,7 +236,7 @@ export default function ExpenseTrackerPreview() {
         // Pulse ring on selected
         if (isSelected) {
           const pulseR = 28 + Math.sin(frame * 0.08) * 3;
-          ctx.strokeStyle = "rgba(155, 30, 48, 0.45)";
+          ctx.strokeStyle = isLight ? "rgba(133, 23, 38, 0.4)" : "rgba(155, 30, 48, 0.45)";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.arc(nx, ny, pulseR, 0, Math.PI * 2);
@@ -242,8 +244,13 @@ export default function ExpenseTrackerPreview() {
         }
 
         // Node Card Fill & Stroke
-        ctx.fillStyle = isSelected ? "rgba(122, 21, 37, 0.35)" : "rgba(12, 13, 14, 0.88)";
-        ctx.strokeStyle = isSelected ? "#9B1E30" : "rgba(255, 255, 255, 0.16)";
+        if (isLight) {
+          ctx.fillStyle = isSelected ? "rgba(133, 23, 38, 0.12)" : "rgba(255, 255, 255, 0.95)";
+          ctx.strokeStyle = isSelected ? "#851726" : "rgba(0, 0, 0, 0.12)";
+        } else {
+          ctx.fillStyle = isSelected ? "rgba(122, 21, 37, 0.35)" : "rgba(12, 13, 14, 0.88)";
+          ctx.strokeStyle = isSelected ? "#9B1E30" : "rgba(255, 255, 255, 0.16)";
+        }
         ctx.lineWidth = isSelected ? 1.5 : 1;
         ctx.fillRect(bx, by, boxW, boxH);
         ctx.strokeRect(bx, by, boxW, boxH);
@@ -256,18 +263,18 @@ export default function ExpenseTrackerPreview() {
 
         // Node Title
         ctx.font = "bold 8px 'Syne', sans-serif";
-        ctx.fillStyle = "#EEEBE5";
+        ctx.fillStyle = isLight ? "#1A1816" : "#EEEBE5";
         ctx.textAlign = "center";
         ctx.fillText(node.title, nx, by + 16);
 
         // Tech Subtitle
         ctx.font = "6.5px 'Syne Mono', monospace";
-        ctx.fillStyle = isSelected ? "#E67E22" : "#888880";
+        ctx.fillStyle = isSelected ? (isLight ? "#851726" : "#E67E22") : (isLight ? "#68645E" : "#888880");
         ctx.fillText(node.stack, nx, by + 28);
 
         // Latency / Role Pill
         ctx.font = "6px 'Syne Mono', monospace";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+        ctx.fillStyle = isLight ? "#88847E" : "rgba(255, 255, 255, 0.45)";
         ctx.fillText(node.latency, nx, by + 38);
       });
     };
@@ -291,11 +298,12 @@ export default function ExpenseTrackerPreview() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "#0a0b0c",
+        background: "var(--s2)",
         fontFamily: "var(--mono)",
         padding: "16px 20px",
         overflow: "hidden",
         userSelect: "none",
+        border: "0.5px solid var(--wire)",
       }}
     >
       {/* ── Top Header / Communication Bus Telemetry ── */}
@@ -306,21 +314,21 @@ export default function ExpenseTrackerPreview() {
           justifyContent: "space-between",
           alignItems: "center",
           paddingBottom: "8px",
-          borderBottom: "0.5px solid rgba(255, 255, 255, 0.08)",
+          borderBottom: "0.5px solid var(--wire)",
           fontSize: "8.5px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7a1525", display: "inline-block" }} />
-          <span style={{ color: "#EEEBE5", fontWeight: 700, letterSpacing: "0.14em" }}>
+          <span style={{ color: "var(--text)", fontWeight: 700, letterSpacing: "0.14em" }}>
             DATA COMMUNICATION BUS // PIPELINE FLOW
           </span>
           <span
             style={{
               fontSize: "7.5px",
-              background: "rgba(122, 21, 37, 0.3)",
-              border: "0.5px solid #7a1525",
-              color: "#EEEBE5",
+              background: "rgba(122, 21, 37, 0.15)",
+              border: "0.5px solid var(--accent)",
+              color: "var(--text)",
               padding: "1px 6px",
               borderRadius: "2px",
             }}
@@ -329,7 +337,7 @@ export default function ExpenseTrackerPreview() {
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "12px", fontSize: "7.5px", color: "#888880" }}>
+        <div style={{ display: "flex", gap: "12px", fontSize: "7.5px", color: "var(--muted)" }}>
           <span>THROUGHPUT: ~820ms</span>
           <span style={{ color: "#2ECC71", fontWeight: 700 }}>SCHEMA: VALIDATED</span>
         </div>
@@ -343,21 +351,22 @@ export default function ExpenseTrackerPreview() {
       {/* ── Active Node & Live Payload Inspector ── */}
       <div
         style={{
-          background: "rgba(14, 15, 17, 0.94)",
-          border: "0.5px solid rgba(255, 255, 255, 0.1)",
+          background: "var(--s1)",
+          border: "0.5px solid var(--wire)",
           borderRadius: "3px",
           padding: "10px 14px",
           display: "flex",
           flexDirection: "column",
           gap: "6px",
           marginTop: "6px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "7.5px" }}>
-          <span style={{ color: "#9b1e30", fontWeight: 700, letterSpacing: "0.12em" }}>
+          <span style={{ color: "var(--accent)", fontWeight: 700, letterSpacing: "0.12em" }}>
             NODE [{activeNode.num}] {activeNode.title.toUpperCase()} · {activeNode.role}
           </span>
-          <span style={{ color: "#888880" }}>
+          <span style={{ color: "var(--muted)" }}>
             CLICK NODES TO INSPECT PAYLOADS
           </span>
         </div>
@@ -365,24 +374,24 @@ export default function ExpenseTrackerPreview() {
         {/* Real Structured JSON Schema Telemetry */}
         <div
           style={{
-            background: "rgba(0, 0, 0, 0.5)",
-            border: "0.5px solid rgba(255, 255, 255, 0.05)",
+            background: "var(--s2)",
+            border: "0.5px solid var(--wire)",
             borderRadius: "2px",
             padding: "6px 8px",
             fontSize: "7.5px",
             lineHeight: "1.4",
-            color: "#D1D5DB",
+            color: "var(--text)",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
-            <span style={{ color: "#EEEBE5", fontWeight: 600 }}>
+            <span style={{ color: "var(--text)", fontWeight: 600 }}>
               {activePayload.merchant} · <span style={{ color: "#E67E22" }}>{activePayload.category}</span>
             </span>
-            <span style={{ color: "#EEEBE5", fontWeight: 700 }}>
+            <span style={{ color: "var(--text)", fontWeight: 700 }}>
               amount: {activePayload.amount}
             </span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", color: "#888880", fontSize: "7px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", color: "var(--muted)", fontSize: "7px" }}>
             <span>reasoning: &ldquo;{activePayload.reasoning}&rdquo;</span>
             <span style={{ color: "#2ECC71", fontWeight: 600, marginLeft: "8px", flexShrink: 0 }}>
               confidence: {activePayload.confidence}
@@ -406,9 +415,9 @@ export default function ExpenseTrackerPreview() {
                 padding: "3px 4px",
                 fontSize: "7px",
                 fontFamily: "var(--mono)",
-                background: activeNodeId === n.id ? "#7a1525" : "rgba(255, 255, 255, 0.04)",
-                color: activeNodeId === n.id ? "#FFF" : "#888880",
-                border: "0.5px solid rgba(255, 255, 255, 0.08)",
+                background: activeNodeId === n.id ? "var(--accent)" : "var(--s2)",
+                color: activeNodeId === n.id ? "#FFF" : "var(--muted)",
+                border: "0.5px solid var(--wire)",
                 borderRadius: "2px",
                 cursor: "pointer",
                 transition: "all 150ms ease",

@@ -1260,7 +1260,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #0d0d0d;
+      background: var(--s2);
       font-family: var(--mono);
       overflow: hidden;
     }
@@ -1270,7 +1270,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 16px;
-      border-bottom: 0.5px solid rgba(255,255,255,0.07);
+      border-bottom: 0.5px solid var(--wire);
       flex-shrink: 0;
     }
 
@@ -1293,21 +1293,24 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
-      background: none;
-      border: 0.5px solid transparent;
+      background: var(--s1);
+      border: 0.5px solid var(--wire);
       padding: 4px 10px;
       cursor: pointer;
+      border-radius: 2px;
       transition: color 180ms, border-color 180ms, background 180ms;
     }
 
     .hd-role-btn.active {
       color: var(--text);
-      border-color: rgba(122, 21, 37, 0.5);
-      background: rgba(122, 21, 37, 0.1);
+      border-color: var(--accent);
+      background: rgba(122, 21, 37, 0.12);
+      font-weight: 600;
     }
 
     .hd-role-btn:hover:not(.active) {
       color: var(--text);
+      background: var(--s3);
     }
 
     .hd-body {
@@ -1327,7 +1330,7 @@
       align-items: center;
       gap: 10px;
       padding: 9px 16px;
-      border-bottom: 0.5px solid rgba(255,255,255,0.04);
+      border-bottom: 0.5px solid var(--wire);
       cursor: pointer;
       transition: background 160ms;
       flex-shrink: 0;
@@ -1613,7 +1616,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      background: #060606;
+      background: var(--s2);
       font-family: var(--mono);
       overflow: hidden;
     }
@@ -1779,7 +1782,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #090909;
+      background: var(--s2);
       font-family: var(--mono);
       overflow: hidden;
     }
@@ -1962,7 +1965,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #0d0d0d;
+      background: var(--s2);
       font-family: var(--mono);
       overflow: hidden;
       padding: 16px;
@@ -1974,7 +1977,7 @@
       justify-content: space-between;
       align-items: center;
       padding-bottom: 10px;
-      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 0.5px solid var(--wire);
     }
 
     .et-header-left {
@@ -2221,7 +2224,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #0b0b0b;
+      background: var(--s2);
       font-family: var(--mono);
       overflow: hidden;
     }
@@ -2546,7 +2549,7 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #060606;
+      background: var(--s2);
       overflow: hidden;
       z-index: 1;
     }
@@ -2558,6 +2561,11 @@
       z-index: 1;
       opacity: 0.92;
       pointer-events: none;
+    }
+
+    [data-theme="light"] .tata-bg {
+      background: radial-gradient(circle at center, rgba(186, 102, 23, 0.08) 0%, rgba(247, 244, 238, 0.95) 100%);
+      opacity: 0.9;
     }
 
     .tata-watermark {
@@ -2576,6 +2584,11 @@
       pointer-events: none;
       z-index: 1;
       transform: translateY(-5%);
+    }
+
+    [data-theme="light"] .tata-watermark {
+      color: rgba(186, 102, 23, 0.14);
+      text-shadow: none;
     }
 
     .tata-canvas {
@@ -2678,11 +2691,22 @@
       cursor: not-allowed;
     }
 
+    [data-theme="light"] .tata-switch-btn {
+      background: var(--s1);
+      border-color: var(--wire);
+      color: var(--muted);
+    }
+
+    [data-theme="light"] .tata-switch-btn:hover {
+      background: var(--s3);
+      color: var(--text);
+    }
+
     /* ══ GEOPETAK PREVIEW ══ */
     .gp-preview {
       position: absolute;
       inset: 0;
-      background: #070707;
+      background: var(--s2);
       overflow: hidden;
       z-index: 1;
       cursor: crosshair;
@@ -2694,8 +2718,12 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.82;
+      opacity: 0.88;
       pointer-events: none;
+    }
+
+    [data-theme="light"] .gp-base-img {
+      opacity: 0.95;
     }
 
 

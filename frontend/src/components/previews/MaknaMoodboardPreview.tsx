@@ -34,7 +34,7 @@ export default function MaknaMoodboardPreview() {
     <>
       {/* ── Grid Card Interactive Thumbnail ── */}
       <div
-        className="relative w-full h-full overflow-hidden bg-[#0a0a0a] group cursor-pointer select-none"
+        className="relative w-full h-full overflow-hidden bg-[var(--s2)] group cursor-pointer select-none"
         onClick={(e) => {
           e.stopPropagation();
           setIsDetailOpen(true);
@@ -54,31 +54,31 @@ export default function MaknaMoodboardPreview() {
         <img
           src="/images/makna_works_branding_moodboard.webp"
           alt="Makna Works Branding & Visual Identity Moodboard"
-          className="w-full h-full object-cover object-center filter grayscale-[30%] brightness-[0.82] contrast-[1.08] group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105 transition-all duration-700 ease-out"
+          className="w-full h-full object-cover object-center filter grayscale-[20%] brightness-[0.9] contrast-[1.05] group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105 transition-all duration-700 ease-out"
           loading="lazy"
         />
 
         {/* Ambient Vignette Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/90 via-transparent to-transparent pointer-events-none" />
 
         {/* Top-Right Badge */}
-        <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-black/75 backdrop-blur-md border border-white/10 rounded-[2px] font-mono text-[9px] text-neutral-300 tracking-wider uppercase">
+        <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-[var(--nav-bg)] backdrop-blur-md border border-[var(--wire)] rounded-[2px] font-mono text-[9px] text-[var(--muted)] tracking-wider uppercase shadow-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-[#9B1E30] animate-pulse"></span>
           <span>Brand Guidelines</span>
         </div>
 
         {/* Center Hover Prompt */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="px-4 py-2 bg-black/80 backdrop-blur-md border border-white/20 rounded-[2px] font-mono text-[11px] text-white tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2 shadow-2xl">
+          <div className="px-4 py-2 bg-[var(--s1)] backdrop-blur-md border border-[var(--wire)] rounded-[2px] font-mono text-[11px] text-[var(--text)] tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2 shadow-2xl">
             <span className="text-[#9B1E30]">🔍</span>
             <span>View Brand Guidelines</span>
           </div>
         </div>
 
         {/* Bottom Hint Bar */}
-        <div className="absolute bottom-3 left-4 right-4 z-10 flex items-center justify-between font-mono text-[10px] text-neutral-400 pointer-events-none">
-          <span className="tracking-wider">MAKNA WORKS</span>
-          <span className="text-neutral-500">Brand Guidelines &amp; Design System</span>
+        <div className="absolute bottom-3 left-4 right-4 z-10 flex items-center justify-between font-mono text-[10px] pointer-events-none">
+          <span className="tracking-wider text-[var(--text)] font-semibold">MAKNA WORKS</span>
+          <span className="text-[var(--muted)]">Brand Guidelines &amp; Design System</span>
         </div>
       </div>
 
@@ -90,18 +90,18 @@ export default function MaknaMoodboardPreview() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="moodboard-modal-title"
-            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/90 backdrop-blur-lg animate-fadeIn select-text"
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/80 backdrop-blur-lg animate-fadeIn select-text"
             onClick={(e) => {
               e.stopPropagation();
               setIsDetailOpen(false);
             }}
           >
             <div
-              className="relative w-full max-w-[1180px] max-h-[94vh] flex flex-col bg-[#0b0c0d] border border-white/15 rounded-[3px] shadow-[0_0_60px_rgba(0,0,0,0.95)] overflow-hidden"
+              className="relative w-full max-w-[1180px] max-h-[94vh] flex flex-col bg-[var(--s1)] border border-[var(--wire)] rounded-[3px] shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/10 bg-[#0e0f10]">
+              <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-[var(--wire)] bg-[var(--s2)]">
                 <div className="flex items-center gap-3">
                   <span className="px-2 py-0.5 bg-[#7a1525] text-white font-mono text-[9px] font-bold tracking-widest uppercase rounded-[2px]">
                     ARCH-08
@@ -109,11 +109,11 @@ export default function MaknaMoodboardPreview() {
                   <div>
                     <h3
                       id="moodboard-modal-title"
-                      className="font-serif text-lg sm:text-xl text-white font-medium tracking-tight"
+                      className="font-serif text-lg sm:text-xl text-[var(--text)] font-medium tracking-tight"
                     >
                       Makna Works — Brand Guidelines &amp; Visual Identity System
                     </h3>
-                    <p className="font-mono text-[10px] sm:text-[11px] text-neutral-400">
+                    <p className="font-mono text-[10px] sm:text-[11px] text-[var(--muted)]">
                       Brand Architecture · Logo Geometry · Color Tokens · Typographic Scale · 2025
                     </p>
                   </div>
@@ -125,7 +125,7 @@ export default function MaknaMoodboardPreview() {
                     e.stopPropagation();
                     setIsDetailOpen(false);
                   }}
-                  className="group flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-neutral-300 hover:text-white font-mono text-[11px] tracking-wider uppercase transition-all rounded-[2px] cursor-pointer"
+                  className="group flex items-center gap-1.5 px-3 py-1.5 bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] text-[var(--text)] font-mono text-[11px] tracking-wider uppercase transition-all rounded-[2px] cursor-pointer"
                   aria-label="Close moodboard popup"
                 >
                   <span>Close</span>
@@ -135,10 +135,10 @@ export default function MaknaMoodboardPreview() {
 
               {/* Modal Main Image Container */}
               <div
-                className="relative flex-1 overflow-auto bg-[#070707] flex items-center justify-center p-4 sm:p-6 min-h-[320px] select-none"
+                className="relative flex-1 overflow-auto bg-[var(--s2)] flex items-center justify-center p-4 sm:p-6 min-h-[320px] select-none"
                 onContextMenu={(e) => e.preventDefault()}
               >
-                <div className="relative max-w-full max-h-[70vh] flex items-center justify-center overflow-hidden rounded-[2px] border border-white/10 shadow-2xl">
+                <div className="relative max-w-full max-h-[70vh] flex items-center justify-center overflow-hidden rounded-[2px] border border-[var(--wire)] shadow-xl">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/images/makna_works_branding_moodboard.webp"
@@ -166,7 +166,7 @@ export default function MaknaMoodboardPreview() {
                   </div>
 
                   {/* Corner Provenance Security Stamp */}
-                  <div className="absolute bottom-3 right-3 z-20 pointer-events-none select-none px-3 py-1.5 bg-black/85 backdrop-blur-md border border-white/20 rounded-[2px] font-mono text-[9px] sm:text-[10px] text-white/90 shadow-2xl flex items-center gap-2">
+                  <div className="absolute bottom-3 right-3 z-20 pointer-events-none select-none px-3 py-1.5 bg-[var(--nav-bg)] backdrop-blur-md border border-[var(--wire)] rounded-[2px] font-mono text-[9px] sm:text-[10px] text-[var(--text)] shadow-xl flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#9B1E30] animate-pulse"></span>
                     <span>WATERMARK PROTECTED // RIFA&apos;I ARYO ANANTA · 2025</span>
                   </div>
@@ -174,22 +174,22 @@ export default function MaknaMoodboardPreview() {
               </div>
 
               {/* Modal Dossier Footer */}
-              <div className="px-5 sm:px-7 py-4 bg-[#0e0f10] border-t border-white/10 flex flex-wrap items-center justify-between gap-4 font-mono text-[10.5px]">
-                <div className="flex flex-wrap items-center gap-4 text-neutral-400">
+              <div className="px-5 sm:px-7 py-4 bg-[var(--s2)] border-t border-[var(--wire)] flex flex-wrap items-center justify-between gap-4 font-mono text-[10.5px]">
+                <div className="flex flex-wrap items-center gap-4 text-[var(--muted)]">
                   <span>
-                    <strong className="text-white">Deliverable:</strong> Brand Guidelines &amp; Identity System
+                    <strong className="text-[var(--text)]">Deliverable:</strong> Brand Guidelines &amp; Identity System
                   </span>
-                  <span className="text-white/20">|</span>
+                  <span className="opacity-30">|</span>
                   <span>
-                    <strong className="text-white">Specs:</strong> Logo Geometry, Color Tokens, Typographic Grid
+                    <strong className="text-[var(--text)]">Specs:</strong> Logo Geometry, Color Tokens, Typographic Grid
                   </span>
-                  <span className="text-white/20">|</span>
+                  <span className="opacity-30">|</span>
                   <span>
-                    <strong className="text-white">Entity:</strong> Makna Works Creative Agency
+                    <strong className="text-[var(--text)]">Entity:</strong> Makna Works Creative Agency
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-neutral-400 font-mono text-[10px]">
+                <div className="flex items-center gap-2 text-[var(--muted)] font-mono text-[10px]">
                   <span className="text-[#9B1E30]">🔒</span>
                   <span>Protected Brand Asset · All Rights Reserved</span>
                 </div>
