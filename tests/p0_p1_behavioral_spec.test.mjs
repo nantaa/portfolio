@@ -54,6 +54,19 @@ test('globals.css allows text selection on contact handles instead of blocking u
   );
 });
 
+test('UX and Accessibility: body uses native hardware cursor and purges lagging mousemove listeners', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const homeClientPath = path.join(rootDir, 'frontend', 'src', 'components', 'HomeClient.tsx');
+  const cssContent = fs.readFileSync(cssPath, 'utf-8');
+  const homeClientContent = fs.readFileSync(homeClientPath, 'utf-8');
+
+  // Must NOT suppress default hardware cursor on body
+  assert.ok(!cssContent.includes('cursor: none;'), 'globals.css must not hide default hardware cursor');
+
+  // HomeClient.tsx must NOT attach window/document mousemove listeners for custom cursor dot
+  assert.ok(!homeClientContent.includes('document.addEventListener("mousemove", moveCursor)'), 'HomeClient must not track mousemove for custom cursor');
+});
+
 // ─── 2. ARCHITECTURE & STATIC DECOUPLING (D1=B) (P0) ─────────────────────────
 test('Frontend static export is self-contained without dead build-time API short-circuit', () => {
   const pagePath = path.join(rootDir, 'frontend', 'src', 'app', 'page.tsx');

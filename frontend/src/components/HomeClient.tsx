@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Project, Settings } from "@/lib/api";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
@@ -16,35 +16,7 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ projects = [], settings = {} }: HomeClientProps = {}) {
-  const cursorRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    const cur = cursorRef.current;
-    if (!cur) return;
-
-    const moveCursor = (e: MouseEvent) => {
-      cur.style.left = e.clientX + "px";
-      cur.style.top = e.clientY + "px";
-    };
-    document.addEventListener("mousemove", moveCursor);
-
-    const addBig = () => cur.classList.add("big");
-    const removeBig = () => cur.classList.remove("big");
-    const addSq = () => cur.classList.add("sq");
-    const removeSq = () => cur.classList.remove("sq");
-
-    document
-      .querySelectorAll("a, .nav-cta, .wc, .pc, .about-left, .ci, .hero-btn, .hero-img-cell, .theme-toggle")
-      .forEach((el) => {
-        el.addEventListener("mouseenter", addBig);
-        el.addEventListener("mouseleave", removeBig);
-      });
-
-    document.querySelectorAll(".dr, .disc-expand").forEach((el) => {
-      el.addEventListener("mouseenter", addSq);
-      el.addEventListener("mouseleave", removeSq);
-    });
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -68,15 +40,12 @@ export default function HomeClient({ projects = [], settings = {} }: HomeClientP
       });
 
     return () => {
-      document.removeEventListener("mousemove", moveCursor);
       observer.disconnect();
     };
   }, []);
 
   return (
     <>
-      <div id="cur" ref={cursorRef}></div>
-
       <Nav />
 
       <Hero />

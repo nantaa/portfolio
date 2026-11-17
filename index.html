@@ -48,48 +48,22 @@
       color: var(--text);
       font-family: var(--sans);
       overflow-x: hidden;
-      cursor: none;
-      user-select: none;
-      -webkit-user-select: none;
+      cursor: default;
     }
 
-    *::selection {
-      background: transparent;
-      color: inherit;
-    }
-
-    *::-moz-selection {
-      background: transparent;
-      color: inherit;
-    }
-
-    /* CURSOR */
-    #cur {
-      position: fixed;
-      width: 8px;
-      height: 8px;
+    ::selection {
       background: var(--accent);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 220ms, height 220ms, background 220ms, border-radius 220ms;
-      mix-blend-mode: normal;
+      color: #ffffff;
     }
 
-    #cur.big {
-      width: 34px;
-      height: 34px;
-      background: transparent;
-      border: 1px solid var(--accent);
+    ::-moz-selection {
+      background: var(--accent);
+      color: #ffffff;
     }
 
-    #cur.sq {
-      width: 22px;
-      height: 22px;
-      background: transparent;
-      border: 1px solid var(--accent);
-      border-radius: 2px;
+    /* CURSOR: Suppressed in favor of native hardware cursor */
+    #cur {
+      display: none !important;
     }
 
     /* GRAIN OVERLAY */
@@ -1646,20 +1620,7 @@
   </footer>
 
   <script>
-    /* Custom cursor */
-    const cur = document.getElementById('cur');
-    document.addEventListener('mousemove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top = e.clientY + 'px';
-    });
-    document.querySelectorAll('a,.nav-cta,.wc,.pc,.about-left,.ci,.hero-btn,.hero-img-cell').forEach(el => {
-      el.addEventListener('mouseenter', () => cur.classList.add('big'));
-      el.addEventListener('mouseleave', () => cur.classList.remove('big'));
-    });
-    document.querySelectorAll('.dr,.disc-expand').forEach(el => {
-      el.addEventListener('mouseenter', () => cur.classList.add('sq'));
-      el.addEventListener('mouseleave', () => cur.classList.remove('sq'));
-    });
+    /* Native cursor restored */
 
     /* Disciplines toggle */
     function toggleDisc() {

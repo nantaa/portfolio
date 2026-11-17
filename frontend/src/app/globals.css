@@ -63,7 +63,7 @@
       color: var(--text);
       font-family: var(--sans);
       overflow-x: hidden;
-      cursor: none;
+      cursor: default;
       transition: background-color 220ms ease, color 220ms ease;
     }
 
@@ -78,33 +78,9 @@
       color: #ffffff;
     }
 
-    /* CURSOR */
+    /* CURSOR: Native hardware OS cursor prioritized for zero latency & accessibility */
     #cur {
-      position: fixed;
-      width: 8px;
-      height: 8px;
-      background: var(--accent);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 220ms, height 220ms, background 220ms, border-radius 220ms;
-      mix-blend-mode: normal;
-    }
-
-    #cur.big {
-      width: 34px;
-      height: 34px;
-      background: transparent;
-      border: 1px solid var(--accent);
-    }
-
-    #cur.sq {
-      width: 22px;
-      height: 22px;
-      background: transparent;
-      border: 1px solid var(--accent);
-      border-radius: 2px;
+      display: none !important;
     }
 
     /* GRAIN OVERLAY */
