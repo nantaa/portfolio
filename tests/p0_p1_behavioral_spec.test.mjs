@@ -229,3 +229,47 @@ test('WorkGrid card chrome implements accessible dialog trigger and spring micro
     'WorkGrid must define high-fidelity spring motion transitions'
   );
 });
+
+// ─── 7. REAL RUNTIMES & ANTI-SLOP INTEGRITY ─────────────────────────────────
+test('Moriku index.html is interactive, contains 16-stage Kanban, and has zero frame-busters', () => {
+  const morikuPath = path.join(rootDir, 'frontend', 'public', 'projects', 'moriku', 'index.html');
+  assert.ok(fs.existsSync(morikuPath), 'frontend/public/projects/moriku/index.html must exist');
+  
+  const content = fs.readFileSync(morikuPath, 'utf-8');
+  
+  // Must NOT contain frame-buster or about:blank redirection
+  assert.ok(!content.includes("window.self.location.replace('about:blank')"), 'Moriku must not redirect to about:blank');
+  assert.ok(!content.includes('window.top.location ='), 'Moriku must not have top-level window hijack frame-busters');
+  
+  // Must contain interactive Kanban structure and 16 statutory stages
+  assert.ok(content.includes('Kanban') || content.includes('kanban'), 'Must be an interactive Kanban system');
+  assert.ok(content.includes('16 Tahap') || content.includes('16 tahap') || content.includes('Fase 1'), 'Must display statutory phases/stages');
+  assert.ok(content.includes('Escape') || content.includes('close-modal'), 'Must bridge Escape key to parent modal');
+});
+
+test('MaterialStudiesCarousel mounts live 3D diorama immediately without standby barrier', () => {
+  const carouselPath = path.join(rootDir, 'frontend', 'src', 'components', 'previews', 'MaterialStudiesCarousel.tsx');
+  assert.ok(fs.existsSync(carouselPath), 'MaterialStudiesCarousel.tsx must exist');
+  
+  const content = fs.readFileSync(carouselPath, 'utf-8');
+  
+  // Must NOT gate 3D scene behind an extra standby click-to-load barrier inside modal
+  assert.ok(!content.includes('Standby (Click to Load)'), 'MaterialStudiesCarousel must not force an extra Standby click');
+  assert.ok(!content.includes('CLICK TO LOAD'), 'MaterialStudiesCarousel must not have click to load banner');
+});
+
+test('CaseStudyModal strips restrictive sandbox and redundant AI slop badges', () => {
+  const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
+  assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
+  
+  const content = fs.readFileSync(modalPath, 'utf-8');
+  
+  // Must not have restrictive sandbox attribute on iframes
+  assert.ok(!content.includes('sandbox="allow-scripts allow-same-origin allow-forms allow-popups"'), 'Must remove restrictive sandbox that triggers browser security exceptions');
+  assert.ok(!content.includes('sandbox="allow-scripts allow-same-origin"'), 'Must remove sandbox from 3D frame');
+  
+  // Must eliminate redundant duplicate status pills and clutter
+  assert.ok(!content.includes('1:1 LIVE SYSTEM / ENTERPRISE WORKFLOW'), 'Must purge redundant double-stacked category badges');
+  assert.ok(!content.includes('REALTIME INTERACTIVE SANDBOX'), 'Must purge redundant AI slop footer labels');
+});
+

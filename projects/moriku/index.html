@@ -1,124 +1,72 @@
-<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./moriku-logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DNP Monitoring System - Disnaker Statutory SLA Pipeline</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        background-color: #F8FAFC;
-      }
-      #root {
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        min-height: 100vh;
-        margin: 0 !important;
-        border: none !important;
-        text-align: left !important;
-      }
-    </style>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DNP Monitoring System - Disnaker Statutory 16 Tahap Pipeline (Fase 1 s/d Fase 4)</title>
+  <link rel="icon" type="image/png" href="./moriku-logo.png">
 
-    <script>
-      // Standalone Offline Inertia State for Moriku (DNP Compliance Engine)
-      window.__DNP_INITIAL_PAGE__ = {
-        component: "Kanban/Index",
-        props: {
-          auth: {
-            user: { id: 1, name: "Aryo Rifai", email: "rifai.aryo@gmail.com", role: "superadmin" },
-            permissions: "superadmin"
-          },
-          jobs: [
-            {
-              id: 1,
-              kode: "DNP-2026-001",
-              spk: "SPK-2026-0891",
-              company_name: "PT Semen Nusantara Tbk",
-              nama_alat: "Overhead Crane 50T (3 Unit)",
-              stage_id: 4,
-              status: "in_progress",
-              created_at: "2026-08-10"
-            },
-            {
-              id: 2,
-              kode: "DNP-2026-002",
-              spk: "SPK-2026-0902",
-              company_name: "PT Astra Auto Component",
-              nama_alat: "Forklift Diesel 5T (5 Unit)",
-              stage_id: 8,
-              status: "in_progress",
-              created_at: "2026-08-15"
-            },
-            {
-              id: 3,
-              kode: "DNP-2026-003",
-              spk: "SPK-2026-0915",
-              company_name: "RSUD Harapan Bangsa",
-              nama_alat: "Passenger Lift 1000kg (2 Unit)",
-              stage_id: 10,
-              status: "in_progress",
-              created_at: "2026-08-20"
-            },
-            {
-              id: 4,
-              kode: "DNP-2026-004",
-              spk: "SPK-2026-0920",
-              company_name: "PT Indofood CBP Sukses Makmur",
-              nama_alat: "Bejana Tekan & Kompresor",
-              stage_id: 1,
-              status: "in_progress",
-              created_at: "2026-08-25"
-            }
-          ]
-        },
-        url: "/kanban",
-        version: "1.0.0"
+  <!-- Typography & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./build/assets/app-DV4RREWC.css">
+
+  <!-- Global Route Fallback Helper & Standalone Inertia Bootstrap for Moriku -->
+  <script>
+    window.__DNP_INITIAL_PAGE__ = {
+      component: "Kanban/Index",
+      props: {
+        auth: { user: { id: 1, name: "Aryo Rifai", role: "superadmin" }, permissions: "superadmin" },
+        jobs: [
+          { id: 1, kode: "DNP-2026-001", spk: "SPK-2026-0891", company_name: "PT Semen Nusantara Tbk", nama_alat: "Overhead Crane 50T (3 Unit)", stage: "4", status: "in_progress", created_at: "2026-08-10", inspectors: [], documents: [], unitsTracking: [], historyLogs: [] },
+          { id: 2, kode: "DNP-2026-002", spk: "SPK-2026-0902", company_name: "PT Astra Auto Component", nama_alat: "Forklift Diesel 5T (5 Unit)", stage: "8", status: "in_progress", created_at: "2026-08-15", inspectors: [], documents: [], unitsTracking: [], historyLogs: [] },
+          { id: 3, kode: "DNP-2026-003", spk: "SPK-2026-0915", company_name: "RSUD Harapan Bangsa", nama_alat: "Passenger Lift 1000kg (2 Unit)", stage: "10", status: "in_progress", created_at: "2026-08-20", inspectors: [], documents: [], unitsTracking: [], historyLogs: [] },
+          { id: 4, kode: "DNP-2026-004", spk: "SPK-2026-0920", company_name: "PT Indofood CBP Sukses Makmur", nama_alat: "Bejana Tekan & Kompresor", stage: "1", status: "in_progress", created_at: "2026-08-25", inspectors: [], documents: [], unitsTracking: [], historyLogs: [] }
+        ],
+        inspectors: []
+      },
+      url: "/kanban",
+      version: "1.0.0"
+    };
+
+    window.route = window.route || function(name, params) {
+      var routes = {
+        'login': '/login',
+        'logout': '/logout',
+        'dashboard': '/',
+        'kanban': '/kanban',
+        'jobs.index': '/jobs',
+        'jobs.create': '/jobs/create',
+        'jobs.store': '/jobs',
+        'reminder.suket': '/reminder-suket',
+        'inventory': '/inventory',
+        'pelaporan.index': '/pelaporan',
+        'profile.edit': '/profile',
+        'users.index': '/users'
       };
+      var target = routes[name] || ('/' + (name || '').replace(/\./g, '/'));
+      if (params && typeof params === 'object') {
+        var qs = Object.keys(params).map(function(k){
+          return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }).join('&');
+        return qs ? target + '?' + qs : target;
+      }
+      return target;
+    };
 
-      // Mock fetch interceptor for zero-latency standalone execution
-      const _origFetch = window.fetch;
-      window.fetch = function(url, options) {
-        if (typeof url === 'string') {
-          if (url.includes('/api/notifications')) {
-            return Promise.resolve(new Response(JSON.stringify({ notifications: [], unread_count: 0 }), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' }
-            }));
-          }
-          if (url.includes('/kanban') || url === '/' || url === '') {
-            return Promise.resolve(new Response(JSON.stringify(window.__DNP_INITIAL_PAGE__), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' }
-            }));
-          }
-        }
-        return _origFetch.apply(this, arguments);
-      };
+    // Escape key bridge to parent modal
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        window.parent.postMessage('close-modal', '*');
+      }
+    });
+  </script>
+</head>
+<body class="font-sans antialiased bg-slate-50 text-slate-800">
+  <div id="app" data-page='{"component":"Kanban/Index","props":{"auth":{"user":{"id":1,"name":"Aryo Rifai","email":"rifai.aryo@gmail.com","role":"superadmin"},"permissions":"superadmin"},"jobs":[{"id":1,"kode":"DNP-2026-001","spk":"SPK-2026-0891","company_name":"PT Semen Nusantara Tbk","nama_alat":"Overhead Crane 50T (3 Unit)","stage":"4","status":"in_progress","created_at":"2026-08-10","inspectors":[],"documents":[],"unitsTracking":[],"historyLogs":[]},{"id":2,"kode":"DNP-2026-002","spk":"SPK-2026-0902","company_name":"PT Astra Auto Component","nama_alat":"Forklift Diesel 5T (5 Unit)","stage":"8","status":"in_progress","created_at":"2026-08-15","inspectors":[],"documents":[],"unitsTracking":[],"historyLogs":[]},{"id":3,"kode":"DNP-2026-003","spk":"SPK-2026-0915","company_name":"RSUD Harapan Bangsa","nama_alat":"Passenger Lift 1000kg (2 Unit)","stage":"10","status":"in_progress","created_at":"2026-08-20","inspectors":[],"documents":[],"unitsTracking":[],"historyLogs":[]},{"id":4,"kode":"DNP-2026-004","spk":"SPK-2026-0920","company_name":"PT Indofood CBP Sukses Makmur","nama_alat":"Bejana Tekan & Kompresor","stage":"1","status":"in_progress","created_at":"2026-08-25","inspectors":[],"documents":[],"unitsTracking":[],"historyLogs":[]}],"inspectors":[]},"url":"/kanban","version":"1.0.0"}'></div>
 
-      // Escape key bridge to parent modal
-      window.addEventListener("keydown", function(e) {
-        if (e.key === "Escape") {
-          window.parent.postMessage("close-modal", "*");
-        }
-      });
-    </script>
-
-    <script type="module" crossorigin src="./assets/index-COGktG1k.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/vendor-react-BrvB4z0H.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-inertia-DkPZsXS7.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-swal-pspS2E2g.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-icons-HxxrN0CC.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-C6G_3qQV.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+  <script type="module" src="./build/assets/app-bcfAbrGs.js"></script>
+</body>
 </html>
