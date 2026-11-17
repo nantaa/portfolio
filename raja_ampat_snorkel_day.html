@@ -635,7 +635,13 @@
 
     /* Compact & Hidden UI modes for embedding */
     body.ui-hidden .ui-layer,
-    body.ui-hidden .vertical-caption {
+    body.ui-hidden .vertical-caption,
+    body.ui-hidden .dock-wrap,
+    body.ui-hidden .bottom-bar,
+    body.ui-hidden .choreo-card,
+    body.ui-hidden .tally-card,
+    body.ui-hidden .brand-block {
+      display: none !important;
       opacity: 0 !important;
       pointer-events: none !important;
     }
