@@ -32,16 +32,16 @@ export default function About() {
           </p>
           <div className="a-stats">
             <div className="a-stat">
-              <span className="a-stat-num">08</span>
-              <span className="a-stat-lbl">Disciplines</span>
+              <span className="a-stat-num">350+</span>
+              <span className="a-stat-lbl">Automated Tests Passed</span>
             </div>
             <div className="a-stat">
-              <span className="a-stat-num">2+</span>
-              <span className="a-stat-lbl">Years active</span>
+              <span className="a-stat-num">60 FPS</span>
+              <span className="a-stat-lbl">WebGL Shaders</span>
             </div>
             <div className="a-stat">
-              <span className="a-stat-num">∞</span>
-              <span className="a-stat-lbl">Systems built</span>
+              <span className="a-stat-num">16</span>
+              <span className="a-stat-lbl">SLA Pipeline Stages</span>
             </div>
           </div>
         </div>

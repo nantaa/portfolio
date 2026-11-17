@@ -65,6 +65,23 @@ test('Disciplines component implements Architectural Capability Matrix with conc
   assert.ok(content.includes('Cloud Infrastructure') || content.includes('Infrastructure & Reliability'), 'Must feature Infrastructure pillar');
 });
 
+test('About section purges corny infinity stat and highlights verified production engineering metrics', () => {
+  const aboutPath = path.join(rootDir, 'frontend', 'src', 'components', 'About.tsx');
+  const indexPath = path.join(rootDir, 'index.html');
+  assert.ok(fs.existsSync(aboutPath), 'About.tsx must exist');
+
+  const aboutContent = fs.readFileSync(aboutPath, 'utf-8');
+  const indexContent = fs.readFileSync(indexPath, 'utf-8');
+
+  // Must eradicate fake/corny infinity symbol stat
+  assert.ok(!aboutContent.includes('>∞<') && !aboutContent.includes('Systems built'), 'About.tsx must not contain corny infinity systems built stat');
+  assert.ok(!indexContent.includes('>∞<') && !indexContent.includes('Systems built'), 'index.html must not contain corny infinity systems built stat');
+
+  // Must highlight concrete production metrics
+  assert.ok(aboutContent.includes('Automated Tests') || aboutContent.includes('Tests Passed') || aboutContent.includes('350+') || aboutContent.includes('270+'), 'About.tsx must highlight automated testing rigor');
+  assert.ok(aboutContent.includes('60 FPS') || aboutContent.includes('WebGL') || aboutContent.includes('Realtime'), 'About.tsx must highlight real-time performance benchmark');
+});
+
 test('Ulun Danu standalone static asset exists in public and root for low-resource zero-daemon hosting', () => {
   const publicPath = path.join(rootDir, 'frontend', 'public', 'ulun_danu_lake_bratan_material_studies.html');
   const rootHtmlPath = path.join(rootDir, 'ulun_danu_lake_bratan_material_studies.html');
