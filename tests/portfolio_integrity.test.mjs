@@ -179,8 +179,30 @@ test('CaseStudyModal component exists and implements readable DESIGN.md Case Fra
   assert.ok(content.includes('Escape') || content.includes('onClose'), 'Must handle modal dismissal');
 
   // Verify readability: widened container, readable body copy (15px-17px) rather than microscopic 12px
-  assert.ok(content.includes('max-w-[940px]') || content.includes('max-w-[920px]') || content.includes('max-w-4xl'), 'Modal container must be comfortably widened');
+  assert.ok(content.includes('max-w-[940px]') || content.includes('max-w-[920px]') || content.includes('max-w-[1080px]') || content.includes('max-w-4xl') || content.includes('max-w-5xl') || content.includes('max-w-6xl'), 'Modal container must be comfortably widened');
   assert.ok(content.includes('text-[15px]') || content.includes('text-[16px]') || content.includes('text-base'), 'Dossier body paragraphs must use comfortable readable font size');
+});
+
+test('CaseStudyModal supports Dual-Mode Theater with Live Interactive Simulator and Case Dossier tabs', () => {
+  const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
+  assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
+  const content = fs.readFileSync(modalPath, 'utf-8');
+
+  // Must have dual-mode tab controls
+  assert.ok(content.includes('Live System') || content.includes('LIVE SYSTEM') || content.includes('Live Simulator') || content.includes('Live Interactive System'), 'Modal must have Live System tab');
+  assert.ok(content.includes('Case Dossier') || content.includes('DOSSIER') || content.includes('Dossier'), 'Modal must have Dossier tab');
+
+  // Must mount dynamic preview inside modal viewport
+  assert.ok(content.includes('DNPMonitorPreview') || content.includes('ProjectPreviewGate') || content.includes('renderLivePreview'), 'Modal must mount interactive project previews');
+});
+
+test('HomeClient implements architectural loading gate animation', () => {
+  const homePath = path.join(rootDir, 'frontend', 'src', 'components', 'HomeClient.tsx');
+  assert.ok(fs.existsSync(homePath), 'HomeClient.tsx must exist');
+  const content = fs.readFileSync(homePath, 'utf-8');
+
+  // Must implement loading gate / system initialization state
+  assert.ok(content.includes('loading') || content.includes('LoadingGate') || content.includes('initialized') || content.includes('isLoaded'), 'HomeClient must implement loading gate state');
 });
 
 test('Frontend WorkGrid.tsx wires dedicated button for CaseStudyModal to prevent 3D canvas click hijack', () => {

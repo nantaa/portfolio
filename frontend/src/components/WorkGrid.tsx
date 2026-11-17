@@ -169,6 +169,7 @@ interface WorkGridProps {
 
 export default function WorkGrid({ projects }: WorkGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [initialModalMode, setInitialModalMode] = useState<"live" | "dossier">("live");
 
   const apiItems =
     projects && projects.length > 0
@@ -191,6 +192,10 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div
               key={project.id}
               className="wc wc-interactive group focus:outline-none focus-visible:outline-none"
+              onClick={() => {
+                setInitialModalMode("live");
+                setSelectedProject(project);
+              }}
             >
               {project.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -227,19 +232,35 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                       <div className="w-sub text-[var(--muted)] font-mono text-[13px] mt-1 line-clamp-1">{project.subtitle}</div>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedProject(project);
-                    }}
-                    aria-haspopup="dialog"
-                    aria-label={`Open case dossier for ${project.title}`}
-                  >
-                    <span>Read Case</span>
-                    <span className="text-white/60 transition-transform group-hover:translate-x-0.5">↗</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      className="live-launch-btn px-3 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--accent2-text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 cursor-pointer focus:outline-none"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInitialModalMode("live");
+                        setSelectedProject(project);
+                      }}
+                      aria-haspopup="dialog"
+                      aria-label={`Launch live interactive simulator for ${project.title}`}
+                    >
+                      <span>⚡ Live System</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInitialModalMode("dossier");
+                        setSelectedProject(project);
+                      }}
+                      aria-haspopup="dialog"
+                      aria-label={`Open case dossier for ${project.title}`}
+                    >
+                      <span>Read Case</span>
+                      <span className="text-white/60 transition-transform group-hover:translate-x-0.5">↗</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -247,9 +268,11 @@ export default function WorkGrid({ projects }: WorkGridProps) {
         })}
       </div>
 
-      {/* Case Framework Modal */}
+      {/* Case Framework Modal with Dual Live Theater / Dossier Modes */}
       <CaseStudyModal
+        key={selectedProject ? `${selectedProject.id}-${initialModalMode}` : "none"}
         project={selectedProject}
+        initialMode={initialModalMode}
         onClose={() => setSelectedProject(null)}
       />
     </>

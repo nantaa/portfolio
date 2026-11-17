@@ -1,16 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
+import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
+import DNPMonitorPreview from "@/components/previews/DNPMonitorPreview";
+import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
+import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
+import GeopetakPreview from "@/components/previews/GeopetakPreview";
+import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
+
+// Three.js interactive previews dynamically imported to prevent SSR issues
+const TataPreview = dynamic(
+  () => import("@/components/previews/TataPreview"),
+  { ssr: false }
+);
+const MaterialStudiesCarousel = dynamic(
+  () => import("@/components/previews/MaterialStudiesCarousel"),
+  { ssr: false }
+);
 
 interface CaseStudyModalProps {
   project: Project | null;
+  initialMode?: "live" | "dossier";
   onClose: () => void;
 }
 
-export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps) {
+export default function CaseStudyModal({ project, initialMode = "live", onClose }: CaseStudyModalProps) {
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const triggerElementRef = useRef<HTMLElement | null>(null);
+  const [activeTab, setActiveTab] = useState<"live" | "dossier">(initialMode);
 
   useEffect(() => {
     if (!project) return;
@@ -69,13 +88,11 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         const lastElement = focusables[focusables.length - 1];
 
         if (e.shiftKey) {
-          // Shift + Tab: moving backwards
           if (document.activeElement === firstElement || !modalContainerRef.current.contains(document.activeElement)) {
             e.preventDefault();
             lastElement.focus();
           }
         } else {
-          // Tab: moving forwards
           if (document.activeElement === lastElement || !modalContainerRef.current.contains(document.activeElement)) {
             e.preventDefault();
             firstElement.focus();
@@ -96,7 +113,6 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         (mainContent as HTMLElement & { inert?: boolean }).inert = false;
       }
 
-      // Restore focus back to the triggering element
       if (triggerElementRef.current && typeof triggerElementRef.current.focus === "function") {
         triggerElementRef.current.focus();
       }
@@ -117,6 +133,18 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
 
   const cs = project.case_study;
 
+  // Render the corresponding live functional project preview
+  const renderLivePreview = (p: Project) => {
+    if (p.id === 1) return <DNPMonitorPreview />;
+    if (p.id === 2) return <MaterialStudiesCarousel />;
+    if (p.id === 3) return <TataPreview />;
+    if (p.id === 4) return <AcademicDocketPreview />;
+    if (p.id === 5) return <HelpdeskPreview />;
+    if (p.id === 6) return <GeopetakPreview />;
+    if (p.id === 7) return <ExpenseTrackerPreview />;
+    return <MaknaMoodboardPreview />;
+  };
+
   return (
     <div
       role="dialog"
@@ -128,14 +156,14 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
       <div
         ref={modalContainerRef}
         tabIndex={-1}
-        className="relative w-full max-w-[940px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none"
+        className="relative w-full max-w-[1080px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header / Metadata Ribbon */}
-        <div className="flex items-center justify-between pb-4 mb-6 border-b border-[var(--wire)] font-mono text-xs sm:text-[13px]">
+        <div className="flex items-center justify-between pb-4 mb-4 border-b border-[var(--wire)] font-mono text-xs sm:text-[13px]">
           <div className="flex items-center gap-2.5 tracking-widest uppercase">
             <span className="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-            <span className="text-[var(--accent2-text)] font-bold">CASE DOSSIER</span>
+            <span className="text-[var(--accent2-text)] font-bold">PROJECT THEATER</span>
             <span className="text-[var(--muted)] opacity-40">/</span>
             <span className="text-[var(--muted)]">{project.category}</span>
           </div>
@@ -143,7 +171,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           <button
             onClick={onClose}
             className="group flex items-center gap-2 tracking-wider uppercase text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
-            aria-label="Close case study modal"
+            aria-label="Close project modal"
           >
             <span>CLOSE</span>
             <span className="text-[var(--accent2-text)] font-bold group-hover:translate-x-0.5 transition-transform">[ESC]</span>
@@ -151,8 +179,8 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         </div>
 
         {/* Project Title & Stack Ribbon */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-baseline gap-3.5 mb-3">
+        <div className="mb-6">
+          <div className="flex flex-wrap items-baseline gap-3.5 mb-2">
             <h2 id="case-modal-title" className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-[var(--text)] tracking-tight">
               {project.title}
             </h2>
@@ -165,7 +193,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
 
           {/* Interactive Technology Stack Chips */}
           {techStack.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mt-2">
               {techStack.map((tech) => (
                 <span
                   key={tech}
@@ -178,92 +206,134 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           )}
         </div>
 
-        {/* ─── Elevated Impact Highlight Banner ─── */}
-        <div className="cs-impact-banner mb-8 p-5 sm:p-6 rounded-[2px] bg-[var(--s1)] border border-[#27ae60]/40 shadow-lg">
-          <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#27ae60]/20 font-mono text-xs sm:text-[13px] tracking-wider uppercase">
-            <span className="flex items-center gap-2.5 text-[#27ae60] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#27ae60] animate-pulse"></span>
-              QUANTIFIED IMPACT &amp; KEY OUTCOME
-            </span>
-            <span className="text-[var(--muted)] text-[11px]">PRODUCTION CERTIFIED</span>
-          </div>
-          <p className="text-base sm:text-[17px] leading-relaxed text-[var(--text)] font-sans font-medium">
-            {cs?.result ?? "Sub-second operational performance with zero statutory SLA leaks and production test verification."}
-          </p>
-        </div>
-
-        {/* ─── 2×2 Architectural Engineering Dossier Grid ─── */}
-        <div className="cs-grid grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-8 font-mono">
-          {/* Card 01: Bottleneck & Problem */}
-          <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#f39c12]/40 transition-colors">
-            <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-              <span className="text-[#f39c12] font-bold tracking-wider uppercase">[01] THE BOTTLENECK</span>
-              <span className="text-[var(--muted)] text-[11px]">PROBLEM STATEMENT</span>
-            </div>
-            <p className="text-[15px] sm:text-[16px] leading-relaxed text-[var(--text)] font-sans">
-              {cs?.problem ?? "Operational and technical bottlenecks required a dedicated systems-first engineering approach."}
-            </p>
-          </div>
-
-          {/* Card 02: Strategic Architecture & Thinking */}
-          <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[var(--wire-h)] transition-colors">
-            <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-              <span className="text-[var(--text)] font-bold tracking-wider uppercase">[02] STRATEGIC THINKING</span>
-              <span className="text-[var(--muted)] text-[11px]">SYSTEM ARCHITECTURE</span>
-            </div>
-            <p className="text-[15px] sm:text-[16px] leading-relaxed text-[var(--text)] font-sans">
-              {cs?.thinking ?? "Formulated mathematical models and clean architecture boundaries to isolate state and ensure failure tolerance."}
-            </p>
-          </div>
-
-          {/* Card 03: Implementation & Execution */}
-          <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[var(--wire-h)] transition-colors">
-            <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-              <span className="text-[var(--text)] font-bold tracking-wider uppercase">[03] EXECUTION PIPELINE</span>
-              <span className="text-[var(--muted)] text-[11px]">TOOLING &amp; DISCIPLINE</span>
-            </div>
-            <p className="text-[15px] sm:text-[16px] leading-relaxed text-[var(--text)] font-sans">
-              {cs?.execution ?? "Implemented through modular components, strict linting, zero silent error catching, and verified automated suites."}
-            </p>
-          </div>
-
-          {/* Card 04: Production Metrics & Verification */}
-          <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#27ae60]/40 transition-colors">
-            <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-              <span className="text-[#27ae60] font-bold tracking-wider uppercase">[04] RESULT &amp; METRICS</span>
-              <span className="text-[var(--muted)] text-[11px]">QUALITY ASSURANCE</span>
-            </div>
-            <div className="space-y-2 text-[13px] sm:text-[14px] text-[var(--text)]">
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Test Rigor:</span>
-                <span className="text-[var(--text)] font-bold">100% Passing Automated Suites</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Failure Tolerance:</span>
-                <span className="text-[var(--text)] font-bold">Zero Silent Swallows / Fail-Safe</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Deployment:</span>
-                <span className="text-[#27ae60] font-bold">Atomic Symlink / Production Live</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Metric Pill & Action */}
-        <div className="pt-5 border-t border-[var(--wire)] flex flex-wrap items-center justify-between gap-4 font-mono text-xs sm:text-[13px]">
-          <div className="flex items-center gap-2 text-[var(--muted)]">
-            <span className="w-2 h-2 rounded-full bg-[#27ae60]"></span>
-            <span>Status: Verified In Production / Build Passing</span>
-          </div>
-
+        {/* ─── Dual-Mode Theater Tab Switcher ─── */}
+        <div className="flex items-center gap-2 mb-6 p-1 bg-[var(--s2)] border border-[var(--wire)] rounded-[3px] w-fit">
           <button
             type="button"
-            onClick={onClose}
-            className="px-5 py-2 bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] transition-all rounded-[2px] cursor-pointer font-medium"
+            onClick={() => setActiveTab("live")}
+            className={`px-4 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "live"
+                ? "bg-[var(--accent)] text-white shadow-sm"
+                : "text-[var(--muted)] hover:text-[var(--text)]"
+            }`}
           >
-            ← Return to Grid
+            <span>⚡</span>
+            <span>Live Interactive System</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("dossier")}
+            className={`px-4 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "dossier"
+                ? "bg-[var(--accent)] text-white shadow-sm"
+                : "text-[var(--muted)] hover:text-[var(--text)]"
+            }`}
+          >
+            <span>📋</span>
+            <span>Case Dossier</span>
+          </button>
+        </div>
+
+        {/* ─── Tab Content: Live Interactive Theater or Case Framework Dossier ─── */}
+        {activeTab === "live" ? (
+          <div className="live-theater-viewport relative w-full h-[500px] sm:h-[580px] bg-[var(--s1)] border border-[var(--wire)] rounded-[3px] overflow-hidden mb-6 shadow-inner">
+            {renderLivePreview(project)}
+          </div>
+        ) : (
+          <div className="dossier-viewport animate-fadeIn">
+            {/* ─── Elevated Impact Highlight Banner ─── */}
+            <div className="cs-impact-banner mb-8 p-5 sm:p-6 rounded-[2px] bg-[var(--s1)] border border-[#27ae60]/40 shadow-lg">
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#27ae60]/20 font-mono text-xs sm:text-[13px] tracking-wider uppercase">
+                <span className="flex items-center gap-2.5 text-[#27ae60] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-[#27ae60] animate-pulse"></span>
+                  QUANTIFIED IMPACT &amp; KEY OUTCOME
+                </span>
+                <span className="text-[var(--muted)] text-[11px]">PRODUCTION CERTIFIED</span>
+              </div>
+              <p className="text-base sm:text-[17px] leading-relaxed text-[var(--text)] font-sans font-medium">
+                {cs?.result ?? "Sub-second operational performance with zero statutory SLA leaks and production test verification."}
+              </p>
+            </div>
+
+            {/* ─── 2×2 Architectural Engineering Dossier Grid ─── */}
+            <div className="cs-grid grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-8 font-mono">
+              {/* Card 01: Bottleneck & Problem */}
+              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#f39c12]/40 transition-colors">
+                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
+                  <span className="text-[#f39c12] font-bold tracking-wider uppercase">[01] THE BOTTLENECK</span>
+                  <span className="text-[var(--muted)] text-[10px]">DIAGNOSTIC</span>
+                </div>
+                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">PROBLEM</h4>
+                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
+                  {cs?.problem ?? "Unaddressed latency and manual friction in legacy deployment pipelines."}
+                </p>
+              </div>
+
+              {/* Card 02: Systems Architecture & Strategy */}
+              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[var(--accent2)]/40 transition-colors">
+                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
+                  <span className="text-[var(--accent2-text)] font-bold tracking-wider uppercase">[02] STRATEGIC FRAME</span>
+                  <span className="text-[var(--muted)] text-[10px]">APPROACH</span>
+                </div>
+                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">THINKING</h4>
+                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
+                  {cs?.thinking ?? "Deconstructed domain bottlenecks and isolated stateful concerns with transactional guarantees."}
+                </p>
+              </div>
+
+              {/* Card 03: Concrete Execution & Tooling */}
+              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#3498db]/40 transition-colors">
+                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
+                  <span className="text-[#3498db] font-bold tracking-wider uppercase">[03] PRODUCTION RIGOR</span>
+                  <span className="text-[var(--muted)] text-[10px]">STACK</span>
+                </div>
+                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">EXECUTION</h4>
+                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
+                  {cs?.execution ?? "Built with modern frameworks, automated unit test suites, and strict CI/CD pipelines."}
+                </p>
+              </div>
+
+              {/* Card 04: Verified Benchmark Result */}
+              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#27ae60]/40 transition-colors">
+                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
+                  <span className="text-[#27ae60] font-bold tracking-wider uppercase">[04] VERIFIED METRIC</span>
+                  <span className="text-[var(--muted)] text-[10px]">SUCCESS</span>
+                </div>
+                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">RESULT</h4>
+                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-medium">
+                  {cs?.result ?? "100% test coverage with verifiable performance gains and production validation."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Navigation within Modal */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[var(--wire)] font-mono text-xs">
+          <div className="text-[var(--muted)] text-center sm:text-left">
+            <span>PRESS </span>
+            <kbd className="px-1.5 py-0.5 bg-[var(--s2)] rounded-[2px] border border-[var(--card-border)] text-[var(--text)]">ESC</kbd>
+            <span> OR CLICK OUTSIDE TO DISMISS</span>
+          </div>
+
+          {project.link ? (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent2)] text-white font-bold tracking-wider uppercase rounded-[2px] transition-all flex items-center gap-2 cursor-pointer shadow-md"
+            >
+              <span>Launch Fullscreen Diorama</span>
+              <span>↗</span>
+            </a>
+          ) : (
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 bg-[var(--s2)] hover:bg-[var(--s3)] text-[var(--text)] border border-[var(--card-border)] font-medium tracking-wider uppercase rounded-[2px] transition-colors cursor-pointer"
+            >
+              Return to Grid
+            </button>
+          )}
         </div>
       </div>
     </div>
