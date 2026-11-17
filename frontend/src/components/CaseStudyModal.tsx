@@ -7,7 +7,6 @@ import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
 import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
 import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
 import GeopetakPreview from "@/components/previews/GeopetakPreview";
-import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
 
 // Dynamic import for WebGL Three.js diorama studies
 const MaterialStudiesCarousel = dynamic(
@@ -153,7 +152,16 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           {p.id === 5 && <HelpdeskPreview />}
           {p.id === 6 && <GeopetakPreview />}
           {p.id === 7 && <ExpenseTrackerPreview />}
-          {p.id !== 4 && p.id !== 5 && p.id !== 6 && p.id !== 7 && <MaknaMoodboardPreview />}
+          {p.id === 8 && (
+            <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/makna_works_branding_moodboard.webp"
+                alt="Makna Works Brand Guidelines"
+                className="max-h-[660px] w-auto max-w-full object-contain rounded-[2px] shadow-lg border border-[var(--wire)]"
+              />
+            </div>
+          )}
         </div>
       </div>
     );

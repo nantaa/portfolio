@@ -148,7 +148,7 @@ interface AnimatedPacket {
 }
 
 export default function HeroTelemetryHUD() {
-  const [mode, setMode] = useState<HUDMode>("TOPOLOGY");
+  const [mode, setMode] = useState<HUDMode>("TELEMETRY");
   const [activeKey, setActiveKey] = useState<ArchitectureKey>("K3_ENTERPRISE");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -612,32 +612,35 @@ export default function HeroTelemetryHUD() {
 
       {/* ── Mode 2: TELEMETRY Production Matrix ── */}
       {mode === "TELEMETRY" && (
-        <div className="relative flex-1 my-3 space-y-2 font-mono text-[10px] animate-fadeIn overflow-y-auto">
-          <div className="text-[9px] text-[var(--muted)] uppercase tracking-widest pb-1 border-b border-[var(--wire)] flex justify-between">
+        <div className="relative flex-1 my-3 space-y-2.5 font-mono text-[10px] animate-fadeIn overflow-y-auto">
+          <div className="text-[9px] text-[var(--muted)] uppercase tracking-widest pb-1.5 border-b border-[var(--wire)] flex justify-between">
             <span>Core Engineering Domains &amp; Production Scale</span>
             <span className="text-[var(--accent)] font-bold">VERIFIED BENCHMARKS</span>
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 gap-2.5">
             {ARCHITECTURES.map((arch) => (
               <div
                 key={arch.key}
-                className="p-3 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] hover:border-[var(--wire-h)] transition-all"
+                className="p-3.5 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] hover:border-[var(--wire-h)] transition-all shadow-sm"
               >
-                <div className="flex justify-between items-center text-[10px] font-bold text-[var(--text)] mb-0.5">
+                <div className="flex justify-between items-center text-[10.5px] font-bold text-[var(--text)] mb-1">
                   <span className="text-[var(--accent2)]">[{arch.code}] {arch.category}</span>
-                  <span className="text-[8px] text-[var(--muted)] font-normal">{arch.throughput}</span>
+                  <span className="text-[9px] text-[var(--muted)] font-normal">{arch.throughput}</span>
                 </div>
-                <div className="text-[var(--text)] text-xs font-serif mt-1 font-bold">{arch.title}</div>
-                <div className="text-[var(--muted)] text-[10px] leading-relaxed mt-1">
-                  Latency: <span className="text-[var(--text)] font-semibold">{arch.latency}</span> · {arch.summary}
+                <div className="text-[var(--text)] text-sm font-serif font-bold tracking-tight">{arch.title}</div>
+                <div className="text-[var(--muted)] text-[10.5px] leading-relaxed mt-1 font-sans">
+                  Latency: <span className="text-[var(--text)] font-mono font-semibold">{arch.latency}</span> · {arch.summary}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-2.5 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] flex justify-between items-center text-[9px]">
-            <span className="text-[var(--text)] font-bold">● 350+ Passing Automated Tests</span>
+          <div className="p-3 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] flex justify-between items-center text-[10px]">
+            <span className="text-[var(--text)] font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#27ae60]"></span>
+              350+ Passing Automated Tests
+            </span>
             <span className="text-[var(--muted)]">Zero SLA Calculation Errors</span>
             <span className="text-[#27ae60] font-bold">Production Verified</span>
           </div>

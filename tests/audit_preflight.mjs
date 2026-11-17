@@ -59,17 +59,14 @@ if (!fs.existsSync(manifestPath)) {
   }
 }
 
-// 3. Audit anti-reverse engineering in entry JS
+// 3. Audit iframe embeddability in entry JS
 const appJsPath = path.join(rootDir, 'frontend', 'public', 'projects', 'moriku', 'build', 'assets', 'app-CLJ6yzA7.js');
 if (!fs.existsSync(appJsPath)) {
   errors.push('Missing app-CLJ6yzA7.js');
 } else {
   const appJs = fs.readFileSync(appJsPath, 'utf8');
-  if (!appJs.includes('antporto.my.id')) {
-    errors.push('app-CLJ6yzA7.js does not contain antporto.my.id in frame check whitelist!');
-  }
-  if (!appJs.includes('aryorifai.site')) {
-    warnings.push('app-CLJ6yzA7.js missing aryorifai.site');
+  if (appJs.includes('window.top.location')) {
+    errors.push('app-CLJ6yzA7.js contains hostile frame-buster script that hijacks window.top!');
   }
 }
 
