@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ResumeModal from "@/components/ResumeModal";
 import HeroTelemetryHUD from "@/components/HeroTelemetryHUD";
 
 export default function Hero() {
   const [isResumeOpen, setIsResumeOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpen = () => setIsResumeOpen(true);
+    window.addEventListener("open-resume-modal", handleOpen);
+    return () => window.removeEventListener("open-resume-modal", handleOpen);
+  }, []);
 
   return (
     <>

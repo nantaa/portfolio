@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Project } from "@/lib/api";
 import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
 import CaseStudyModal from "@/components/CaseStudyModal";
@@ -12,6 +12,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Industrial K3 Compliance Engine",
     category: "Enterprise Workflow",
     subtitle: "Laravel 11 · React 19 Inertia · PostgreSQL · Disnaker Statutory SLA Pipeline",
+    outcome_metric: "270+ Passing Tests · Zero-Downtime Releases",
     image_url: null,
     link: null,
     year: "2025",
@@ -29,6 +30,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Indonesian 3D Material Studies",
     category: "3D WebGL & Shaders",
     subtitle: "Three.js · Raja Ampat Coral Reef & Ulun Danu Meru Temple · Realtime GLSL",
+    outcome_metric: "60 FPS GLSL · Zero-RAM Static Export",
     image_url: null,
     link: "/raja_ampat_snorkel_day.html",
     year: "2026",
@@ -46,6 +48,7 @@ const CORE_PROJECTS: Project[] = [
     title: "TATA$",
     category: "3D Web & Interactive Landing Page",
     subtitle: "Vue 3 · Three.js · Interactive 3D Bag Showcase Landing Page · RoomEnvironment IBL",
+    outcome_metric: "360° Studio Orbit · Instant 3D Staging",
     image_url: null,
     link: null,
     year: "2026",
@@ -63,6 +66,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Academic Thesis Docket",
     category: "Systems & Algorithms",
     subtitle: "Laravel REST API · MySQL · Gale-Shapley & Hungarian Matching",
+    outcome_metric: "88 Passing Tests · Zero Deadlocks",
     image_url: null,
     link: null,
     year: "2026",
@@ -80,6 +84,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Delta IT Helpdesk",
     category: "Enterprise Support",
     subtitle: "Next.js 16 · Laravel 11 · Meta WhatsApp Cloud API · Soketi WebSockets",
+    outcome_metric: "94% Sub-2h SLA · WhatsApp Webhooks",
     image_url: null,
     link: null,
     year: "2025",
@@ -97,6 +102,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Geopetak Web",
     category: "Spatial AI & GIS",
     subtitle: "Vue 3 · Three.js Canvas · 3-Layer Spatial X-Ray · GSAP (Bekasi Aerial Photo Sample)",
+    outcome_metric: "3-Layer X-Ray · Cadastre Calibrated",
     image_url: null,
     link: null,
     year: "2025",
@@ -114,6 +120,7 @@ const CORE_PROJECTS: Project[] = [
     title: "AI Expense Tracker",
     category: "AI / Full-stack",
     subtitle: "Next.js 16 · Express · Prisma · Google Gemini 2.0 Flash",
+    outcome_metric: "Sub-1s OCR · Gemini 2.0 Flash",
     image_url: null,
     link: null,
     year: "2025",
@@ -131,6 +138,7 @@ const CORE_PROJECTS: Project[] = [
     title: "Makna Works Brand Guidelines",
     category: "Brand & Design Systems",
     subtitle: "Brand Guidelines · Visual Identity & Geometric Design System",
+    outcome_metric: "100% Brand Token System Specimen",
     image_url: null,
     link: null,
     year: "2025",
@@ -161,6 +169,45 @@ export default function WorkGrid({ projects }: WorkGridProps) {
 
   const items = apiItems ?? ALL_PROJECTS;
   const countLabel = String(items.length).padStart(2, "0");
+
+  // URL Deep-linking and Browser Back Button Support (?project=id)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get("project");
+      if (projectId) {
+        const found = items.find((p) => String(p.id) === projectId);
+        if (found) {
+          setSelectedProject(found);
+          return;
+        }
+      }
+      setSelectedProject(null);
+    };
+
+    handlePopState();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [items]);
+
+  const handleOpenProject = (project: Project) => {
+    setSelectedProject(project);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("project", String(project.id));
+      window.history.pushState({ projectId: project.id }, "", url.toString());
+    } catch {}
+  };
+
+  const handleCloseProject = () => {
+    setSelectedProject(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("project");
+      window.history.pushState({}, "", url.pathname + (url.hash || ""));
+    } catch {}
+  };
 
   const renderCardCover = (project: Project, index: number) => {
     // Chessboard pattern across grid:
@@ -313,7 +360,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
               key={project.id}
               className="wc wc-interactive group focus:outline-none focus-visible:outline-none cursor-pointer"
               onClick={() => {
-                setSelectedProject(project);
+                handleOpenProject(project);
               }}
             >
               {project.image_url ? (
@@ -338,6 +385,12 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                     {project.subtitle && (
                       <div className="w-sub text-[var(--muted)] font-mono text-[13px] mt-1 line-clamp-1">{project.subtitle}</div>
                     )}
+                    {project.outcome_metric && (
+                      <div className="inline-flex items-center gap-1.5 font-mono text-[10.5px] text-[var(--accent2)] font-semibold bg-[var(--wire)] px-2 py-0.5 rounded-[2px] mt-1.5 w-fit border border-[var(--wire)]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0"></span>
+                        <span className="truncate">{project.outcome_metric}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
@@ -345,7 +398,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                       className="case-dossier-btn live-launch-btn px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-[var(--accent)] hover:bg-[var(--accent2)] text-white rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedProject(project);
+                        handleOpenProject(project);
                       }}
                       aria-haspopup="dialog"
                       aria-label={`View project or case study for ${project.title}`}
@@ -365,7 +418,9 @@ export default function WorkGrid({ projects }: WorkGridProps) {
       <CaseStudyModal
         key={selectedProject ? selectedProject.id : "none"}
         project={selectedProject}
-        onClose={() => setSelectedProject(null)}
+        allProjects={items}
+        onSelectProject={handleOpenProject}
+        onClose={handleCloseProject}
       />
     </>
   );

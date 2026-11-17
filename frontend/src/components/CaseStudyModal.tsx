@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
 import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
 import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
 import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
 import GeopetakPreview from "@/components/previews/GeopetakPreview";
+
+const emptySubscribe = () => () => {};
 
 // Dynamic import for WebGL Three.js diorama studies
 const MaterialStudiesCarousel = dynamic(
@@ -16,13 +19,28 @@ const MaterialStudiesCarousel = dynamic(
 
 interface CaseStudyModalProps {
   project: Project | null;
+  allProjects?: Project[];
   initialMode?: "live" | "dossier";
+  onSelectProject?: (project: Project) => void;
   onClose: () => void;
 }
 
-export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps) {
+export default function CaseStudyModal({
+  project,
+  allProjects,
+  onSelectProject,
+  onClose,
+}: CaseStudyModalProps) {
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const triggerElementRef = useRef<HTMLElement | null>(null);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  const currentIndex = allProjects && project ? allProjects.findIndex((p) => p.id === project.id) : -1;
+  const prevProject = allProjects && currentIndex > 0 ? allProjects[currentIndex - 1] : null;
+  const nextProject =
+    allProjects && currentIndex >= 0 && currentIndex < allProjects.length - 1
+      ? allProjects[currentIndex + 1]
+      : null;
 
   useEffect(() => {
     if (!project) return;
@@ -36,7 +54,6 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
     const mainContent = document.getElementById("main-content");
     if (mainContent) {
       mainContent.setAttribute("aria-hidden", "true");
-      (mainContent as HTMLElement & { inert?: boolean }).inert = true;
     }
 
     // Auto-focus close button
@@ -102,7 +119,6 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
 
       if (mainContent) {
         mainContent.removeAttribute("aria-hidden");
-        (mainContent as HTMLElement & { inert?: boolean }).inert = false;
       }
 
       if (triggerElementRef.current && typeof triggerElementRef.current.focus === "function") {
@@ -111,7 +127,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
     };
   }, [project, onClose]);
 
-  if (!project) return null;
+  if (!project || !mounted || typeof document === "undefined") return null;
 
   const getDirectUrl = (p: Project) => {
     if (p.id === 1) return "/projects/moriku/index.html";
@@ -167,7 +183,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
     );
   };
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -203,6 +219,36 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {allProjects && allProjects.length > 1 && onSelectProject && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={!prevProject}
+                  onClick={() => prevProject && onSelectProject(prevProject)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--s2)] hover:bg-[var(--s3)] disabled:opacity-30 disabled:cursor-not-allowed border border-[var(--card-border)] text-[var(--text)] font-mono text-xs font-semibold rounded-[2px] transition-colors cursor-pointer"
+                  aria-label="Previous Project"
+                  title={prevProject ? `Previous: ${prevProject.title}` : undefined}
+                >
+                  <span>←</span>
+                  <span className="hidden md:inline">Previous Project</span>
+                </button>
+                <span className="font-mono text-[11px] text-[var(--muted)] px-1 hidden lg:inline">
+                  {currentIndex + 1} / {allProjects.length}
+                </span>
+                <button
+                  type="button"
+                  disabled={!nextProject}
+                  onClick={() => nextProject && onSelectProject(nextProject)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--s2)] hover:bg-[var(--s3)] disabled:opacity-30 disabled:cursor-not-allowed border border-[var(--card-border)] text-[var(--text)] font-mono text-xs font-semibold rounded-[2px] transition-colors cursor-pointer"
+                  aria-label="Next Project"
+                  title={nextProject ? `Next: ${nextProject.title}` : undefined}
+                >
+                  <span className="hidden md:inline">Next Project</span>
+                  <span>→</span>
+                </button>
+              </div>
+            )}
+
             {directUrl && (
               <a
                 href={directUrl}
@@ -233,6 +279,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           {renderLivePreview(project)}
         </main>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

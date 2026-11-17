@@ -6,6 +6,7 @@ export interface Project {
   title: string;
   category: string;
   subtitle: string | null;
+  outcome_metric?: string | null;
   image_url: string | null;
   link: string | null;
   year: string | null;

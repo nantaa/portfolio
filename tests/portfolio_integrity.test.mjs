@@ -185,6 +185,10 @@ test('CaseStudyModal exists and provides focused 1:1 Live Interactive Project Po
 
   // Must NOT contain long-winded dossier essay tabs
   assert.ok(!content.includes('Case Dossier') && !content.includes('activeTab === "dossier"'), 'Modal must purge obsolete Case Dossier essay tabs');
+
+  // Must mount through createPortal to isolate from grid container and avoid inert bugs
+  assert.ok(content.includes('createPortal'), 'CaseStudyModal must use createPortal to mount directly to document.body');
+  assert.ok(!content.includes('.inert = true'), 'CaseStudyModal must not set inert = true which freezes its own DOM subtree');
 });
 
 test('Real functional project distributions exist for Moriku and TATA$ in frontend/public/projects', () => {
