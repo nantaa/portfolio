@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       suppressHydrationWarning
       className={`${playfair.variable} ${syne.variable} ${syneMono.variable} antialiased`}
     >
@@ -54,7 +54,7 @@ export default function RootLayout({
               (function() {
                 try {
                   var saved = localStorage.getItem('portfolio-theme');
-                  var theme = saved === 'light' ? 'light' : 'dark';
+                  var theme = saved === 'dark' ? 'dark' : 'light';
                   document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}
               })();

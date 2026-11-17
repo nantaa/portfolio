@@ -162,4 +162,35 @@ describe("Human UI/UX Makeover & Screenshot Issue Resolutions", () => {
       "WorkGrid must use cream linen card backgrounds"
     );
   });
+
+  // Fix 3: Removal of "1:1 Live Project" and "1:1 LIVE" labels
+  it("Fix 3: WorkGrid eliminates repetitive '1:1 Live Project' labels and '1:1 LIVE' prefixes", () => {
+    const workGridPath = path.join(rootDir, "frontend", "src", "components", "WorkGrid.tsx");
+    const content = fs.readFileSync(workGridPath, "utf-8");
+
+    assert.ok(
+      !content.includes("1:1 Live Project"),
+      "WorkGrid must not contain '1:1 Live Project' button label"
+    );
+    assert.ok(
+      !content.includes("1:1 LIVE MORIKU RUNTIME"),
+      "WorkGrid must purge '1:1 LIVE' from Moriku cover badge"
+    );
+    assert.ok(
+      !content.includes("1:1 LIVE SHADER DIORAMA"),
+      "WorkGrid must purge '1:1 LIVE' from Shader Diorama cover badge"
+    );
+    assert.ok(
+      !content.includes("1:1 LIVE 3D SHOWCASE"),
+      "WorkGrid must purge '1:1 LIVE' from 3D showcase cover badge"
+    );
+    assert.ok(
+      !content.includes("1:1 LIVE SYSTEM"),
+      "WorkGrid must purge '1:1 LIVE SYSTEM' chips"
+    );
+    assert.ok(
+      content.includes("View Project") || content.includes("Read Case"),
+      "WorkGrid button must use clean, professional call to action such as View Project"
+    );
+  });
 });

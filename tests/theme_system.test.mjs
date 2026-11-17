@@ -19,12 +19,31 @@ test('globals.css defines [data-theme="light"] palette with warm linen & oxblood
   assert.ok(css.includes('--s1:') && css.includes('--s2:') && css.includes('--s3:'), 'Must define surface elevation tokens in light theme');
 });
 
-test('layout.tsx contains anti-FOUC inline blocking script for theme initialization', () => {
+test('layout.tsx defaults data-theme="light" and defaults anti-FOUC script to light theme', () => {
   const layoutPath = path.join(rootDir, 'frontend', 'src', 'app', 'layout.tsx');
   const content = fs.readFileSync(layoutPath, 'utf-8');
 
-  assert.ok(content.includes('portfolio-theme') || content.includes('data-theme'), 'Must read theme from localStorage');
-  assert.ok(content.includes('dangerouslySetInnerHTML'), 'Must inject synchronous inline script');
+  assert.ok(content.includes('data-theme="light"'), 'HTML element must default to data-theme="light"');
+  assert.ok(content.includes("var theme = saved === 'dark' ? 'dark' : 'light';"), 'Anti-FOUC script must default uninitialized visits to light theme');
+});
+
+test('Nav.tsx defaults to light theme in hydration and SSR snapshots', () => {
+  const navPath = path.join(rootDir, 'frontend', 'src', 'components', 'Nav.tsx');
+  const content = fs.readFileSync(navPath, 'utf-8');
+
+  assert.ok(
+    (content.includes('getServerSnapshot') && content.includes('return "light";')) ||
+    content.includes('getServerSnapshot = () => "light"'),
+    'getServerSnapshot must return light by default'
+  );
+  assert.ok(content.includes('|| "light"'), 'getSnapshot fallback must be light');
+});
+
+test('globals.css binds :root to the warm linen light theme by default', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+
+  assert.ok(css.includes(':root,\n    [data-theme="light"]') || css.includes(':root,\r\n    [data-theme="light"]') || css.includes(':root,[data-theme="light"]'), ':root must bind to light theme by default');
 });
 
 test('Nav.tsx includes accessible Sun/Moon theme toggle button', () => {

@@ -169,7 +169,7 @@ export default function ExpenseTrackerPreview() {
 
       ctx.clearRect(0, 0, width, height);
 
-      const isLight = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light";
+      const isLight = typeof document === "undefined" || document.documentElement.getAttribute("data-theme") !== "dark";
 
       // ── 1. Coordinate Bus Grid ──
       ctx.strokeStyle = isLight ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 0.025)";

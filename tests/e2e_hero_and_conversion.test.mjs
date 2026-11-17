@@ -143,7 +143,7 @@ test('WorkGrid cards render clean, concise titles, subtitles, and case study tri
   assert.ok(!content.includes('w-narrative'), 'Cards must not have essay walls on the surface');
   assert.ok(content.includes('w-title'), 'Cards must have clean titles');
   assert.ok(content.includes('w-sub'), 'Cards must have concise subtitles');
-  assert.ok(content.includes('Live Project') || content.includes('1:1') || content.includes('Read Case'), 'Cards must have clean interactive project triggers');
+  assert.ok(content.includes('View Project') || content.includes('Live Project') || content.includes('Read Case'), 'Cards must have clean interactive project triggers');
 });
 
 test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing', () => {

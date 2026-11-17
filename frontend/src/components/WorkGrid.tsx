@@ -184,7 +184,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
             <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
-              1:1 LIVE MORIKU RUNTIME ↗
+              MORIKU RUNTIME ↗
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">RAJA AMPAT &amp; ULUN DANU · REALTIME GLSL</div>
             <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
-              1:1 LIVE SHADER DIORAMA ↗
+              SHADER DIORAMA ↗
             </div>
           </div>
         </div>
@@ -228,7 +228,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">VUE 3 · REALTIME THREE.JS GLTF STAGE</div>
             <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
-              1:1 LIVE 3D SHOWCASE ↗
+              3D SHOWCASE ↗
             </div>
           </div>
         </div>
@@ -255,7 +255,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">BEKASI AERIAL PHOTO SAMPLE · 3-LAYER X-RAY</div>
             <div className="px-3 py-1 rounded-[2px] bg-emerald-800/10 border border-emerald-800/30 text-emerald-900 font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span>
-              1:1 LIVE SPATIAL VIEWER ↗
+              SPATIAL VIEWER ↗
             </div>
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">{project.category}</div>
             <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
-              1:1 LIVE SYSTEM ↗
+              SYSTEM RUNTIME ↗
             </div>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">{project.category}</div>
           <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
-            1:1 LIVE SYSTEM ↗
+            SYSTEM RUNTIME ↗
           </div>
         </div>
       </div>
@@ -348,9 +348,9 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                         setSelectedProject(project);
                       }}
                       aria-haspopup="dialog"
-                      aria-label={`Launch live 1:1 interactive project or case study for ${project.title}`}
+                      aria-label={`View project or case study for ${project.title}`}
                     >
-                      <span>1:1 Live Project</span>
+                      <span>View Project</span>
                       <span className="w-arrow text-white/80 transition-transform group-hover:translate-x-0.5">↗</span>
                     </button>
                   </div>
@@ -361,7 +361,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
         })}
       </div>
 
-      {/* 1:1 Live Functional Project Pop-Up Modal */}
+      {/* Case Study & Project Pop-Up Modal */}
       <CaseStudyModal
         key={selectedProject ? selectedProject.id : "none"}
         project={selectedProject}

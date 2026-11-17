@@ -342,7 +342,7 @@ export default function HeroTelemetryHUD() {
         }
       });
 
-      const isLight = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light";
+      const isLight = typeof document === "undefined" || document.documentElement.getAttribute("data-theme") !== "dark";
 
       // ── 2. Grid Background ──
       ctx.strokeStyle = isLight ? "rgba(22, 22, 21, 0.04)" : "rgba(255, 255, 255, 0.03)";

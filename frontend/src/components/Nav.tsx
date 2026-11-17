@@ -17,12 +17,12 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot(): "dark" | "light" {
-  if (typeof document === "undefined") return "dark";
-  return (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "dark";
+  if (typeof document === "undefined") return "light";
+  return (document.documentElement.getAttribute("data-theme") as "dark" | "light") || "light";
 }
 
 function getServerSnapshot(): "dark" | "light" {
-  return "dark";
+  return "light";
 }
 
 export default function Nav() {

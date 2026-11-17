@@ -3,7 +3,7 @@
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => { };
 
 export default function MaknaMoodboardPreview() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -68,7 +68,7 @@ export default function MaknaMoodboardPreview() {
         {/* Center Hover Prompt */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="px-4 py-2 bg-[var(--s1)] backdrop-blur-md border border-[var(--wire)] rounded-[2px] font-mono text-[11px] text-[var(--text)] tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2 shadow-2xl">
-            <span className="text-[#9B1E30]">🔍</span>
+            <span className="text-[#9B1E30]"></span>
             <span>View Brand Guidelines</span>
           </div>
         </div>
