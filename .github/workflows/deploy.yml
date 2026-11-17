@@ -31,7 +31,7 @@ jobs:
           npx tsc --noEmit
           npm run lint
           cd ..
-          node --test --experimental-test-isolation=none tests/p0_p1_behavioral_spec.test.mjs
+          node --test tests/p0_p1_behavioral_spec.test.mjs
 
       - name: Build Next.js Static Export (Offloaded to GitHub 16GB RAM)
         working-directory: frontend
