@@ -229,15 +229,16 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                   </div>
                   <button
                     type="button"
-                    className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
+                    className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedProject(project);
                     }}
+                    aria-haspopup="dialog"
                     aria-label={`Open case dossier for ${project.title}`}
                   >
                     <span>Read Case</span>
-                    <span className="text-white/60">↗</span>
+                    <span className="text-white/60 transition-transform group-hover:translate-x-0.5">↗</span>
                   </button>
                 </div>
               </div>

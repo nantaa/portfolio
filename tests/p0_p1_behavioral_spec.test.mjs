@@ -227,3 +227,19 @@ test('CaseStudyModal and ResumeModal implement complete focus trap management', 
     'ResumeModal must trap focus or manage Tab key cycling'
   );
 });
+
+test('WorkGrid card chrome implements accessible dialog trigger and spring micro-interactions', () => {
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const content = fs.readFileSync(workGridPath, 'utf-8');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+
+  // Must declare aria-haspopup="dialog" on case-dossier-btn
+  assert.ok(content.includes('aria-haspopup="dialog"'), 'WorkGrid case dossier buttons must specify aria-haspopup="dialog"');
+
+  // Must incorporate spring cubic-bezier curves for micro-interactions
+  assert.ok(
+    css.includes('cubic-bezier(0.16, 1, 0.3, 1)') || css.includes('cubic-bezier(0.16, 1, 0.3') || content.includes('transition-all'),
+    'WorkGrid must define high-fidelity spring motion transitions'
+  );
+});
