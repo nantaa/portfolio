@@ -114,6 +114,27 @@ test('Hero right column renders clean architectural discipline frame without ess
   assert.ok(combined.includes('06°14'), 'Hero must display coordinates');
 });
 
+test('Hero narrative eliminates title laundry list in favor of focused systems architecture identity', () => {
+  const heroTsxPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
+  const indexPath = path.join(rootDir, 'index.html');
+  const heroContent = fs.readFileSync(heroTsxPath, 'utf-8');
+  const indexContent = fs.readFileSync(indexPath, 'utf-8');
+
+  // Must eradicate verbose 9-title laundry list
+  const badSalad = 'Network Infrastructure&nbsp;·&nbsp;3D WebGL&nbsp;·&nbsp;Multimedia';
+  assert.ok(!heroContent.includes(badSalad), 'Hero.tsx must not contain title keyword soup');
+
+  // Must establish authoritative Systems Engineer / Multidisciplinary identity
+  assert.ok(
+    heroContent.includes('Systems Engineer') || heroContent.includes('Systems Architect'),
+    'Hero.tsx must establish Systems Engineer / Systems Architect identity'
+  );
+  assert.ok(
+    heroContent.includes('Multidisciplinary Technologist') || heroContent.includes('Infrastructure'),
+    'Hero.tsx must establish high-conviction narrative scope'
+  );
+});
+
 test('WorkGrid cards render clean, concise titles, subtitles, and case study triggers without essay clutter', () => {
   const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
   const content = fs.readFileSync(workGridPath, 'utf-8');

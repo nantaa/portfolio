@@ -29,9 +29,9 @@ export default function Hero() {
             </h1>
             <div className="hero-bottom">
               <div className="hero-descriptor">
-                <strong>IT Lead</strong>&nbsp;·&nbsp;Fullstack Developer&nbsp;·&nbsp;IT Support<br />
-                Systems Architect&nbsp;·&nbsp;DevOps Engineer&nbsp;·&nbsp;Creative Frontend<br />
-                Network Infrastructure&nbsp;·&nbsp;3D WebGL&nbsp;·&nbsp;Multimedia
+                <strong>Systems Engineer</strong>&nbsp;·&nbsp;Multidisciplinary Technologist<br />
+                Bridging fullstack architecture, real-time 3D WebGL graphics,<br />
+                and mission-critical cloud infrastructure.
               </div>
               <div className="hero-cta-row">
                 <a href="#work" className="hero-btn filled">View work</a>
