@@ -335,11 +335,13 @@
     .hero-btn.filled {
       background: var(--accent);
       border-color: var(--accent);
-      color: var(--text);
+      color: #ffffff !important;
     }
 
     .hero-btn.filled:hover {
       background: var(--accent2);
+      border-color: var(--accent2);
+      color: #ffffff !important;
     }
 
     .scroll-hint {

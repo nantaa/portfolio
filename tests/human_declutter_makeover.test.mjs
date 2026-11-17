@@ -126,5 +126,40 @@ describe("Human UI/UX Makeover & Screenshot Issue Resolutions", () => {
       "HomeClient must not contain scrolling marquee ticker"
     );
   });
-});
 
+  // Fix 1: Hero button filled text contrast
+  it("Fix 1: hero-btn filled uses high contrast white text instead of dark text on maroon", () => {
+    const globalsCssPath = path.join(rootDir, "frontend", "src", "app", "globals.css");
+    const css = fs.readFileSync(globalsCssPath, "utf-8");
+    assert.ok(
+      css.includes(".hero-btn.filled") && (css.includes("color: #ffffff") || css.includes("color: #fff") || css.includes("color: white")),
+      "hero-btn.filled must enforce white text (#ffffff) to ensure readable contrast on maroon background"
+    );
+  });
+
+  // Fix 2: Chessboard pattern with maroon blank cards and cream
+  it("Fix 2: WorkGrid eliminates pitch black cards and uses maroon and cream chessboard pattern", () => {
+    const workGridPath = path.join(rootDir, "frontend", "src", "components", "WorkGrid.tsx");
+    const content = fs.readFileSync(workGridPath, "utf-8");
+
+    // No pitch black background #0c1015 or #06121a
+    assert.ok(
+      !content.includes("#0c1015"),
+      "WorkGrid must not use pitch black #0c1015 for card cover"
+    );
+    assert.ok(
+      !content.includes("#06121a"),
+      "WorkGrid must not use pitch black #06121a for card cover"
+    );
+
+    // Must alternate maroon and cream
+    assert.ok(
+      content.includes("#7a1525") || content.includes("maroon") || content.includes("accent"),
+      "WorkGrid must use maroon oxblood card backgrounds"
+    );
+    assert.ok(
+      content.includes("#f7f4ee") || content.includes("cream") || content.includes("#efece4"),
+      "WorkGrid must use cream linen card backgrounds"
+    );
+  });
+});

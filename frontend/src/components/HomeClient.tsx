@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Project, Settings } from "@/lib/api";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
@@ -10,19 +9,13 @@ import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
+// System initialized immediately without artificial loading delays
 interface HomeClientProps {
   projects?: Project[];
   settings?: Settings;
 }
 
 export default function HomeClient({ projects = [], settings = {} }: HomeClientProps = {}) {
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    // Instant client hydration confirmation without artificial blocking delays
-    setIsLoaded(true);
-  }, []);
-
   return (
     <>
       <Nav />

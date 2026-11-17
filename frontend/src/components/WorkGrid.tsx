@@ -163,13 +163,17 @@ export default function WorkGrid({ projects }: WorkGridProps) {
   const countLabel = String(items.length).padStart(2, "0");
 
   const renderCardCover = (project: Project, index: number) => {
+    // Chessboard pattern across grid:
+    // Alternates between Maroon (#7a1525) and Cream (#f7f4ee)
+    const isMaroon = index === 0 || index === 3 || index === 4 || index === 6;
+
     if (project.id === 1) {
-      // 01: Moriku - Industrial K3 Compliance Engine
+      // 01: Moriku - Industrial K3 Compliance Engine (Maroon Square)
       return (
-        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#0c1015] via-[#101721] to-[#0a0d12] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
-          <div className="absolute inset-0 bg-[radial-gradient(#ba6617_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none"></div>
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(247,244,238,0.14)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-lg bg-[#0e1726] border border-cyan-500/30 flex items-center justify-center p-2.5 shadow-lg group-hover:border-cyan-400 transition-colors">
+            <div className="w-14 h-14 rounded-lg bg-[#f7f4ee] border border-white/30 flex items-center justify-center p-2.5 shadow-md group-hover:scale-105 transition-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/projects/moriku/moriku-logo.png"
@@ -177,9 +181,9 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
-            <div className="px-3 py-1 rounded-[2px] bg-[var(--accent)]/15 border border-[var(--accent)]/40 text-[var(--accent2-text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
+            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
+            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
               1:1 LIVE MORIKU RUNTIME ↗
             </div>
           </div>
@@ -188,17 +192,17 @@ export default function WorkGrid({ projects }: WorkGridProps) {
     }
 
     if (project.id === 2) {
-      // 02: Indonesian 3D Material Studies
+      // 02: Indonesian 3D Material Studies (Cream Square)
       return (
-        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#06121a] via-[#091a24] to-[#050c12] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
-          <div className="absolute inset-0 bg-[radial-gradient(#00a8ff_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none"></div>
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#efece4] to-[#e5e0d5] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500 border border-[var(--wire)]">
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(122,21,37,0.08)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-[3px] bg-[var(--wire)]/60 border border-[var(--wire)] flex items-center justify-center shadow-lg group-hover:border-[#00a8ff] transition-colors">
-              <span className="font-mono text-sm font-bold text-[#00a8ff]">3D</span>
+            <div className="w-12 h-12 rounded-[3px] bg-[#7a1525]/10 border border-[#7a1525]/30 flex items-center justify-center shadow-sm group-hover:border-[#7a1525] transition-colors">
+              <span className="font-mono text-sm font-bold text-[#7a1525]">3D</span>
             </div>
-            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">RAJA AMPAT &amp; ULUN DANU · REALTIME GLSL</div>
-            <div className="px-3 py-1 rounded-[2px] bg-[#00a8ff]/15 border border-[#00a8ff]/40 text-[#00a8ff] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00a8ff]"></span>
+            <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">RAJA AMPAT &amp; ULUN DANU · REALTIME GLSL</div>
+            <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
               1:1 LIVE SHADER DIORAMA ↗
             </div>
           </div>
@@ -207,23 +211,23 @@ export default function WorkGrid({ projects }: WorkGridProps) {
     }
 
     if (project.id === 3) {
-      // 03: TATA$ - Interactive 3D Bag Showcase Landing Page
+      // 03: TATA$ - Interactive 3D Bag Showcase Landing Page (Cream Square)
       return (
-        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#121110] via-[#1a1816] to-[#0d0c0b] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
-          <div className="absolute inset-0 flex items-center justify-center opacity-35 group-hover:opacity-50 transition-opacity">
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#efece4] to-[#e5e0d5] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500 border border-[var(--wire)]">
+          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/projects/tata/cards/1.png"
               alt="TATA$ 3D Bag"
-              className="w-full h-full object-cover filter brightness-75 contrast-125"
+              className="w-full h-full object-cover filter contrast-125"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#efece4]/90 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="font-serif text-3xl font-bold tracking-tight text-white/90 drop-shadow-md">TATA$</div>
-            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">VUE 3 · REALTIME THREE.JS GLTF STAGE</div>
-            <div className="px-3 py-1 rounded-[2px] bg-[var(--accent)]/20 border border-[var(--accent)]/50 text-[var(--accent2-text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
+            <div className="font-serif text-3xl font-bold tracking-tight text-[#161615] drop-shadow-sm">TATA$</div>
+            <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">VUE 3 · REALTIME THREE.JS GLTF STAGE</div>
+            <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
               1:1 LIVE 3D SHOWCASE ↗
             </div>
           </div>
@@ -232,10 +236,10 @@ export default function WorkGrid({ projects }: WorkGridProps) {
     }
 
     if (project.id === 6) {
-      // 06: Geopetak Web (Spatial AI & GIS)
+      // 06: Geopetak Web (Spatial AI & GIS) (Cream Square)
       return (
-        <div className="relative w-full h-full overflow-hidden bg-[#0a0f0d] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
-          <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-55 transition-opacity">
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#efece4] to-[#e5e0d5] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500 border border-[var(--wire)]">
+          <div className="absolute inset-0 flex items-center justify-center opacity-35 group-hover:opacity-50 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/projects/bekasi_saturated.jpg"
@@ -243,14 +247,14 @@ export default function WorkGrid({ projects }: WorkGridProps) {
               className="w-full h-full object-cover filter contrast-125"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#efece4]/90 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-[3px] bg-emerald-950/80 border border-emerald-600/40 flex items-center justify-center shadow-lg backdrop-blur-sm">
-              <span className="font-mono text-sm font-bold text-emerald-400">GIS</span>
+            <div className="w-12 h-12 rounded-[3px] bg-emerald-950/15 border border-emerald-700/30 flex items-center justify-center shadow-sm backdrop-blur-sm">
+              <span className="font-mono text-sm font-bold text-emerald-800">GIS</span>
             </div>
-            <div className="font-mono text-xs text-white/80 tracking-widest uppercase">BEKASI AERIAL PHOTO SAMPLE · 3-LAYER X-RAY</div>
-            <div className="px-3 py-1 rounded-[2px] bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">BEKASI AERIAL PHOTO SAMPLE · 3-LAYER X-RAY</div>
+            <div className="px-3 py-1 rounded-[2px] bg-emerald-800/10 border border-emerald-800/30 text-emerald-900 font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-800"></span>
               1:1 LIVE SPATIAL VIEWER ↗
             </div>
           </div>
@@ -258,17 +262,36 @@ export default function WorkGrid({ projects }: WorkGridProps) {
       );
     }
 
-    // Default architectural blueprint cover for Academic Docket, Helpdesk, Expense Tracker
-    return (
-      <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[var(--s2)] via-[var(--s1)] to-[var(--bg)] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
-        <div className="absolute inset-0 bg-[radial-gradient(var(--wire)_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-[3px] bg-[var(--wire)]/60 border border-[var(--wire)] flex items-center justify-center shadow-lg group-hover:border-[var(--accent)] transition-colors">
-            <span className="font-mono text-sm font-bold text-[var(--accent2)]">0{index + 1}</span>
+    // Alternating Chessboard Cover for Academic Docket, Helpdesk, AI Expense Tracker
+    if (isMaroon) {
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(247,244,238,0.14)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-[3px] bg-white/10 border border-white/20 flex items-center justify-center shadow-sm group-hover:border-white/40 transition-colors">
+              <span className="font-mono text-sm font-bold text-[#f7f4ee]">0{index + 1}</span>
+            </div>
+            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">{project.category}</div>
+            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
+              1:1 LIVE SYSTEM ↗
+            </div>
           </div>
-          <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">{project.category}</div>
-          <div className="px-3 py-1 rounded-[2px] bg-[var(--s2)] border border-[var(--wire)] text-[var(--text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
+        </div>
+      );
+    }
+
+    // Cream Square
+    return (
+      <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#efece4] to-[#e5e0d5] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500 border border-[var(--wire)]">
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(122,21,37,0.08)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-[3px] bg-[#7a1525]/10 border border-[#7a1525]/30 flex items-center justify-center shadow-sm group-hover:border-[#7a1525] transition-colors">
+            <span className="font-mono text-sm font-bold text-[#7a1525]">0{index + 1}</span>
+          </div>
+          <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">{project.category}</div>
+          <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
             1:1 LIVE SYSTEM ↗
           </div>
         </div>
