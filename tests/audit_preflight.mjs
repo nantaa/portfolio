@@ -111,3 +111,4 @@ warnings.forEach(w => console.log(`  [WARN] ${w}`));
 if (errors.length > 0) {
   process.exit(1);
 }
+
