@@ -8,6 +8,7 @@ node_modules/
 out/
 build/
 dist/
+!frontend/public/projects/**
 
 # Internal archives & test artifacts (hidden from public repo)
 .internal_archive/
