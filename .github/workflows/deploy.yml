@@ -66,6 +66,20 @@ jobs:
           ping -c 2 -W 3 ${{ secrets.VPS_HOST }} || echo "Ping failed"
           nc -zv -w 5 ${{ secrets.VPS_HOST }} 22 || echo "Port 22 unreachable"
 
+      # Ensure VPS_USER has write permissions to the deployment target before rsync runs
+      - name: Prepare Deployment Directory on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          envs: ""
+          script: |
+            sudo mkdir -p /var/www/portfolio/frontend_dist
+            sudo chown -R ${{ secrets.VPS_USER }}:www-data /var/www/portfolio/frontend_dist
+            sudo chmod -R 775 /var/www/portfolio/frontend_dist
+
       - name: Deploy Frontend Static Files to VPS
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
@@ -75,7 +89,7 @@ jobs:
           SOURCE: "frontend/out/"
           TARGET: "/var/www/portfolio/frontend_dist"
           EXCLUDE: "/node_modules/"
-          ARGS: "-rlgoDzvc -i --delete"
+          ARGS: "-rltvzc -i --delete --no-owner --no-group"
 
       # Static-Only Deployment (Decision D1: Option B)
       # Sets ownership and permissions for Nginx without backend migration commands
@@ -88,7 +102,7 @@ jobs:
           script_stop: true
           envs: ""
           script: |
-            sudo chown -R www-data:www-data /var/www/portfolio/frontend_dist
+            sudo chown -R ${{ secrets.VPS_USER }}:www-data /var/www/portfolio/frontend_dist
             sudo chmod -R 755 /var/www/portfolio/frontend_dist
 
       - name: Disconnect WireGuard VPN
