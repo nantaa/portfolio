@@ -196,6 +196,29 @@ test('CaseStudyModal supports Dual-Mode Theater with Live Interactive Simulator 
   assert.ok(content.includes('DNPMonitorPreview') || content.includes('ProjectPreviewGate') || content.includes('renderLivePreview'), 'Modal must mount interactive project previews');
 });
 
+test('Real functional project distributions exist for Moriku and TATA$ in frontend/public/projects', () => {
+  const tataIndex = path.join(rootDir, 'frontend', 'public', 'projects', 'tata', 'index.html');
+  const morikuIndex = path.join(rootDir, 'frontend', 'public', 'projects', 'moriku', 'index.html');
+
+  assert.ok(fs.existsSync(tataIndex), 'TATA$ distribution index.html must exist in public/projects/tata');
+  assert.ok(fs.existsSync(morikuIndex), 'Moriku distribution index.html must exist in public/projects/moriku');
+
+  const tataContent = fs.readFileSync(tataIndex, 'utf-8');
+  assert.ok(tataContent.includes('tata-app') || tataContent.includes('index-'), 'TATA$ index.html must be valid production bundle');
+
+  const morikuContent = fs.readFileSync(morikuIndex, 'utf-8');
+  assert.ok(morikuContent.includes('DNP Monitoring') || morikuContent.includes('Plus Jakarta Sans'), 'Moriku index.html must be valid production bundle');
+});
+
+test('CaseStudyModal embeds authentic real-project sandboxed iframes for Moriku and TATA$', () => {
+  const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
+  assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
+  const content = fs.readFileSync(modalPath, 'utf-8');
+
+  assert.ok(content.includes('/projects/moriku/index.html') || content.includes('/projects/moriku'), 'Modal must embed Moriku live project iframe');
+  assert.ok(content.includes('/projects/tata/index.html') || content.includes('/projects/tata'), 'Modal must embed TATA$ live 3D project iframe');
+});
+
 test('HomeClient implements architectural loading gate animation', () => {
   const homePath = path.join(rootDir, 'frontend', 'src', 'components', 'HomeClient.tsx');
   assert.ok(fs.existsSync(homePath), 'HomeClient.tsx must exist');

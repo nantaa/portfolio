@@ -4,17 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
 import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
-import DNPMonitorPreview from "@/components/previews/DNPMonitorPreview";
 import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
 import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
 import GeopetakPreview from "@/components/previews/GeopetakPreview";
 import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
 
 // Three.js interactive previews dynamically imported to prevent SSR issues
-const TataPreview = dynamic(
-  () => import("@/components/previews/TataPreview"),
-  { ssr: false }
-);
 const MaterialStudiesCarousel = dynamic(
   () => import("@/components/previews/MaterialStudiesCarousel"),
   { ssr: false }
@@ -135,9 +130,63 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
 
   // Render the corresponding live functional project preview
   const renderLivePreview = (p: Project) => {
-    if (p.id === 1) return <DNPMonitorPreview />;
+    if (p.id === 1) {
+      return (
+        <div className="relative w-full h-full flex flex-col">
+          <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[var(--text)] font-semibold">LIVE INSTANCE: MORIKU / DNP MONITOR RUNTIME</span>
+            </span>
+            <a
+              href="/projects/moriku/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1"
+            >
+              Open Fullscreen ↗
+            </a>
+          </div>
+          <iframe
+            src="/projects/moriku/index.html"
+            title="Moriku - DNP Monitoring System"
+            className="w-full flex-1 border-0 bg-white"
+            style={{ minHeight: "540px" }}
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      );
+    }
     if (p.id === 2) return <MaterialStudiesCarousel />;
-    if (p.id === 3) return <TataPreview />;
+    if (p.id === 3) {
+      return (
+        <div className="relative w-full h-full flex flex-col">
+          <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[var(--text)] font-semibold">LIVE INSTANCE: TATA$ REALTIME 3D GLTF RUNTIME</span>
+            </span>
+            <a
+              href="/projects/tata/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1"
+            >
+              Open Fullscreen ↗
+            </a>
+          </div>
+          <iframe
+            src="/projects/tata/index.html"
+            title="TATA$ 3D Showcase"
+            className="w-full flex-1 border-0 bg-black"
+            style={{ minHeight: "540px" }}
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      );
+    }
     if (p.id === 4) return <AcademicDocketPreview />;
     if (p.id === 5) return <HelpdeskPreview />;
     if (p.id === 6) return <GeopetakPreview />;
@@ -236,7 +285,7 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
 
         {/* ─── Tab Content: Live Interactive Theater or Case Framework Dossier ─── */}
         {activeTab === "live" ? (
-          <div className="live-theater-viewport relative w-full h-[500px] sm:h-[580px] bg-[var(--s1)] border border-[var(--wire)] rounded-[3px] overflow-hidden mb-6 shadow-inner">
+          <div className="live-theater-viewport relative w-full h-[560px] sm:h-[620px] bg-[var(--s1)] border border-[var(--wire)] rounded-[3px] overflow-hidden mb-6 shadow-inner">
             {renderLivePreview(project)}
           </div>
         ) : (

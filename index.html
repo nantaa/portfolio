@@ -1765,6 +1765,25 @@
       document.getElementById('cmExec').textContent = data.exec;
       document.getElementById('cmRes').textContent = data.res;
 
+      const liveBtn = document.getElementById('cmLiveBtn');
+      if (liveBtn) {
+        if (id === 1) {
+          liveBtn.style.display = 'inline-flex';
+          liveBtn.href = 'projects/moriku/index.html';
+          liveBtn.innerHTML = '⚡ Launch Live Moriku Runtime ↗';
+        } else if (id === 2) {
+          liveBtn.style.display = 'inline-flex';
+          liveBtn.href = 'raja_ampat_snorkel_day.html';
+          liveBtn.innerHTML = '⚡ Launch Live Material Studies ↗';
+        } else if (id === 3) {
+          liveBtn.style.display = 'inline-flex';
+          liveBtn.href = 'projects/tata/index.html';
+          liveBtn.innerHTML = '⚡ Launch Live TATA$ 3D Showcase ↗';
+        } else {
+          liveBtn.style.display = 'none';
+        }
+      }
+
       const m = document.getElementById('caseModal');
       m.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -1848,7 +1867,11 @@
         <h2 id="cmTitle"
           style="font-family:var(--display); font-size:34px; font-weight:normal; color:var(--text); margin-bottom:6px;">
         </h2>
-        <div id="cmSub" style="font-family:var(--mono); font-size:13px; color:#B0ADA5;"></div>
+        <div id="cmSub" style="font-family:var(--mono); font-size:13px; color:#B0ADA5; margin-bottom:12px;"></div>
+        <a id="cmLiveBtn" href="#" target="_blank" rel="noopener noreferrer"
+          style="display:none; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; font-weight:bold; letter-spacing:0.08em; text-transform:uppercase; background:var(--accent); color:#FFF; padding:6px 14px; border-radius:2px; text-decoration:none; width:fit-content;">
+          ⚡ Launch Live Runtime ↗
+        </a>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:22px;">
