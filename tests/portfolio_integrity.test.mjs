@@ -49,6 +49,22 @@ test('Frontend WorkGrid.tsx purges excluded stubs and showcases Ulun Danu and Ta
   assert.ok(content.includes('Academic') || content.includes('Docket'), 'Must include Academic Docket');
 });
 
+test('Disciplines component implements Architectural Capability Matrix with concrete deliverables and no fake progress bars', () => {
+  const discPath = path.join(rootDir, 'frontend', 'src', 'components', 'Disciplines.tsx');
+  assert.ok(fs.existsSync(discPath), 'Disciplines.tsx must exist');
+
+  const content = fs.readFileSync(discPath, 'utf-8');
+
+  // Must NOT render fake skill progress bars (.d-bar)
+  assert.ok(!content.includes('<div className="d-bar"></div>'), 'Disciplines.tsx must not contain fake skill progress bars');
+
+  // Must render authoritative architectural capability pillars
+  assert.ok(content.includes('Systems & Enterprise Architecture') || content.includes('Enterprise Architecture'), 'Must feature Systems & Enterprise Architecture pillar');
+  assert.ok(content.includes('Real-Time 3D') || content.includes('Creative Engineering'), 'Must feature Real-Time 3D pillar');
+  assert.ok(content.includes('Optimization') || content.includes('Algorithms'), 'Must feature Algorithms & Optimization pillar');
+  assert.ok(content.includes('Cloud Infrastructure') || content.includes('Infrastructure & Reliability'), 'Must feature Infrastructure pillar');
+});
+
 test('Ulun Danu standalone static asset exists in public and root for low-resource zero-daemon hosting', () => {
   const publicPath = path.join(rootDir, 'frontend', 'public', 'ulun_danu_lake_bratan_material_studies.html');
   const rootHtmlPath = path.join(rootDir, 'ulun_danu_lake_bratan_material_studies.html');
