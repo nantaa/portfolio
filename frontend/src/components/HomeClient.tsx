@@ -11,11 +11,11 @@ import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
 interface HomeClientProps {
-  projects: Project[];
-  settings: Settings;
+  projects?: Project[];
+  settings?: Settings;
 }
 
-export default function HomeClient({ projects, settings }: HomeClientProps) {
+export default function HomeClient({ projects = [], settings = {} }: HomeClientProps = {}) {
   const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

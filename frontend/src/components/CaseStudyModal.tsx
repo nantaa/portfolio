@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Project } from "@/lib/api";
 
 interface CaseStudyModalProps {
@@ -9,21 +9,97 @@ interface CaseStudyModalProps {
 }
 
 export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps) {
+  const modalContainerRef = useRef<HTMLDivElement>(null);
+  const triggerElementRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (!project) return;
 
+    // Capture the triggering element that invoked the modal
+    triggerElementRef.current = document.activeElement as HTMLElement | null;
+
+    // Prevent background scrolling and interaction
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const mainContent = document.getElementById("main-content");
+    if (mainContent) {
+      mainContent.setAttribute("aria-hidden", "true");
+      (mainContent as HTMLElement & { inert?: boolean }).inert = true;
+    }
+
+    // Automatically focus the first focusable element upon opening
+    const focusTimer = setTimeout(() => {
+      if (modalContainerRef.current) {
+        const focusableSelector =
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusables = Array.from(
+          modalContainerRef.current.querySelectorAll<HTMLElement>(focusableSelector)
+        ).filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0);
+
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        }
+      }
+    }, 10);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         onClose();
+        return;
+      }
+
+      // Focus trapping: cycle focus only through focusable elements inside the dialog
+      if (e.key === "Tab") {
+        if (!modalContainerRef.current) return;
+
+        const focusableSelector =
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusables = Array.from(
+          modalContainerRef.current.querySelectorAll<HTMLElement>(focusableSelector)
+        ).filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0);
+
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstElement = focusables[0];
+        const lastElement = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          // Shift + Tab: moving backwards
+          if (document.activeElement === firstElement || !modalContainerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          // Tab: moving forwards
+          if (document.activeElement === lastElement || !modalContainerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
 
     return () => {
+      clearTimeout(focusTimer);
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = originalOverflow;
+
+      if (mainContent) {
+        mainContent.removeAttribute("aria-hidden");
+        (mainContent as HTMLElement & { inert?: boolean }).inert = false;
+      }
+
+      // Restore focus back to the triggering element
+      if (triggerElementRef.current && typeof triggerElementRef.current.focus === "function") {
+        triggerElementRef.current.focus();
+      }
     };
   }, [project, onClose]);
 
@@ -50,14 +126,16 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[940px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors"
+        ref={modalContainerRef}
+        tabIndex={-1}
+        className="relative w-full max-w-[940px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header / Metadata Ribbon */}
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-[var(--wire)] font-mono text-xs sm:text-[13px]">
           <div className="flex items-center gap-2.5 tracking-widest uppercase">
             <span className="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-            <span className="text-[var(--accent2)] font-bold">CASE DOSSIER</span>
+            <span className="text-[var(--accent2-text)] font-bold">CASE DOSSIER</span>
             <span className="text-[var(--muted)] opacity-40">/</span>
             <span className="text-[var(--muted)]">{project.category}</span>
           </div>
@@ -68,7 +146,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
             aria-label="Close case study modal"
           >
             <span>CLOSE</span>
-            <span className="text-[var(--accent2)] font-bold group-hover:translate-x-0.5 transition-transform">[ESC]</span>
+            <span className="text-[var(--accent2-text)] font-bold group-hover:translate-x-0.5 transition-transform">[ESC]</span>
           </button>
         </div>
 

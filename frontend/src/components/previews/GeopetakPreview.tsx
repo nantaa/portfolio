@@ -45,6 +45,7 @@ function GeopetakStage() {
     ];
     const imgs: HTMLImageElement[] = [];
 
+    let isMounted = true;
     let on = false, rndr = false;
     let rafId = 0;
     let rect = container.getBoundingClientRect();
@@ -59,7 +60,7 @@ function GeopetakStage() {
     let cells: Cell[] = [];
     let meta: { img: HTMLImageElement; sX: number; sY: number; oX: number; oY: number }[] = [];
 
-    let ptr = { x: -9e3, y: -9e3, act: false };
+    const ptr = { x: -9e3, y: -9e3, act: false };
     let lC = -9e3, lR = -9e3;
     let lT = performance.now();
     let gF = 1;
@@ -150,7 +151,7 @@ function GeopetakStage() {
     }
 
     function drw() {
-      if (!on) { rndr = false; rafId = 0; return; }
+      if (!isMounted || !on) { rndr = false; rafId = 0; return; }
       ctx.clearRect(0, 0, rect.width, rect.height);
       const nw = performance.now();
       if (ptr.act) spwn(Math.floor(ptr.x / C.sz), Math.floor(ptr.y / C.sz));
@@ -242,9 +243,13 @@ function GeopetakStage() {
         const img = new Image();
         img.src = url;
         imgs.push(img);
-        return new Promise<void>(res => { img.onload = img.onerror = () => res(); });
+        return new Promise<void>(res => {
+          img.onload = () => res();
+          img.onerror = () => res();
+        });
       })
     ).then(() => {
+      if (!isMounted) return;
       on = true;
       rs();
       container.addEventListener("pointermove", handleMove, { passive: true });
@@ -253,15 +258,26 @@ function GeopetakStage() {
       drw();
     });
 
-    const resizeObs = new ResizeObserver(() => { rs(); if (!rndr) { rndr = true; drw(); } });
+    const resizeObs = new ResizeObserver(() => {
+      if (!isMounted) return;
+      rs();
+      if (!rndr) { rndr = true; drw(); }
+    });
     resizeObs.observe(container);
 
     return () => {
+      isMounted = false;
       on = false;
       if (rafId) cancelAnimationFrame(rafId);
       resizeObs.disconnect();
       container.removeEventListener("pointermove", handleMove);
       container.removeEventListener("pointerleave", handleLeave);
+      imgs.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+        img.src = "";
+      });
+      imgs.length = 0;
     };
   }, []);
 

@@ -138,7 +138,7 @@ const STATUTORY_FORMS = [
 
 export default function DNPMonitorPreview() {
   const [tab, setTab] = useState<Tab>("Kanban");
-  const [phaseFilter, setPhaseFilter] = useState<PhaseCode>("all");
+  const phaseFilter: PhaseCode = "all";
   const [jobs, setJobs] = useState<KanbanJob[]>(INITIAL_JOBS);
   const [selectedForm, setSelectedForm] = useState<string>("Form 6");
   const [draggedJobId, setDraggedJobId] = useState<string | null>(null);
@@ -212,7 +212,7 @@ export default function DNPMonitorPreview() {
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse"></span>
             <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
-              MORIKU <span className="hidden md:inline">// K3 COMPLIANCE ENGINE</span>
+              MORIKU <span className="hidden md:inline">{"// "}K3 COMPLIANCE ENGINE</span>
             </span>
           </div>
         </div>

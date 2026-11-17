@@ -2,16 +2,18 @@ name: Build and Deploy Portfolio
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          ref: master
           submodules: recursive
           fetch-depth: 1
 
@@ -22,12 +24,20 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Quality Gate (Lint, Typecheck, Behavioral Specs)
+        run: |
+          cd frontend
+          npm ci
+          npx tsc --noEmit
+          npm run lint
+          cd ..
+          node --test --experimental-test-isolation=none tests/p0_p1_behavioral_spec.test.mjs
+
       - name: Build Next.js Static Export (Offloaded to GitHub 16GB RAM)
         working-directory: frontend
         env:
           NEXT_PUBLIC_API_URL: /api
         run: |
-          npm ci
           npm run build
 
       # Connect into WireGuard VPN network to access the protected VPS
@@ -37,13 +47,21 @@ jobs:
           sudo apt-get install -y -qq wireguard-tools
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
+          # Restrict AllowedIPs so the VPN does not hijack default routes or terminate GitHub Actions control plane network
+          sudo sed -i 's|AllowedIPs\s*=\s*0.0.0.0/0|AllowedIPs = ${{ secrets.VPS_HOST }}/32|g' /etc/wireguard/wg0.conf
+          # Strip DNS overrides if present to preserve runner DNS resolution
+          sudo sed -i '/^DNS\s*=/d' /etc/wireguard/wg0.conf
           sudo wg-quick up wg0
+          # Ensure explicit route to VPS host exists on wg0 interface
+          sudo ip route add ${{ secrets.VPS_HOST }}/32 dev wg0 2>/dev/null || true
 
       # Verify WireGuard tunnel connection and ping to VPS
       - name: Verify WireGuard Connection
         run: |
           echo "=== WireGuard Interface Status ==="
           sudo wg show
+          echo "=== Route Table ==="
+          ip route show
           echo "=== Testing Connectivity to VPS_HOST ==="
           ping -c 2 -W 3 ${{ secrets.VPS_HOST }} || echo "Ping failed"
           nc -zv -w 5 ${{ secrets.VPS_HOST }} 22 || echo "Port 22 unreachable"
@@ -57,19 +75,23 @@ jobs:
           SOURCE: "frontend/out/"
           TARGET: "/var/www/portfolio/frontend_dist"
           EXCLUDE: "/node_modules/"
+          ARGS: "-rlgoDzvc -i --delete"
 
-      - name: Update Backend on VPS via SSH
+      # Static-Only Deployment (Decision D1: Option B)
+      # Sets ownership and permissions for Nginx without backend migration commands
+      - name: Set Permissions on VPS via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          envs: ""
           script: |
-            cd /var/www/portfolio
-            git pull --recurse-submodules origin main
-            cd backend
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
-            php artisan optimize:clear
-            php artisan optimize
-            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chown -R www-data:www-data /var/www/portfolio/frontend_dist
+            sudo chmod -R 755 /var/www/portfolio/frontend_dist
+
+      - name: Disconnect WireGuard VPN
+        if: always()
+        run: |
+          sudo wg-quick down wg0 || true

@@ -11,6 +11,7 @@
       --faint: #252522;
       --accent: #7A1525;
       --accent2: #9B1E30;
+      --accent2-text: #E0485C;
       --accentd: #4A0C18;
       --wire: rgba(255, 255, 255, 0.055);
       --wire-h: rgba(122, 21, 37, 0.22);
@@ -33,6 +34,7 @@
       --faint: #DDD8CD;
       --accent: #851726;
       --accent2: #A31F32;
+      --accent2-text: #851726;
       --accentd: #610E1A;
       --wire: rgba(22, 22, 21, 0.065);
       --wire-h: rgba(133, 23, 38, 0.25);
@@ -62,20 +64,18 @@
       font-family: var(--sans);
       overflow-x: hidden;
       cursor: none;
-      user-select: none;
-      -webkit-user-select: none;
       transition: background-color 220ms ease, color 220ms ease;
     }
 
-    /* SELECTION PURGE */
-    *::selection {
-      background: transparent;
-      color: inherit;
+    /* SELECTION STYLING */
+    ::selection {
+      background: var(--accent);
+      color: #ffffff;
     }
 
-    *::-moz-selection {
-      background: transparent;
-      color: inherit;
+    ::-moz-selection {
+      background: var(--accent);
+      color: #ffffff;
     }
 
     /* CURSOR */
@@ -527,11 +527,14 @@
     }
 
     .wc:focus,
+    .wc-interactive:focus {
+      outline: none;
+    }
+
     .wc:focus-visible,
-    .wc-interactive:focus,
     .wc-interactive:focus-visible {
-      outline: none !important;
-      box-shadow: none !important;
+      outline: 2px solid var(--accent) !important;
+      outline-offset: 2px !important;
     }
 
     .wc:nth-child(1) {
@@ -1185,6 +1188,8 @@
       padding: 18px 0;
       border-bottom: 0.5px solid var(--wire);
       cursor: pointer;
+      user-select: text;
+      -webkit-user-select: text;
       transition: padding-left 200ms;
     }
 
@@ -3110,6 +3115,34 @@
       display: none !important;
       width: 0 !important;
       height: 0 !important;
+    }
+
+    /* ─── PREFERS-REDUCED-MOTION (ACCESSIBILITY) ─── */
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto !important;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      .marquee-track,
+      .marquee-track span,
+      .animate-pulse,
+      .animate-spin,
+      .hd-pulse,
+      .vp-pulse,
+      .pulse,
+      .cs-impact-banner .animate-pulse {
+        animation: none !important;
+        transform: none !important;
+      }
     }
 
 

@@ -11,8 +11,8 @@ export default function About() {
       <section className="about">
         <div className="about-left">
           <div className="about-ph">
-
-            <img src="images/aryo.png" alt="" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="images/aryo.png" alt="Aryo Rifai" />
           </div>
           <div className="about-left-tag">Bekasi, Indonesia — 2025</div>
         </div>

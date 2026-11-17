@@ -42,6 +42,7 @@ export default function Nav() {
     <>
       <nav>
         <a href="#" className="nav-logo flex items-center gap-2.5 group cursor-pointer" style={{ textDecoration: "none" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo-svg.svg"
             alt="Aryo Logo"
@@ -164,6 +165,7 @@ export default function Nav() {
           </a>
           <div className="pt-2 flex justify-between items-center text-[10px] text-[var(--muted)]">
             <span className="flex items-center gap-1.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-svg.svg" alt="Aryo Logo" width={14} height={14} className="w-3.5 h-3.5 object-contain" />
               Aryo — Systems Technologist
             </span>

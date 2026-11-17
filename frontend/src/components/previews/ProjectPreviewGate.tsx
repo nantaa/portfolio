@@ -3,10 +3,10 @@
 import { useState, ReactNode } from "react";
 
 interface ProjectPreviewGateProps {
-  title: string;
-  category: string;
-  specs: string;
-  description: string;
+  title?: string;
+  category?: string;
+  specs?: string;
+  description?: string;
   actionLabel?: string;
   actionSubtext?: string;
   badge?: string;
@@ -17,15 +17,11 @@ interface ProjectPreviewGateProps {
 }
 
 export default function ProjectPreviewGate({
-  title,
-  category,
-  specs,
-  description,
   actionLabel = "▶ Launch Interactive Demo",
   actionSubtext = "Click to mount live interactive runtime (saves client GPU)",
   badge = "STANDBY · ON DEMAND",
   accentColor = "#ba6617",
-  accentSoft = "rgba(186, 102, 23, 0.15)",
+  accentSoft,
   backdropPattern,
   children,
 }: ProjectPreviewGateProps) {
@@ -109,7 +105,7 @@ export default function ProjectPreviewGate({
           style={{
             color: accentColor,
             borderColor: `${accentColor}40`,
-            background: `${accentColor}15`,
+            background: accentSoft || `${accentColor}15`,
           }}
         >
           {badge}

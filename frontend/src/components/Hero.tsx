@@ -24,9 +24,9 @@ export default function Hero() {
 
         <div className="hero-body">
           <div className="hero-left">
-            <div className="hero-name">
+            <h1 className="hero-name">
               Rifa&apos;i<em>Aryo Ananta.</em>
-            </div>
+            </h1>
             <div className="hero-bottom">
               <div className="hero-descriptor">
                 <strong>IT Lead</strong>&nbsp;·&nbsp;Fullstack Developer&nbsp;·&nbsp;IT Support<br />
