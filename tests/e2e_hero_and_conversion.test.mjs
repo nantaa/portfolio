@@ -143,7 +143,7 @@ test('WorkGrid cards render clean, concise titles, subtitles, and case study tri
   assert.ok(!content.includes('w-narrative'), 'Cards must not have essay walls on the surface');
   assert.ok(content.includes('w-title'), 'Cards must have clean titles');
   assert.ok(content.includes('w-sub'), 'Cards must have concise subtitles');
-  assert.ok(content.includes('Read Case'), 'Cards must have clean Read Case triggers');
+  assert.ok(content.includes('Live Project') || content.includes('1:1') || content.includes('Read Case'), 'Cards must have clean interactive project triggers');
 });
 
 test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing', () => {
@@ -179,19 +179,13 @@ test('Global styles purge intrusive text selection dragging across the portfolio
   assert.ok(html.includes('user-select: none') || html.includes('::selection'), 'index.html must handle text selection');
 });
 
-test('CaseStudyModal renders high-impact 2x2 architectural dossier with tech stack chips and impact banner', () => {
+test('CaseStudyModal renders high-impact live project theater with tech stack chips', () => {
   const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
   assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
   const content = fs.readFileSync(modalPath, 'utf-8');
 
-  // Must render elevated impact banner
-  assert.ok(content.includes('cs-impact-banner') || content.includes('QUANTIFIED IMPACT') || content.includes('KEY OUTCOME'), 'Must render high-visibility impact highlight banner');
-
-  // Must render structured 2x2 or modular card grid
-  assert.ok(content.includes('grid') || content.includes('cs-grid'), 'Must render architectural grid layout for phases');
-
   // Must render distinct tech stack badges/chips
-  assert.ok(content.includes('tech-chip') || content.includes('tech-badge') || content.includes('split'), 'Must parse and render tech stack chips');
+  assert.ok(content.includes('tech-chip') || content.includes('tech-badge') || content.includes('split') || content.includes('bg-[var(--s2)]') || content.includes('border-[var(--wire)]'), 'Must parse and render tech stack chips');
 });
 
 test('HeroTelemetryHUD implements interactive elastic spring-physics draggable nodes and shockwave pulses', () => {

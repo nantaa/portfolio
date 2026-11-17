@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="./moriku-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DNP Monitoring System</title>
+    <title>DNP Monitoring System - Disnaker Statutory SLA Pipeline</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,6 +26,91 @@
         text-align: left !important;
       }
     </style>
+
+    <script>
+      // Standalone Offline Inertia State for Moriku (DNP Compliance Engine)
+      window.__DNP_INITIAL_PAGE__ = {
+        component: "Kanban/Index",
+        props: {
+          auth: {
+            user: { id: 1, name: "Aryo Rifai", email: "rifai.aryo@gmail.com", role: "superadmin" },
+            permissions: "superadmin"
+          },
+          jobs: [
+            {
+              id: 1,
+              kode: "DNP-2026-001",
+              spk: "SPK-2026-0891",
+              company_name: "PT Semen Nusantara Tbk",
+              nama_alat: "Overhead Crane 50T (3 Unit)",
+              stage_id: 4,
+              status: "in_progress",
+              created_at: "2026-08-10"
+            },
+            {
+              id: 2,
+              kode: "DNP-2026-002",
+              spk: "SPK-2026-0902",
+              company_name: "PT Astra Auto Component",
+              nama_alat: "Forklift Diesel 5T (5 Unit)",
+              stage_id: 8,
+              status: "in_progress",
+              created_at: "2026-08-15"
+            },
+            {
+              id: 3,
+              kode: "DNP-2026-003",
+              spk: "SPK-2026-0915",
+              company_name: "RSUD Harapan Bangsa",
+              nama_alat: "Passenger Lift 1000kg (2 Unit)",
+              stage_id: 10,
+              status: "in_progress",
+              created_at: "2026-08-20"
+            },
+            {
+              id: 4,
+              kode: "DNP-2026-004",
+              spk: "SPK-2026-0920",
+              company_name: "PT Indofood CBP Sukses Makmur",
+              nama_alat: "Bejana Tekan & Kompresor",
+              stage_id: 1,
+              status: "in_progress",
+              created_at: "2026-08-25"
+            }
+          ]
+        },
+        url: "/kanban",
+        version: "1.0.0"
+      };
+
+      // Mock fetch interceptor for zero-latency standalone execution
+      const _origFetch = window.fetch;
+      window.fetch = function(url, options) {
+        if (typeof url === 'string') {
+          if (url.includes('/api/notifications')) {
+            return Promise.resolve(new Response(JSON.stringify({ notifications: [], unread_count: 0 }), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            }));
+          }
+          if (url.includes('/kanban') || url === '/' || url === '') {
+            return Promise.resolve(new Response(JSON.stringify(window.__DNP_INITIAL_PAGE__), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            }));
+          }
+        }
+        return _origFetch.apply(this, arguments);
+      };
+
+      // Escape key bridge to parent modal
+      window.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          window.parent.postMessage("close-modal", "*");
+        }
+      });
+    </script>
+
     <script type="module" crossorigin src="./assets/index-COGktG1k.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/vendor-react-BrvB4z0H.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-inertia-DkPZsXS7.js">
@@ -34,6 +119,6 @@
     <link rel="stylesheet" crossorigin href="./assets/index-C6G_3qQV.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>

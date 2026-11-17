@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tata-app</title>
+    <title>TATA$ - Realtime 3D Luxury Bag Showcase</title>
+    <script>
+      // Escape key bridge to parent modal
+      window.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          window.parent.postMessage("close-modal", "*");
+        }
+      });
+    </script>
     <script type="module" crossorigin src="./assets/index-DNu9inYr.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-SCNTc_18.css">
   </head>

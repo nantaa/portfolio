@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
 import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
@@ -21,10 +21,9 @@ interface CaseStudyModalProps {
   onClose: () => void;
 }
 
-export default function CaseStudyModal({ project, initialMode = "live", onClose }: CaseStudyModalProps) {
+export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps) {
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const triggerElementRef = useRef<HTMLElement | null>(null);
-  const [activeTab, setActiveTab] = useState<"live" | "dossier">(initialMode);
 
   useEffect(() => {
     if (!project) return;
@@ -96,11 +95,19 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
       }
     };
 
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data === "close-modal") {
+        onClose();
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("message", handleMessage);
 
     return () => {
       clearTimeout(focusTimer);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("message", handleMessage);
       document.body.style.overflow = originalOverflow;
 
       if (mainContent) {
@@ -114,7 +121,7 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
     };
   }, [project, onClose]);
 
-  // Extract technology tokens from subtitle or execution text into distinct chips
+  // Extract technology tokens from subtitle
   const techStack = useMemo(() => {
     if (!project) return [];
     const source = project.subtitle || "";
@@ -126,32 +133,51 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
 
   if (!project) return null;
 
-  const cs = project.case_study;
+  // Direct fullscreen/standalone URL determination
+  const getDirectUrl = (p: Project): string | null => {
+    if (p.id === 1) return "/projects/moriku/index.html";
+    if (p.id === 2) return "/raja_ampat_snorkel_day.html";
+    if (p.id === 3) return "/projects/tata/index.html";
+    return p.link || null;
+  };
 
-  // Render the corresponding live functional project preview
+  const directUrl = getDirectUrl(project);
+
+  // Render the corresponding 1:1 live functional project
   const renderLivePreview = (p: Project) => {
     if (p.id === 1) {
       return (
         <div className="relative w-full h-full flex flex-col">
-          <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
+          <div className="flex items-center justify-between px-4 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[var(--text)] font-semibold">LIVE INSTANCE: MORIKU / DNP MONITOR RUNTIME</span>
+              <span className="text-[var(--text)] font-semibold tracking-wider">LIVE 1:1 PRODUCTION INSTANCE: MORIKU / DNP COMPLIANCE ENGINE</span>
             </span>
-            <a
-              href="/projects/moriku/index.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1"
-            >
-              Open Fullscreen ↗
-            </a>
+            <div className="flex items-center gap-3">
+              <a
+                href="/projects/moriku/simulator.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline flex items-center gap-1 font-semibold"
+                title="Buka simulator alur 16 tahap DNP"
+              >
+                Simulator Alur ↗
+              </a>
+              <a
+                href="/projects/moriku/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--accent2-text)] hover:underline flex items-center gap-1 font-semibold"
+              >
+                Open Fullscreen ↗
+              </a>
+            </div>
           </div>
           <iframe
             src="/projects/moriku/index.html"
             title="Moriku - DNP Monitoring System"
             className="w-full flex-1 border-0 bg-white"
-            style={{ minHeight: "540px" }}
+            style={{ minHeight: "580px" }}
             loading="lazy"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           />
@@ -162,16 +188,16 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
     if (p.id === 3) {
       return (
         <div className="relative w-full h-full flex flex-col">
-          <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
+          <div className="flex items-center justify-between px-4 py-2 bg-[var(--s2)] border-b border-[var(--wire)] text-xs font-mono text-[var(--muted)] shrink-0">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[var(--text)] font-semibold">LIVE INSTANCE: TATA$ REALTIME 3D GLTF RUNTIME</span>
+              <span className="text-[var(--text)] font-semibold tracking-wider">LIVE 1:1 PRODUCTION INSTANCE: TATA$ REALTIME 3D GLTF RUNTIME</span>
             </span>
             <a
               href="/projects/tata/index.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1"
+              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1 font-semibold"
             >
               Open Fullscreen ↗
             </a>
@@ -180,7 +206,7 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
             src="/projects/tata/index.html"
             title="TATA$ 3D Showcase"
             className="w-full flex-1 border-0 bg-black"
-            style={{ minHeight: "540px" }}
+            style={{ minHeight: "580px" }}
             loading="lazy"
             sandbox="allow-scripts allow-same-origin"
           />
@@ -199,54 +225,74 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
       role="dialog"
       aria-modal="true"
       aria-labelledby="case-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fadeIn select-text"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md animate-fadeIn select-text"
       onClick={onClose}
     >
       <div
         ref={modalContainerRef}
         tabIndex={-1}
-        className="relative w-full max-w-[1080px] max-h-[94vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-4 sm:p-8 md:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none"
+        className="relative w-full max-w-[1180px] max-h-[96vh] flex flex-col bg-[var(--modal-bg)] border border-[var(--card-border)] text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Header / Metadata Ribbon */}
-        <div className="flex items-center justify-between pb-4 mb-4 border-b border-[var(--wire)] font-mono text-xs sm:text-[13px]">
-          <div className="flex items-center gap-2.5 tracking-widest uppercase">
-            <span className="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-            <span className="text-[var(--accent2-text)] font-bold">PROJECT THEATER</span>
-            <span className="text-[var(--muted)] opacity-40">/</span>
-            <span className="text-[var(--muted)]">{project.category}</span>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="group flex items-center gap-2 tracking-wider uppercase text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
-            aria-label="Close project modal"
-          >
-            <span>CLOSE</span>
-            <span className="text-[var(--accent2-text)] font-bold group-hover:translate-x-0.5 transition-transform">[ESC]</span>
-          </button>
-        </div>
-
-        {/* Project Title & Stack Ribbon */}
-        <div className="mb-6">
-          <div className="flex flex-wrap items-baseline gap-3.5 mb-2">
-            <h2 id="case-modal-title" className="text-2xl sm:text-3xl md:text-4xl font-display font-medium text-[var(--text)] tracking-tight">
-              {project.title}
-            </h2>
+        {/* Top Control Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[var(--wire)] bg-[var(--s1)] shrink-0 font-mono text-xs sm:text-[13px]">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 tracking-widest uppercase">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
+              <span className="text-[var(--accent2-text)] font-bold">1:1 LIVE SYSTEM</span>
+              <span className="text-[var(--muted)] opacity-40">/</span>
+              <span className="text-[var(--muted)]">{project.category}</span>
+            </div>
             {project.year && (
-              <span className="font-mono text-xs text-[var(--muted)] bg-[var(--s2)] px-2.5 py-1 rounded-[2px] border border-[var(--card-border)]">
+              <span className="hidden sm:inline-block font-mono text-[11px] text-[var(--muted)] bg-[var(--s2)] px-2 py-0.5 rounded-[2px] border border-[var(--card-border)]">
                 CYCLE {project.year}
               </span>
             )}
           </div>
 
-          {/* Interactive Technology Stack Chips */}
+          <div className="flex items-center gap-4">
+            {directUrl && (
+              <a
+                href={directUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--card-border)] text-[var(--text)] hover:text-[var(--accent2-text)] font-mono text-xs font-semibold rounded-[2px] transition-colors"
+                title="Launch in independent browser tab"
+              >
+                <span>Launch in Tab</span>
+                <span>↗</span>
+              </a>
+            )}
+
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1 bg-[var(--s2)] hover:bg-rose-500/20 text-[var(--text)] hover:text-rose-400 border border-[var(--card-border)] font-mono text-xs font-bold rounded-[2px] transition-colors cursor-pointer"
+              aria-label="Close project modal"
+            >
+              <span>✕</span>
+              <span className="hidden sm:inline tracking-wider">CLOSE</span>
+              <span className="text-[var(--muted)] font-normal text-[10px] hidden md:inline">[ESC]</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Project Sub-header: Title & Stack Badges */}
+        <div className="px-4 sm:px-6 py-3 bg-[var(--s1)]/80 border-b border-[var(--wire)]/60 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div>
+            <h2 id="case-modal-title" className="text-xl sm:text-2xl font-display font-medium text-[var(--text)] tracking-tight">
+              {project.title}
+            </h2>
+            <div className="text-xs font-mono text-[var(--muted)] mt-0.5">
+              {project.subtitle}
+            </div>
+          </div>
+
           {techStack.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-1.5">
               {techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="tech-chip px-3 py-1 bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--card-border)] text-[var(--text)] font-mono text-[11px] sm:text-xs tracking-wider uppercase rounded-[2px] transition-colors"
+                  className="tech-chip px-2.5 py-0.5 bg-[var(--s2)] border border-[var(--card-border)] text-[var(--text)] font-mono text-[10px] sm:text-[11px] tracking-wider uppercase rounded-[2px]"
                 >
                   {tech}
                 </span>
@@ -255,133 +301,29 @@ export default function CaseStudyModal({ project, initialMode = "live", onClose 
           )}
         </div>
 
-        {/* ─── Dual-Mode Theater Tab Switcher ─── */}
-        <div className="flex items-center gap-2 mb-6 p-1 bg-[var(--s2)] border border-[var(--wire)] rounded-[3px] w-fit">
-          <button
-            type="button"
-            onClick={() => setActiveTab("live")}
-            className={`px-4 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "live"
-                ? "bg-[var(--accent)] text-white shadow-sm"
-                : "text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
-          >
-            <span>⚡</span>
-            <span>Live Interactive System</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("dossier")}
-            className={`px-4 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider rounded-[2px] transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "dossier"
-                ? "bg-[var(--accent)] text-white shadow-sm"
-                : "text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
-          >
-            <span>📋</span>
-            <span>Case Dossier</span>
-          </button>
+        {/* Main 1:1 Live Interactive Viewport */}
+        <div className="live-theater-viewport relative w-full flex-1 h-[65dvh] sm:h-[72dvh] min-h-[420px] max-h-[820px] bg-[var(--s1)] overflow-hidden">
+          {renderLivePreview(project)}
         </div>
 
-        {/* ─── Tab Content: Live Interactive Theater or Case Framework Dossier ─── */}
-        {activeTab === "live" ? (
-          <div className="live-theater-viewport relative w-full h-[560px] sm:h-[620px] bg-[var(--s1)] border border-[var(--wire)] rounded-[3px] overflow-hidden mb-6 shadow-inner">
-            {renderLivePreview(project)}
-          </div>
-        ) : (
-          <div className="dossier-viewport animate-fadeIn">
-            {/* ─── Elevated Impact Highlight Banner ─── */}
-            <div className="cs-impact-banner mb-8 p-5 sm:p-6 rounded-[2px] bg-[var(--s1)] border border-[#27ae60]/40 shadow-lg">
-              <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#27ae60]/20 font-mono text-xs sm:text-[13px] tracking-wider uppercase">
-                <span className="flex items-center gap-2.5 text-[#27ae60] font-bold">
-                  <span className="w-2 h-2 rounded-full bg-[#27ae60] animate-pulse"></span>
-                  QUANTIFIED IMPACT &amp; KEY OUTCOME
-                </span>
-                <span className="text-[var(--muted)] text-[11px]">PRODUCTION CERTIFIED</span>
-              </div>
-              <p className="text-base sm:text-[17px] leading-relaxed text-[var(--text)] font-sans font-medium">
-                {cs?.result ?? "Sub-second operational performance with zero statutory SLA leaks and production test verification."}
-              </p>
-            </div>
-
-            {/* ─── 2×2 Architectural Engineering Dossier Grid ─── */}
-            <div className="cs-grid grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-8 font-mono">
-              {/* Card 01: Bottleneck & Problem */}
-              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#f39c12]/40 transition-colors">
-                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-                  <span className="text-[#f39c12] font-bold tracking-wider uppercase">[01] THE BOTTLENECK</span>
-                  <span className="text-[var(--muted)] text-[10px]">DIAGNOSTIC</span>
-                </div>
-                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">PROBLEM</h4>
-                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
-                  {cs?.problem ?? "Unaddressed latency and manual friction in legacy deployment pipelines."}
-                </p>
-              </div>
-
-              {/* Card 02: Systems Architecture & Strategy */}
-              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[var(--accent2)]/40 transition-colors">
-                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-                  <span className="text-[var(--accent2-text)] font-bold tracking-wider uppercase">[02] STRATEGIC FRAME</span>
-                  <span className="text-[var(--muted)] text-[10px]">APPROACH</span>
-                </div>
-                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">THINKING</h4>
-                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
-                  {cs?.thinking ?? "Deconstructed domain bottlenecks and isolated stateful concerns with transactional guarantees."}
-                </p>
-              </div>
-
-              {/* Card 03: Concrete Execution & Tooling */}
-              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#3498db]/40 transition-colors">
-                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-                  <span className="text-[#3498db] font-bold tracking-wider uppercase">[03] PRODUCTION RIGOR</span>
-                  <span className="text-[var(--muted)] text-[10px]">STACK</span>
-                </div>
-                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">EXECUTION</h4>
-                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-normal">
-                  {cs?.execution ?? "Built with modern frameworks, automated unit test suites, and strict CI/CD pipelines."}
-                </p>
-              </div>
-
-              {/* Card 04: Verified Benchmark Result */}
-              <div className="p-5 bg-[var(--s1)] border border-[var(--card-border)] rounded-[2px] hover:border-[#27ae60]/40 transition-colors">
-                <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[var(--wire)] text-xs sm:text-[13px]">
-                  <span className="text-[#27ae60] font-bold tracking-wider uppercase">[04] VERIFIED METRIC</span>
-                  <span className="text-[var(--muted)] text-[10px]">SUCCESS</span>
-                </div>
-                <h4 className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2 font-bold">RESULT</h4>
-                <p className="text-base sm:text-[16px] text-[var(--text)] leading-relaxed font-sans font-medium">
-                  {cs?.result ?? "100% test coverage with verifiable performance gains and production validation."}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Navigation within Modal */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[var(--wire)] font-mono text-xs">
-          <div className="text-[var(--muted)] text-center sm:text-left">
-            <span>PRESS </span>
-            <kbd className="px-1.5 py-0.5 bg-[var(--s2)] rounded-[2px] border border-[var(--card-border)] text-[var(--text)]">ESC</kbd>
-            <span> OR CLICK OUTSIDE TO DISMISS</span>
+        {/* Bottom Status / Dismissal Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-t border-[var(--wire)] bg-[var(--s1)] shrink-0 font-mono text-[11px]">
+          <div className="text-[var(--muted)] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>REALTIME INTERACTIVE SANDBOX</span>
+            <span className="hidden sm:inline opacity-40">·</span>
+            <span className="hidden sm:inline text-[var(--muted)]">Press <kbd className="px-1 py-0.5 bg-[var(--s2)] rounded text-[var(--text)] border border-[var(--card-border)]">ESC</kbd> or click outside to close</span>
           </div>
 
-          {project.link ? (
+          {directUrl && (
             <a
-              href={project.link}
+              href={directUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent2)] text-white font-bold tracking-wider uppercase rounded-[2px] transition-all flex items-center gap-2 cursor-pointer shadow-md"
+              className="text-[var(--accent2-text)] hover:underline flex items-center gap-1 font-semibold"
             >
-              <span>Launch Fullscreen Diorama</span>
-              <span>↗</span>
+              Open Fullscreen ↗
             </a>
-          ) : (
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 bg-[var(--s2)] hover:bg-[var(--s3)] text-[var(--text)] border border-[var(--card-border)] font-medium tracking-wider uppercase rounded-[2px] transition-colors cursor-pointer"
-            >
-              Return to Grid
-            </button>
           )}
         </div>
       </div>

@@ -1,25 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
-import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
-import DNPMonitorPreview from "@/components/previews/DNPMonitorPreview";
-import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
-import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
-import GeopetakPreview from "@/components/previews/GeopetakPreview";
 import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
 import CaseStudyModal from "@/components/CaseStudyModal";
-
-// Three.js components must not run on SSR
-const UlunDanuPreview = dynamic(
-  () => import("@/components/previews/UlunDanuPreview"),
-  { ssr: false }
-);
-const TataPreview = dynamic(
-  () => import("@/components/previews/TataPreview"),
-  { ssr: false }
-);
 
 // ─── Core Showcase Projects ────────────────────────────────────────────────
 const CORE_PROJECTS: Project[] = [
@@ -169,7 +153,6 @@ interface WorkGridProps {
 
 export default function WorkGrid({ projects }: WorkGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [initialModalMode, setInitialModalMode] = useState<"live" | "dossier">("live");
 
   const apiItems =
     projects && projects.length > 0
@@ -178,6 +161,143 @@ export default function WorkGrid({ projects }: WorkGridProps) {
 
   const items = apiItems ?? ALL_PROJECTS;
   const countLabel = String(items.length).padStart(2, "0");
+
+  const renderCardCover = (project: Project, index: number) => {
+    if (project.id === 1) {
+      // 01: Moriku - Industrial K3 Compliance Engine
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#0c1015] via-[#101721] to-[#0a0d12] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+          <div className="absolute inset-0 bg-[radial-gradient(#ba6617_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-[3px] bg-[var(--wire)]/60 border border-[var(--wire)] flex items-center justify-center shadow-lg group-hover:border-[var(--accent)] transition-colors">
+              <span className="font-mono text-sm font-bold text-[var(--accent2)]">K3</span>
+            </div>
+            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
+            <div className="px-3.5 py-1.5 rounded-[2px] bg-[var(--accent)]/15 border border-[var(--accent)]/40 text-[var(--accent2-text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse"></span>
+              ⚡ 1-CLICK LAUNCH: 1:1 LIVE MORIKU RUNTIME ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (project.id === 2) {
+      // 02: Indonesian 3D Material Studies
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#06121a] via-[#091a24] to-[#050c12] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+          <div className="absolute inset-0 bg-[radial-gradient(#00a8ff_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-[3px] bg-[var(--wire)]/60 border border-[var(--wire)] flex items-center justify-center shadow-lg group-hover:border-[#00a8ff] transition-colors">
+              <span className="font-mono text-sm font-bold text-[#00a8ff]">3D</span>
+            </div>
+            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">RAJA AMPAT &amp; ULUN DANU · REALTIME GLSL</div>
+            <div className="px-3.5 py-1.5 rounded-[2px] bg-[#00a8ff]/15 border border-[#00a8ff]/40 text-[#00a8ff] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00a8ff] animate-pulse"></span>
+              ⚡ 1-CLICK LAUNCH: 1:1 LIVE SHADER DIORAMA ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (project.id === 3) {
+      // 03: TATA$ - Interactive 3D Bag Showcase Landing Page
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#121110] via-[#1a1816] to-[#0d0c0b] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+          <div className="absolute inset-0 flex items-center justify-center opacity-35 group-hover:opacity-50 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/projects/tata/cards/1.png"
+              alt="TATA$ 3D Bag"
+              className="w-full h-full object-cover filter brightness-75 contrast-125"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="font-serif text-3xl font-bold tracking-tight text-white/90 drop-shadow-md">TATA$</div>
+            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">VUE 3 · REALTIME THREE.JS GLTF STAGE</div>
+            <div className="px-3.5 py-1.5 rounded-[2px] bg-[var(--accent)]/20 border border-[var(--accent)]/50 text-[var(--accent2-text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse"></span>
+              ⚡ 1-CLICK LAUNCH: 1:1 LIVE 3D SHOWCASE ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (project.id === 6) {
+      // 06: Geopetak Web (Spatial AI & GIS)
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-[#0a0f0d] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+          <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-55 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/projects/bekasi_saturated.jpg"
+              alt="Bekasi Aerial Photo Sample"
+              className="w-full h-full object-cover filter contrast-125"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-[3px] bg-emerald-950/80 border border-emerald-600/40 flex items-center justify-center shadow-lg backdrop-blur-sm">
+              <span className="font-mono text-sm font-bold text-emerald-400">GIS</span>
+            </div>
+            <div className="font-mono text-xs text-white/80 tracking-widest uppercase">BEKASI AERIAL PHOTO SAMPLE · 3-LAYER X-RAY</div>
+            <div className="px-3.5 py-1.5 rounded-[2px] bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              ⚡ 1-CLICK LAUNCH: 1:1 LIVE SPATIAL VIEWER ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (project.id === 8) {
+      // 08: Makna Works Brand Guidelines
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-[#0d0d0d] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+          <div className="absolute inset-0 flex items-center justify-center opacity-45 group-hover:opacity-60 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/makna_works_branding_moodboard.webp"
+              alt="Makna Works Brand Guidelines"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="font-mono text-lg font-bold tracking-widest text-white/90 uppercase">MAKNA WORKS</div>
+            <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">DESIGN TOKENS · BRAND GUIDELINES</div>
+            <div className="px-3.5 py-1.5 rounded-[2px] bg-white/10 border border-white/30 text-white font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+              ⚡ 1-CLICK LAUNCH: 1:1 LIVE GUIDELINES SYSTEM ↗
+            </div>
+          </div>
+          <div className="hidden" aria-hidden="true">
+            <MaknaMoodboardPreview />
+          </div>
+        </div>
+      );
+    }
+
+    // Default architectural blueprint cover for Academic Docket, Helpdesk, Expense Tracker
+    return (
+      <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[var(--s2)] via-[var(--s1)] to-[var(--bg)] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.02] transition-transform duration-500">
+        <div className="absolute inset-0 bg-[radial-gradient(var(--wire)_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none"></div>
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-[3px] bg-[var(--wire)]/60 border border-[var(--wire)] flex items-center justify-center shadow-lg group-hover:border-[var(--accent)] transition-colors">
+            <span className="font-mono text-sm font-bold text-[var(--accent2)]">0{index + 1}</span>
+          </div>
+          <div className="font-mono text-xs text-[var(--muted)] tracking-widest uppercase">{project.category}</div>
+          <div className="px-3.5 py-1.5 rounded-[2px] bg-[var(--s2)] border border-[var(--wire)] text-[var(--text)] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse"></span>
+            ⚡ 1-CLICK LAUNCH: 1:1 LIVE SYSTEM ↗
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -191,31 +311,16 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           return (
             <div
               key={project.id}
-              className="wc wc-interactive group focus:outline-none focus-visible:outline-none"
+              className="wc wc-interactive group focus:outline-none focus-visible:outline-none cursor-pointer"
               onClick={() => {
-                setInitialModalMode("live");
                 setSelectedProject(project);
               }}
             >
               {project.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={project.image_url} alt={project.title} />
-              ) : project.id === 1 ? (
-                <DNPMonitorPreview />
-              ) : project.id === 2 ? (
-                <UlunDanuPreview />
-              ) : project.id === 3 ? (
-                <TataPreview />
-              ) : project.id === 4 ? (
-                <AcademicDocketPreview />
-              ) : project.id === 5 ? (
-                <HelpdeskPreview />
-              ) : project.id === 6 ? (
-                <GeopetakPreview />
-              ) : project.id === 7 ? (
-                <ExpenseTrackerPreview />
               ) : (
-                <MaknaMoodboardPreview />
+                renderCardCover(project, i)
               )}
 
               <div className="wo">
@@ -235,30 +340,16 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      className="live-launch-btn px-3 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--accent2-text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 cursor-pointer focus:outline-none"
+                      className="case-dossier-btn live-launch-btn px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-[var(--accent)] hover:bg-[var(--accent2)] text-white rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setInitialModalMode("live");
                         setSelectedProject(project);
                       }}
                       aria-haspopup="dialog"
-                      aria-label={`Launch live interactive simulator for ${project.title}`}
+                      aria-label={`Launch live 1:1 interactive project or case study for ${project.title}`}
                     >
-                      <span>⚡ Live System</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="case-dossier-btn px-3.5 py-1.5 text-xs font-mono font-medium uppercase tracking-wider bg-[var(--s2)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--wire)] hover:border-[var(--accent2)] rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setInitialModalMode("dossier");
-                        setSelectedProject(project);
-                      }}
-                      aria-haspopup="dialog"
-                      aria-label={`Open case dossier for ${project.title}`}
-                    >
-                      <span>Read Case</span>
-                      <span className="text-white/60 transition-transform group-hover:translate-x-0.5">↗</span>
+                      <span>⚡ 1:1 Live Project</span>
+                      <span className="w-arrow text-white/80 transition-transform group-hover:translate-x-0.5">↗</span>
                     </button>
                   </div>
                 </div>
@@ -268,11 +359,10 @@ export default function WorkGrid({ projects }: WorkGridProps) {
         })}
       </div>
 
-      {/* Case Framework Modal with Dual Live Theater / Dossier Modes */}
+      {/* 1:1 Live Functional Project Pop-Up Modal */}
       <CaseStudyModal
-        key={selectedProject ? `${selectedProject.id}-${initialModalMode}` : "none"}
+        key={selectedProject ? selectedProject.id : "none"}
         project={selectedProject}
-        initialMode={initialModalMode}
         onClose={() => setSelectedProject(null)}
       />
     </>

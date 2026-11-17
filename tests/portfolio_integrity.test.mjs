@@ -168,32 +168,23 @@ test('DESIGN.md documents the approved project lineup', () => {
   assert.ok(content.includes('Tata$'), 'DESIGN.md must document Tata$');
 });
 
-test('CaseStudyModal component exists and implements readable DESIGN.md Case Framework without microscopic text', () => {
+test('CaseStudyModal exists and provides focused 1:1 Live Interactive Project Pop-Up without dossier clutter', () => {
   const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
   assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
   const content = fs.readFileSync(modalPath, 'utf-8');
-  assert.ok(content.includes('PROBLEM'), 'Must have PROBLEM section');
-  assert.ok(content.includes('THINKING'), 'Must have THINKING section');
-  assert.ok(content.includes('EXECUTION'), 'Must have EXECUTION section');
-  assert.ok(content.includes('RESULT'), 'Must have RESULT section');
+
+  // Must handle modal dismissal via Escape key or close button
   assert.ok(content.includes('Escape') || content.includes('onClose'), 'Must handle modal dismissal');
+  assert.ok(content.includes('✕') || content.includes('close') || content.includes('Close'), 'Must render tactile close button');
 
-  // Verify readability: widened container, readable body copy (15px-17px) rather than microscopic 12px
-  assert.ok(content.includes('max-w-[940px]') || content.includes('max-w-[920px]') || content.includes('max-w-[1080px]') || content.includes('max-w-4xl') || content.includes('max-w-5xl') || content.includes('max-w-6xl'), 'Modal container must be comfortably widened');
-  assert.ok(content.includes('text-[15px]') || content.includes('text-[16px]') || content.includes('text-base'), 'Dossier body paragraphs must use comfortable readable font size');
-});
+  // Must provide external new-tab launch action
+  assert.ok(content.includes('Open Fullscreen') || content.includes('Launch') || content.includes('_blank'), 'Must provide direct new tab launch trigger');
 
-test('CaseStudyModal supports Dual-Mode Theater with Live Interactive Simulator and Case Dossier tabs', () => {
-  const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
-  assert.ok(fs.existsSync(modalPath), 'CaseStudyModal.tsx must exist');
-  const content = fs.readFileSync(modalPath, 'utf-8');
+  // Must mount dynamic live interactive preview inside modal viewport
+  assert.ok(content.includes('iframe') || content.includes('renderLivePreview'), 'Modal must mount live project viewports');
 
-  // Must have dual-mode tab controls
-  assert.ok(content.includes('Live System') || content.includes('LIVE SYSTEM') || content.includes('Live Simulator') || content.includes('Live Interactive System'), 'Modal must have Live System tab');
-  assert.ok(content.includes('Case Dossier') || content.includes('DOSSIER') || content.includes('Dossier'), 'Modal must have Dossier tab');
-
-  // Must mount dynamic preview inside modal viewport
-  assert.ok(content.includes('DNPMonitorPreview') || content.includes('ProjectPreviewGate') || content.includes('renderLivePreview'), 'Modal must mount interactive project previews');
+  // Must NOT contain long-winded dossier essay tabs
+  assert.ok(!content.includes('Case Dossier') && !content.includes('activeTab === "dossier"'), 'Modal must purge obsolete Case Dossier essay tabs');
 });
 
 test('Real functional project distributions exist for Moriku and TATA$ in frontend/public/projects', () => {
