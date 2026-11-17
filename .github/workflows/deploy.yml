@@ -75,6 +75,7 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "sudo mkdir -p /var/www/portfolio/frontend_dist && sudo chown -R ${{ secrets.VPS_USER }}:www-data /var/www/portfolio/frontend_dist && sudo chmod -R 775 /var/www/portfolio/frontend_dist"
 
+      # Deploy Frontend Static Files to VPS
       - name: Deploy Frontend Static Files to VPS
         uses: easingthemes/ssh-deploy@v5.0.3
         with:
@@ -86,8 +87,29 @@ jobs:
           EXCLUDE: "/node_modules/"
           ARGS: "-rltvzc -i --delete --no-owner --no-group"
 
-      # Static-Only Deployment (Decision D1: Option B)
-      # Sets ownership and permissions for Nginx without backend migration commands
+      # Update Backend & Run Migrations on VPS via Native Host SSH
+      - name: Update Backend & Run Migrations on VPS
+        run: |
+          set -e
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+            set -e
+            if [ -d '/var/www/portfolio' ] && [ -d '/var/www/portfolio/.git' ]; then
+              cd /var/www/portfolio
+              git fetch origin master
+              git checkout master
+              git pull origin master
+              if [ -d 'backend' ] && [ -f 'backend/artisan' ]; then
+                cd backend
+                composer install --no-dev --optimize-autoloader || true
+                php artisan migrate --force
+                php artisan optimize:clear || true
+                php artisan optimize || true
+                sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+              fi
+            fi
+          "
+
+      # Sets ownership and permissions for Nginx
       - name: Set Permissions on VPS via SSH
         run: |
           set -e
