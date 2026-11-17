@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-// ─── Industrial K3 Compliance Engine (MORIKU / DNP) Preview ──────────────────
-// Authentic parity with PT Delta Nusantara Persada (DNP) Disnaker PJK3 statutory workflow.
+// ─── Industrial K3 Compliance Engine (MORIKU / DNP) ──────────────────────────
+// Authentic 1:1 parity with PT Delta Nusantara Persada (DNP) Disnaker PJK3 statutory workflow.
 // Models the complete 16-stage compliance lifecycle across 4 statutory phases:
 // Phase 1: Masuk Berkas (Stage 1 - 3: PO/SPK, Verifikasi Dokumen, Penjadwalan)
 // Phase 2: Teknis Lapangan (Stage 4 - 6: Pelaksanaan RU, Aktualisasi Unit, Penyusunan LHPP, Review Ahli K3)
 // Phase 3: Disnaker (Stage 7 - 9: Verifikasi Dinas, Proses Disnaker [30d SLA], Pengurusan Suket)
 // Phase 4: Tagihan & Suket (Stage 10 - 16: Invoice, Penagihan, Verifikasi Lunas, Kirim Suket, Closing Kas, Selesai)
 
-// Docket-inspired statutory compliance views: Inspection Kanban, SLA Pipeline, Statutory Forms
 export const DOCKET_TABS = ["Inspection Kanban", "SLA Pipeline", "Statutory Forms"] as const;
 
 const TABS = ["Kanban", "SLA", "Forms"] as const;
@@ -119,14 +118,13 @@ const INITIAL_JOBS: KanbanJob[] = [
   },
 ];
 
-
 const ROLE_STYLES: Record<RoleCode, string> = {
-  MKT: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  ADM: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  TRU: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  AHLI: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-  FIN: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  SUP: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  MKT: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  ADM: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  TRU: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  AHLI: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  FIN: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  SUP: "bg-rose-500/15 text-rose-400 border-rose-500/30",
 };
 
 const STATUTORY_FORMS = [
@@ -138,13 +136,12 @@ const STATUTORY_FORMS = [
 
 export default function DNPMonitorPreview() {
   const [tab, setTab] = useState<Tab>("Kanban");
-  const phaseFilter: PhaseCode = "all";
   const [jobs, setJobs] = useState<KanbanJob[]>(INITIAL_JOBS);
   const [selectedForm, setSelectedForm] = useState<string>("Form 6");
   const [draggedJobId, setDraggedJobId] = useState<string | null>(null);
+  const kanbanScrollRef = useRef<HTMLDivElement>(null);
 
-  // Filter stages according to active phase
-  const visibleStages = phaseFilter === "all" ? STAGES : STAGES.filter((s) => s.phase === phaseFilter);
+  const visibleStages = STAGES;
 
   // Step job forward in the statutory 16-stage pipeline
   const moveJobForward = (jobId: string, e: React.MouseEvent) => {
@@ -204,47 +201,66 @@ export default function DNPMonitorPreview() {
     setJobs(INITIAL_JOBS);
   };
 
+  const addNewJob = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newId = `JOB-0${jobs.length + 1}`;
+    const newSpk = `SPK-2026-09${40 + jobs.length}`;
+    const newJob: KanbanJob = {
+      id: newId,
+      spk: newSpk,
+      client: "PT SCHNEIDER ELECTRIC",
+      units: "1 Unit Transformator Daya & Panel LV",
+      stageId: 1,
+      sla: "NEW ORDER",
+    };
+    setJobs((prev) => [newJob, ...prev]);
+  };
+
+  // Enable mouse wheel horizontal scrolling on the board
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (kanbanScrollRef.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      kanbanScrollRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
   return (
-    <div className="w-full h-full p-4 flex flex-col justify-between bg-[var(--s2)] text-[var(--text)] font-mono text-[11px] select-none overflow-hidden border border-[var(--wire)]">
-      {/* Top Header / View Controller */}
-      <div>
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)]">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#f39c12] animate-pulse"></span>
-            <span className="text-[10px] tracking-wider text-[var(--text)] uppercase font-bold">
-              MORIKU <span className="hidden md:inline">{"// "}K3 COMPLIANCE ENGINE</span>
+    <div className="w-full flex-1 flex flex-col bg-[var(--s1)] text-[var(--text)] select-text p-4 md:p-6 overflow-hidden min-h-0">
+      {/* ── Control Bar: Tabs, Brand, and Quick Actions ── */}
+      <div className="shrink-0 space-y-3 pb-3 border-b border-[var(--wire)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Brand & Subtitle */}
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="font-mono font-bold text-xs tracking-wider text-[var(--text)] uppercase">
+              MORIKU <span className="hidden md:inline">{"// "}DISNAKER K3 STATUTORY WORKFLOW</span>
             </span>
           </div>
-        </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="flex gap-1.5">
+          {/* View Switcher Tabs (Enhanced with SVG Icons) */}
+          <div className="flex items-center gap-1.5 p-1 bg-[var(--s2)] rounded border border-[var(--card-border)]">
             {TABS.map((t) => (
               <button
                 key={t}
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setTab(t);
-                }}
-                className={`px-2.5 py-0.5 text-[9px] uppercase tracking-wider transition-all rounded-[2px] cursor-pointer flex items-center gap-1.5 ${tab === t
-                  ? "bg-[#f39c12] text-black font-bold shadow-sm"
-                  : "bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)] border border-[var(--wire)]"
-                  }`}
+                onClick={() => setTab(t)}
+                className={`px-3 py-1.5 text-xs font-mono font-medium rounded transition-all cursor-pointer flex items-center gap-2 ${
+                  tab === t
+                    ? "bg-[var(--accent)] text-white shadow-sm font-semibold"
+                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
+                }`}
               >
                 {t === "Kanban" ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
                     <rect x="3" y="3" width="7" height="18" rx="1" />
                     <rect x="14" y="3" width="7" height="10" rx="1" />
                   </svg>
                 ) : t === "SLA" ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
                 ) : (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block shrink-0">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                   </svg>
@@ -254,192 +270,196 @@ export default function DNPMonitorPreview() {
             ))}
           </div>
 
-          {tab === "Kanban" && (
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={addNewJob}
+              className="px-3 py-1.5 text-xs font-mono font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+            >
+              <span>+</span>
+              <span>Tambah Pekerjaan</span>
+            </button>
             <button
               type="button"
               onClick={resetPipeline}
-              className="px-2 py-0.5 text-[8px] uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] rounded-[2px] transition-all cursor-pointer flex items-center gap-1"
+              className="px-3 py-1.5 text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--card-border)] rounded transition-colors cursor-pointer flex items-center gap-1.5"
             >
               <span>↺</span>
               <span>Reset</span>
             </button>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col justify-center min-h-0">
+      {/* ── Content Viewport ── */}
+      <div className="flex-1 min-h-0 pt-4 flex flex-col overflow-hidden">
         {/* VIEW 1: 16-STAGE STATUTORY KANBAN SIMULATOR */}
         {tab === "Kanban" && (
-          <div className="flex-1 flex flex-col justify-between animate-fadeIn min-h-0">
-            {/* Side-Scrolling Kanban Columns */}
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex-1 overflow-x-auto overflow-y-hidden pb-1 scrollbar-none"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              <div className="flex gap-2 min-w-max h-full">
-                {visibleStages.map((stage) => {
-                  const stageJobs = jobs.filter((j) => j.stageId === stage.id);
-                  const isDragTarget = draggedJobId !== null;
+          <div
+            ref={kanbanScrollRef}
+            onWheel={handleWheel}
+            className="flex-1 flex gap-3 overflow-x-auto overflow-y-auto pb-4 select-text scrollbar-none"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {visibleStages.map((stage) => {
+              const stageJobs = jobs.filter((j) => j.stageId === stage.id);
+              const isDragTarget = draggedJobId !== null;
 
-                  return (
-                    <div
-                      key={stage.id}
-                      onClick={(e) => e.stopPropagation()}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDrop(stage.id);
-                      }}
-                      className={`w-[210px] flex-shrink-0 bg-[var(--s1)] border rounded-[2px] p-2 flex flex-col justify-between transition-colors ${isDragTarget ? "border-[var(--accent)]" : "border-[var(--wire)]"
-                        }`}
-                    >
-                      <div className="flex flex-col h-full">
-                        {/* Column Header */}
-                        <div className="flex justify-between items-center pb-1.5 mb-1.5 border-b border-[var(--wire)] gap-1.5">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="w-4 h-4 rounded bg-[var(--s2)] text-[8px] text-[var(--muted)] font-bold flex items-center justify-center shrink-0 border border-[var(--wire)]">
-                              {stage.displayId}
-                            </span>
-                            <span className="text-[9px] font-bold text-[var(--text)] truncate" title={stage.name}>
-                              {stage.short}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span
-                              className={`px-1 py-0.2 text-[7px] font-bold rounded border ${ROLE_STYLES[stage.role]}`}
-                            >
-                              {stage.role}
-                            </span>
-                            <span className="text-[7px] px-1 bg-[var(--s2)] text-[var(--muted)] rounded border border-[var(--wire)]">
-                              {stageJobs.length}
-                            </span>
-                          </div>
-                        </div>
+              return (
+                <div
+                  key={stage.id}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDrop(stage.id);
+                  }}
+                  className={`w-[280px] shrink-0 bg-[var(--s2)] border rounded p-3 flex flex-col transition-colors ${
+                    isDragTarget ? "border-[var(--accent)]" : "border-[var(--wire)]"
+                  }`}
+                >
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--wire)]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-5 h-5 rounded bg-[var(--s3)] text-[10px] font-mono font-bold flex items-center justify-center shrink-0 border border-[var(--card-border)] text-[var(--muted)]">
+                        {stage.displayId}
+                      </span>
+                      <span className="text-xs font-bold text-[var(--text)] truncate" title={stage.name}>
+                        {stage.short}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border ${ROLE_STYLES[stage.role]}`}>
+                        {stage.role}
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[var(--s3)] text-[var(--muted)] rounded border border-[var(--wire)]">
+                        {stageJobs.length}
+                      </span>
+                    </div>
+                  </div>
 
-                        {/* Cards Container */}
-                        <div className="space-y-1.5 overflow-y-auto max-h-[220px] pr-0.5">
-                          {stageJobs.map((job) => {
-                            const currentIdx = STAGES.findIndex((s) => s.id === job.stageId);
-                            const hasPrev = currentIdx > 0;
-                            const hasNext = currentIdx < STAGES.length - 1;
+                  {/* Cards Container */}
+                  <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
+                    {stageJobs.map((job) => {
+                      const currentIdx = STAGES.findIndex((s) => s.id === job.stageId);
+                      const hasPrev = currentIdx > 0;
+                      const hasNext = currentIdx < STAGES.length - 1;
 
-                            return (
-                              <div
-                                key={job.id}
-                                draggable
-                                onDragStart={() => handleDragStart(job.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="p-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] hover:border-[#f39c12]/60 transition-all cursor-grab active:cursor-grabbing shadow-sm"
+                      return (
+                        <div
+                          key={job.id}
+                          draggable
+                          onDragStart={() => handleDragStart(job.id)}
+                          className="p-3 bg-[var(--s1)] border border-[var(--card-border)] rounded hover:border-[var(--accent)] transition-all cursor-grab active:cursor-grabbing shadow-sm"
+                        >
+                          <div className="flex justify-between items-start text-xs font-mono">
+                            <span className="text-[var(--muted)] font-bold">{job.spk}</span>
+                            {job.sla && (
+                              <span
+                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                                  job.sla.includes("OVERDUE")
+                                    ? "text-rose-400 bg-rose-500/15 border border-rose-500/30"
+                                    : "text-emerald-400 bg-emerald-500/15 border border-emerald-500/30"
+                                }`}
                               >
-                                <div className="flex justify-between items-start text-[8px]">
-                                  <span className="text-[var(--muted)] font-bold">{job.spk}</span>
-                                  {job.sla && (
-                                    <span
-                                      className={`text-[7px] font-semibold px-1 rounded ${job.sla.includes("OVERDUE")
-                                        ? "text-rose-400 bg-rose-500/10"
-                                        : "text-emerald-500 bg-emerald-500/10 font-bold"
-                                        }`}
-                                    >
-                                      {job.sla}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[9px] font-bold text-[var(--text)] mt-1 truncate">
-                                  {job.client}
-                                </div>
-                                <div className="text-[8px] text-[var(--muted)] truncate mt-0.5">
-                                  {job.units}
-                                </div>
+                                {job.sla}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-bold text-[var(--text)] mt-1.5 leading-snug">
+                            {job.client}
+                          </div>
+                          <div className="text-xs text-[var(--muted)] mt-1 leading-relaxed">
+                            {job.units}
+                          </div>
 
-                                {job.inspector && (
-                                  <div className="mt-1 text-[7px] text-[#f39c12] bg-[#f39c12]/10 px-1 py-0.5 rounded border border-[#f39c12]/20">
-                                    TIM RIKSA UJI: {job.inspector}
-                                  </div>
-                                )}
-
-                                {/* Forward / Backward Stepper Buttons */}
-                                <div className="flex gap-1 mt-2 pt-1.5 border-t border-[var(--wire)]">
-                                  <button
-                                    type="button"
-                                    disabled={!hasPrev}
-                                    onClick={(e) => moveJobBackward(job.id, e)}
-                                    className="flex-1 py-0.5 text-[8px] bg-[var(--s1)] hover:bg-[var(--s3)] border border-[var(--wire)] disabled:opacity-20 disabled:hover:bg-[var(--s1)] text-[var(--muted)] hover:text-[var(--text)] rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
-                                    title="Mundur 1 Tahap"
-                                  >
-                                    [ Prev ]
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={!hasNext}
-                                    onClick={(e) => moveJobForward(job.id, e)}
-                                    className="flex-1 py-0.5 text-[8px] bg-[#f39c12]/15 hover:bg-[#f39c12] text-[#f39c12] hover:text-black font-bold disabled:opacity-20 disabled:hover:bg-[var(--s1)] disabled:text-[var(--muted)] rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
-                                    title="Maju 1 Tahap"
-                                  >
-                                    [ Next ]
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          {stageJobs.length === 0 && (
-                            <div className="text-[8px] text-[var(--muted)] italic py-5 text-center border border-dashed border-[var(--wire)] rounded">
-                              Tarik kartu ke sini
+                          {job.inspector && (
+                            <div className="mt-2 text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              TIM RIKSA: {job.inspector}
                             </div>
                           )}
+
+                          {/* Forward / Backward Steppers */}
+                          <div className="flex gap-1.5 mt-3 pt-2 border-t border-[var(--wire)]">
+                            <button
+                              type="button"
+                              disabled={!hasPrev}
+                              onClick={(e) => moveJobBackward(job.id, e)}
+                              className="flex-1 py-1 text-xs font-mono bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--wire)] disabled:opacity-20 text-[var(--muted)] hover:text-[var(--text)] rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
+                              title="Mundur 1 Tahap"
+                            >
+                              ← Mundur
+                            </button>
+                            <button
+                              type="button"
+                              disabled={!hasNext}
+                              onClick={(e) => moveJobForward(job.id, e)}
+                              className="flex-1 py-1 text-xs font-mono bg-sky-600/20 hover:bg-sky-600 text-sky-400 hover:text-white font-bold border border-sky-500/30 disabled:opacity-20 rounded transition-colors text-center cursor-pointer disabled:cursor-not-allowed"
+                              title="Maju 1 Tahap"
+                            >
+                              Maju →
+                            </button>
+                          </div>
                         </div>
+                      );
+                    })}
+
+                    {stageJobs.length === 0 && (
+                      <div className="text-xs text-[var(--muted)] italic py-8 text-center border border-dashed border-[var(--wire)] rounded">
+                        Tarik kartu ke sini
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* VIEW 2: SLA PIPELINE OVERVIEW */}
         {tab === "SLA" && (
-          <div className="space-y-2 animate-fadeIn py-1">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
-                <div className="text-[9px] text-[var(--muted)] uppercase">Compliance SLA</div>
-                <div className="text-sm font-bold text-[#27ae60] mt-0.5">94.2%</div>
-                <div className="text-[8px] text-[var(--muted)]">Within statutory window</div>
+          <div className="space-y-4 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-4 bg-[var(--s2)] border border-[var(--wire)] rounded">
+                <div className="text-xs font-mono text-[var(--muted)] uppercase">Compliance SLA Rate</div>
+                <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">94.2%</div>
+                <div className="text-xs text-[var(--muted)] mt-1">Within statutory timeline window</div>
               </div>
-              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
-                <div className="text-[9px] text-[var(--muted)] uppercase">Active Riksa Uji</div>
-                <div className="text-sm font-bold text-[var(--text)] mt-0.5">{jobs.length} Orders</div>
-                <div className="text-[8px] text-[var(--muted)]">Boiler, Pressure, Electrical</div>
+              <div className="p-4 bg-[var(--s2)] border border-[var(--wire)] rounded">
+                <div className="text-xs font-mono text-[var(--muted)] uppercase">Active Riksa Uji</div>
+                <div className="text-2xl font-bold text-[var(--text)] mt-1 font-mono">{jobs.length} Orders</div>
+                <div className="text-xs text-[var(--muted)] mt-1">Boiler, Pressure, Electrical, Lift</div>
               </div>
-              <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px]">
-                <div className="text-[9px] text-[var(--muted)] uppercase">Disnaker Overdue</div>
-                <div className="text-sm font-bold text-[#e74c3c] mt-0.5">1 Order</div>
-                <div className="text-[8px] text-[#e74c3c]/80">Attention required</div>
+              <div className="p-4 bg-[var(--s2)] border border-[var(--wire)] rounded">
+                <div className="text-xs font-mono text-[var(--muted)] uppercase">Disnaker SLA Overdue</div>
+                <div className="text-2xl font-bold text-rose-400 mt-1 font-mono">1 Order</div>
+                <div className="text-xs text-rose-400/80 mt-1">Direct intervention requested</div>
               </div>
             </div>
 
-            <div className="p-2 bg-[var(--s1)] border border-[var(--wire)] rounded-[2px] space-y-1.5">
-              <div className="flex justify-between text-[9px] text-[var(--muted)]">
-                <span>Statutory 16-Stage Pipeline Velocity</span>
-                <span className="text-[#f39c12] font-semibold">Avg 4.8 Days / Stage</span>
+            <div className="p-4 bg-[var(--s2)] border border-[var(--wire)] rounded space-y-3">
+              <div className="flex justify-between items-center text-xs font-mono">
+                <span className="font-semibold text-[var(--text)]">16-Stage Statutory Velocity</span>
+                <span className="text-amber-400 font-bold">Avg 4.8 Days / Stage</span>
               </div>
-              <div className="w-full bg-[var(--wire)] h-1.5 rounded-full overflow-hidden flex">
-                <div style={{ width: "25%" }} className="bg-[#f39c12]" title="Fase 1: Berkas"></div>
-                <div style={{ width: "30%" }} className="bg-[#3498db]" title="Fase 2: Lapangan"></div>
-                <div style={{ width: "25%" }} className="bg-[#9b59b6]" title="Fase 3: Disnaker"></div>
-                <div style={{ width: "20%" }} className="bg-[#27ae60]" title="Fase 4: Suket & Fin"></div>
+              <div className="w-full bg-[var(--s3)] h-2 rounded-full overflow-hidden flex">
+                <div style={{ width: "25%" }} className="bg-amber-500" title="Fase 1: Berkas" />
+                <div style={{ width: "30%" }} className="bg-sky-500" title="Fase 2: Lapangan" />
+                <div style={{ width: "25%" }} className="bg-purple-500" title="Fase 3: Disnaker" />
+                <div style={{ width: "20%" }} className="bg-emerald-500" title="Fase 4: Suket & Fin" />
               </div>
-              <div className="flex justify-between text-[8px] text-[var(--muted)] pt-0.5">
-                <span>Berkas [1-3]</span>
-                <span>Lapangan [4-6]</span>
-                <span>Disnaker [7-9]</span>
-                <span>Suket &amp; Fin [10-16]</span>
+              <div className="flex justify-between text-xs font-mono text-[var(--muted)]">
+                <span>Berkas [01-03]</span>
+                <span>Lapangan [04-06]</span>
+                <span>Disnaker [07-09]</span>
+                <span>Suket & Fin [10-16]</span>
               </div>
             </div>
           </div>
@@ -447,30 +467,31 @@ export default function DNPMonitorPreview() {
 
         {/* VIEW 3: STATUTORY FORMS SPECIFICATION */}
         {tab === "Forms" && (
-          <div className="space-y-1.5 animate-fadeIn py-1">
-            <div className="flex justify-between text-[9px] text-[var(--muted)] pb-0.5 border-b border-[var(--wire)]">
-              <span>Disnaker Statutory Form</span>
-              <span>Regulatory Standard &amp; Inspection Protocol</span>
+          <div className="space-y-3 overflow-y-auto pr-1">
+            <div className="text-xs font-mono text-[var(--muted)] pb-1 border-b border-[var(--wire)]">
+              Disnaker Statutory Inspection Forms & Technical Protocols
             </div>
             {STATUTORY_FORMS.map((form) => (
               <div
                 key={form.code}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedForm(form.code);
-                }}
-                className={`p-1.5 rounded-[2px] transition-all cursor-pointer border ${selectedForm === form.code
-                  ? "bg-[#f39c12]/15 border-[#f39c12]/60 text-[var(--text)]"
-                  : "bg-[var(--s1)] border-[var(--wire)] text-[var(--muted)] hover:bg-[var(--s3)] hover:text-[var(--text)]"
-                  }`}
+                onClick={() => setSelectedForm(form.code)}
+                className={`p-3.5 rounded transition-all cursor-pointer border ${
+                  selectedForm === form.code
+                    ? "bg-[var(--s3)] border-[var(--accent)] text-[var(--text)] shadow-sm"
+                    : "bg-[var(--s2)] border-[var(--wire)] text-[var(--muted)] hover:bg-[var(--s3)] hover:text-[var(--text)]"
+                }`}
               >
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="font-bold text-[#f39c12]">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-sm text-[var(--text)]">
                     {form.code} · {form.name}
                   </span>
-                  <span className="text-[8px] text-[var(--muted)] bg-[var(--s2)] border border-[var(--wire)] px-1 rounded">{form.standard}</span>
+                  <span className="text-xs font-mono bg-[var(--s1)] border border-[var(--card-border)] px-2 py-0.5 rounded text-[var(--muted)]">
+                    {form.standard}
+                  </span>
                 </div>
-                <div className="text-[9px] text-[var(--muted)] mt-0.5">Protocol: {form.protocol}</div>
+                <div className="text-xs text-[var(--muted)] mt-1.5 font-sans leading-relaxed">
+                  Testing Protocol: {form.protocol}
+                </div>
               </div>
             ))}
           </div>

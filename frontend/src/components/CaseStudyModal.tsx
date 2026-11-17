@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
 import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
@@ -9,7 +9,7 @@ import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
 import GeopetakPreview from "@/components/previews/GeopetakPreview";
 import MaknaMoodboardPreview from "@/components/previews/MaknaMoodboardPreview";
 
-// Three.js interactive previews dynamically imported to prevent SSR issues
+// Dynamic import for WebGL Three.js diorama studies
 const MaterialStudiesCarousel = dynamic(
   () => import("@/components/previews/MaterialStudiesCarousel"),
   { ssr: false }
@@ -28,7 +28,6 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
   useEffect(() => {
     if (!project) return;
 
-    // Capture the triggering element that invoked the modal
     triggerElementRef.current = document.activeElement as HTMLElement | null;
 
     // Prevent background body scrolling while modal is open
@@ -41,15 +40,13 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
       (mainContent as HTMLElement & { inert?: boolean }).inert = true;
     }
 
-    // Automatically focus the close button upon opening
+    // Auto-focus close button
     const focusTimer = setTimeout(() => {
       if (modalContainerRef.current) {
         const closeBtn = modalContainerRef.current.querySelector<HTMLElement>('[aria-label="Close project modal"]');
-        if (closeBtn) {
-          closeBtn.focus();
-        }
+        if (closeBtn) closeBtn.focus();
       }
-    }, 10);
+    }, 20);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -58,10 +55,9 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         return;
       }
 
-      // Focus trapping
+      // Trap focus inside modal
       if (e.key === "Tab") {
         if (!modalContainerRef.current) return;
-
         const focusableSelector =
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
         const focusables = Array.from(
@@ -116,16 +112,6 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
     };
   }, [project, onClose]);
 
-  // Extract technology tokens from subtitle
-  const techStack = useMemo(() => {
-    if (!project) return [];
-    const source = project.subtitle || "";
-    return source
-      .split(/[·,+]/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.toLowerCase().includes("pipeline") && !s.toLowerCase().includes("engineering"));
-  }, [project]);
-
   if (!project) return null;
 
   const getDirectUrl = (p: Project) => {
@@ -137,7 +123,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
 
   const directUrl = getDirectUrl(project);
 
-  // Render the corresponding 1:1 live functional project
+  // 1:1 Live project runtime
   const renderLivePreview = (p: Project) => {
     if (p.id === 1) {
       return (
@@ -172,110 +158,66 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
       role="dialog"
       aria-modal="true"
       aria-labelledby="case-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/85 backdrop-blur-md animate-fadeIn select-text overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md animate-fadeIn select-text overflow-y-auto"
       onClick={onClose}
     >
       <div
         ref={modalContainerRef}
         tabIndex={-1}
-        className="relative w-full max-w-[1360px] h-[92vh] max-h-[960px] flex flex-col bg-[var(--modal-bg)] border border-[var(--wire)] text-[var(--text)] shadow-2xl rounded-[4px] transition-colors outline-none overflow-hidden my-auto"
+        className="relative w-full max-w-[1400px] h-[94vh] max-h-[980px] flex flex-col bg-[var(--modal-bg)] border border-[var(--wire)] text-[var(--text)] shadow-2xl rounded-[4px] transition-colors outline-none overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Refined Editorial Header: High Legibility & Clear Hierarchy ── */}
-        <header className="px-5 sm:px-7 py-4 border-b border-[var(--wire)] bg-[var(--s1)] shrink-0 flex flex-col gap-3">
-          {/* Top Control Strip */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 font-mono text-xs text-[var(--muted)] tracking-wider uppercase">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[var(--text)] font-semibold">{project.category}</span>
-              {project.year && (
-                <>
-                  <span className="opacity-40">/</span>
-                  <span className="px-2 py-0.5 bg-[var(--s2)] text-[var(--text)] border border-[var(--card-border)] rounded-[2px] font-mono text-[11px]">
-                    {project.year}
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              {directUrl && (
-                <a
-                  href={directUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--card-border)] text-[var(--text)] hover:text-[var(--accent2-text)] font-mono text-xs font-semibold rounded-[2px] transition-colors"
-                  title="Open live project in a dedicated browser tab"
-                >
-                  <span>Launch in Tab</span>
-                  <span>↗</span>
-                </a>
-              )}
-
-              <button
-                onClick={onClose}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--s2)] hover:bg-rose-500/20 text-[var(--text)] hover:text-rose-400 border border-[var(--card-border)] font-mono text-xs font-bold rounded-[2px] transition-colors cursor-pointer"
-                aria-label="Close project modal"
-              >
-                <span>✕</span>
-                <span className="hidden sm:inline tracking-wider">CLOSE</span>
-                <span className="text-[var(--muted)] font-normal text-[10px] hidden md:inline">[ESC]</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Headline & Tech Stack Strip */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 pt-1">
-            <div className="space-y-1 max-w-3xl">
-              <h2 id="case-modal-title" className="text-xl sm:text-2xl lg:text-3xl font-display font-medium text-[var(--text)] tracking-tight">
+        {/* ── Refined Clean Single-Header: Confident, Legible, Decluttered ── */}
+        <header className="px-5 sm:px-6 py-3.5 border-b border-[var(--wire)] bg-[var(--s1)] shrink-0 flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 id="case-modal-title" className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-[var(--text)]">
                 {project.title}
               </h2>
-              <p className="text-xs sm:text-sm text-[var(--muted)] font-sans line-clamp-2 leading-relaxed">
-                {project.subtitle}
-              </p>
+              <span className="px-2 py-0.5 bg-[var(--s2)] border border-[var(--card-border)] rounded text-[11px] font-mono text-[var(--muted)] uppercase font-semibold">
+                {project.category}
+              </span>
+              {project.year && (
+                <span className="text-xs font-mono text-[var(--muted)] opacity-60">
+                  {project.year}
+                </span>
+              )}
             </div>
+            <p className="text-xs sm:text-sm text-[var(--muted)] font-sans truncate">
+              {project.subtitle}
+            </p>
+          </div>
 
-            {/* Redesigned Architectural Tech Stack Tags: Clean, Legible, Professional */}
-            {techStack.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 shrink-0 self-start md:self-end">
-                {techStack.map((tech) => (
-                  <span
-                    key={tech}
-                    className="px-2.5 py-1 bg-[var(--s2)] border border-[var(--card-border)] text-[var(--text)] font-mono text-xs rounded-[2px] tracking-wide"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {directUrl && (
+              <a
+                href={directUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--s2)] hover:bg-[var(--s3)] border border-[var(--card-border)] text-[var(--text)] hover:text-[var(--accent2-text)] font-mono text-xs font-semibold rounded-[2px] transition-colors"
+                title="Open in dedicated browser tab"
+              >
+                <span>Launch in Tab</span>
+                <span>↗</span>
+              </a>
             )}
+
+            <button
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--s2)] hover:bg-rose-500/20 text-[var(--text)] hover:text-rose-400 border border-[var(--card-border)] font-mono text-xs font-bold rounded-[2px] transition-colors cursor-pointer"
+              aria-label="Close project modal"
+            >
+              <span>✕</span>
+              <span className="tracking-wider">CLOSE</span>
+              <span className="text-[var(--muted)] font-normal text-[10px] hidden sm:inline">[ESC]</span>
+            </button>
           </div>
         </header>
 
-        {/* ── Main Interactive Viewport: 100% Full-Bleed & Fully Interactive ── */}
-        <main className="relative w-full flex-1 bg-[var(--s1)] overflow-hidden pointer-events-auto">
+        {/* ── Main Viewport: Scrollable, Interactive, Full-Bleed ── */}
+        <main className="relative w-full flex-1 bg-[var(--s1)] overflow-y-auto overflow-x-hidden pointer-events-auto flex flex-col">
           {renderLivePreview(project)}
         </main>
-
-        {/* ── Minimal Bottom Status Bar ── */}
-        <footer className="px-5 sm:px-7 py-2 border-t border-[var(--wire)] bg-[var(--s1)] shrink-0 flex items-center justify-between font-mono text-xs text-[var(--muted)]">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[var(--text)]">1:1 Live System Active</span>
-            <span className="opacity-40 hidden sm:inline">·</span>
-            <span className="hidden sm:inline">Interactive runtime · Press ESC to close</span>
-          </div>
-
-          {directUrl && (
-            <a
-              href={directUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent2-text)] hover:underline font-semibold"
-            >
-              Fullscreen Mode ↗
-            </a>
-          )}
-        </footer>
       </div>
     </div>
   );

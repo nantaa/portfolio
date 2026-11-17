@@ -1,0 +1,380 @@
+export const STAGES = [
+    { id: 1, name: 'PO / SPK / Proposal', short: 'PO', role: 'marketing', sla: null },
+    { id: 2, name: 'Verifikasi Dokumen', short: 'Verifikasi', role: 'admin', sla: 1 },
+    { id: 3, name: 'Penjadwalan', short: 'Jadwal', role: 'admin', sla: 1 },
+    { id: 4, name: 'Pelaksanaan RU', short: 'Inspeksi', role: 'inspektur', sla: null },
+    { id: 13, name: 'Aktualisasi Unit', short: 'Aktualisasi', role: 'marketing', sla: 1, displayId: '4b' },
+    { id: 5, name: 'Penyusunan LHPP', short: 'LHPP', role: 'inspektur', sla: 3 },
+    { id: 6, name: 'Review Laporan Teknis', short: 'Rev. Laporan', role: 'tim_ahli', sla: 1 },
+    { id: 7, name: 'Verifikasi ke Dinas', short: 'Penyerahan', role: 'admin', sla: 1 },
+    { id: 8, name: 'Proses Disnaker', short: 'Disnaker', role: 'admin', sla: 30 },
+    { id: 9, name: 'Pengurusan Suket', short: 'Suket', role: 'admin', sla: 1 },
+    { id: 10, name: 'Invoice & Kwitansi', short: 'Invoice', role: 'finance', sla: 1 },
+    { id: 11, name: 'Penagihan / Follow-up', short: 'Penagihan', role: 'marketing', sla: null },
+    { id: 14, name: 'Verifikasi Bayar & PPh: Lunas', short: 'Verifikasi Bayar', role: 'finance', sla: 1, displayId: '11b' },
+    { id: 15, name: 'Kirim SUKET ke Klien', short: 'Kirim SUKET', role: 'marketing', sla: null, displayId: '11c' },
+    { id: 12, name: 'Final Financial Closing', short: 'Closing', role: 'finance', sla: null },
+    // Stage 16: Hidden archival stage — exclusive Superadmin special privilege
+    { id: 16, name: 'Selesai', short: 'Selesai', role: 'superadmin', sla: null, hidden: true, displayId: '✓' },
+];
+
+export const PIC_THEMES = {
+    // 1. Super Admin - Black #000000
+    superadmin: {
+        primary: '#000000',
+        dark: '#111827',
+        light: '#F3F4F6',
+        border: 'border-t-[#000000]',
+        badge: 'bg-[#111827] text-white',
+        pillBorder: 'border-black',
+        pillBg: 'bg-black/10',
+        avatarBg: 'bg-[#111827]',
+        avatarText: 'text-white',
+        accent: 'from-black to-gray-800',
+        label: 'SUP',
+        name: 'Super Administrator',
+    },
+    // 2. Tim Ru - Aqua Marine #2A9FBC
+    inspektur: {
+        primary: '#2A9FBC',
+        dark: '#0E4F5F',
+        light: '#B7E2EC',
+        border: 'border-t-[#2A9FBC]',
+        badge: 'bg-[#0E4F5F] text-[#B7E2EC]',
+        pillBorder: 'border-[#2A9FBC]',
+        pillBg: 'bg-[#2A9FBC]/10',
+        avatarBg: 'bg-[#0E4F5F]',
+        avatarText: 'text-[#2A9FBC]',
+        accent: 'from-[#0E4F5F] to-[#2A9FBC]',
+        label: 'TRU',
+        name: 'Tim Riksa Uji',
+    },
+    // 3. Admin - Yellow #F7B71F
+    admin: {
+        primary: '#F7B71F',
+        dark: '#7C5C25',
+        light: '#FACD85',
+        border: 'border-t-[#F7B71F]',
+        badge: 'bg-[#7C5C25] text-[#FACD85]',
+        pillBorder: 'border-[#F7B71F]',
+        pillBg: 'bg-[#F7B71F]/10',
+        avatarBg: 'bg-[#7C5C25]',
+        avatarText: 'text-[#F7B71F]',
+        accent: 'from-[#7C5C25] to-[#F7B71F]',
+        label: 'ADM',
+        name: 'Admin Dokumen',
+    },
+    // 4. Marketing - Plum #A62E5C
+    marketing: {
+        primary: '#A62E5C',
+        dark: '#661C3D',
+        light: '#D1488C',
+        border: 'border-t-[#A62E5C]',
+        badge: 'bg-[#661C3D] text-[#D1488C]',
+        pillBorder: 'border-[#A62E5C]',
+        pillBg: 'bg-[#A62E5C]/10',
+        avatarBg: 'bg-[#661C3D]',
+        avatarText: 'text-[#A62E5C]',
+        accent: 'from-[#661C3D] to-[#A62E5C]',
+        label: 'MKT',
+        name: 'Marketing',
+    },
+    // 5. Finance - Green #35B558
+    finance: {
+        primary: '#35B558',
+        dark: '#176132',
+        light: '#5DBE7F',
+        border: 'border-t-[#35B558]',
+        badge: 'bg-[#176132] text-[#5DBE7F]',
+        pillBorder: 'border-[#35B558]',
+        pillBg: 'bg-[#35B558]/10',
+        avatarBg: 'bg-[#176132]',
+        avatarText: 'text-[#35B558]',
+        accent: 'from-[#176132] to-[#35B558]',
+        label: 'FIN',
+        name: 'Admin Keuangan',
+    },
+    // 6. Tenaga Ahli - Purple #90499B
+    tim_ahli: {
+        primary: '#90499B',
+        dark: '#49254C',
+        light: '#E2C4DE',
+        border: 'border-t-[#90499B]',
+        badge: 'bg-[#49254C] text-[#E2C4DE]',
+        pillBorder: 'border-[#90499B]',
+        pillBg: 'bg-[#90499B]/10',
+        avatarBg: 'bg-[#49254C]',
+        avatarText: 'text-[#90499B]',
+        accent: 'from-[#49254C] to-[#90499B]',
+        label: 'AHLI',
+        name: 'Tenaga Ahli',
+    },
+    // 7. Management - Blue #4764AF
+    manager: {
+        primary: '#4764AF',
+        dark: '#193B68',
+        light: '#A9C9ED',
+        border: 'border-t-[#4764AF]',
+        badge: 'bg-[#193B68] text-[#A9C9ED]',
+        pillBorder: 'border-[#4764AF]',
+        pillBg: 'bg-[#4764AF]/10',
+        avatarBg: 'bg-[#193B68]',
+        avatarText: 'text-[#4764AF]',
+        accent: 'from-[#193B68] to-[#4764AF]',
+        label: 'MGR',
+        name: 'Kadiv RU / Manager Teknis',
+    },
+    general_manager: {
+        primary: '#3B82F6',
+        dark: '#1E3A8A',
+        light: '#BFDBFE',
+        border: 'border-t-[#3B82F6]',
+        badge: 'bg-[#1E3A8A] text-[#BFDBFE]',
+        pillBorder: 'border-[#3B82F6]',
+        pillBg: 'bg-[#3B82F6]/10',
+        avatarBg: 'bg-[#1E3A8A]',
+        avatarText: 'text-[#3B82F6]',
+        accent: 'from-[#1E3A8A] to-[#3B82F6]',
+        label: 'GM',
+        name: 'General Manager',
+    },
+};
+PIC_THEMES.tim_ru = PIC_THEMES.inspektur;
+PIC_THEMES.inspector = PIC_THEMES.inspektur;
+PIC_THEMES.management = PIC_THEMES.general_manager;
+PIC_THEMES.gm = PIC_THEMES.general_manager;
+PIC_THEMES.manager_ops = PIC_THEMES.general_manager;
+PIC_THEMES.manager_operasional = PIC_THEMES.general_manager;
+PIC_THEMES.tenaga_ahli = PIC_THEMES.tim_ahli;
+PIC_THEMES.super_admin = PIC_THEMES.superadmin;
+
+export const getRoleTheme = (role) => {
+    const key = String(role || '').toLowerCase();
+    return PIC_THEMES[key] || PIC_THEMES.superadmin;
+};
+
+export const getStageDisplayId = (stageId) => {
+    const stage = STAGES.find(s => s.id === (typeof stageId === 'number' ? stageId : parseInt(stageId)));
+    return stage?.displayId || String(stageId || '');
+};
+
+export const ROLES = {
+    marketing: { name: 'Marketing', label: 'MKT' },
+    admin: { name: 'Admin Dokumen & RU', label: 'ADM' },
+    inspektur: { name: 'Tim Riksa Uji', label: 'TRU' },
+    tim_ru: { name: 'Tim Riksa Uji', label: 'TRU' },
+    inspector: { name: 'Tim Riksa Uji', label: 'TRU' },
+    tim_ahli: { name: 'Tim Ahli', label: 'AHLI' },
+    manager: { name: 'Kadiv RU / Manager Teknis', label: 'MGR' },
+    general_manager: { name: 'General Manager', label: 'GM' },
+    management: { name: 'Management / Direksi', label: 'MGT' },
+    finance: { name: 'Admin Keuangan', label: 'FIN' },
+    superadmin: { name: 'Super Administrator', label: 'SUP' },
+};
+
+export const MANAGER_ROLES = ['manager', 'general_manager', 'management', 'manager_ops', 'manager_operasional'];
+export const S3_EXCLUDED_ROLES = ['general_manager', 'management', 'manager_ops', 'manager_operasional'];
+export const isManagerRole = (role) => MANAGER_ROLES.includes(String(role || '').toLowerCase());
+export const isS3Excluded = (role) => S3_EXCLUDED_ROLES.includes(String(role || '').toLowerCase());
+
+export const RU_ROLES = ['inspektur', 'inspector', 'tim_ru'];
+export const isRURole = (role) => RU_ROLES.includes(String(role || '').toLowerCase());
+
+// Marketing-only stages (locked for MGR intercept)
+export const MKT_STAGES = [1, 11, 13, 15];
+// Finance-only stages (locked for MGR intercept)
+export const FIN_STAGES = [10, 14, 12];
+
+// Jenis alat yang di RiksaUji (Task 3)
+export const PESAWAT_TYPES = [
+    'Proteksi Kebakaran (Form 65 K)',
+    'Lift / Dumbwaiter (Form 36/38/39)',
+    'Eskalator / Travelator (Form 52)',
+    'PAPA (Crane/Forklift/dll) (Form A 52)',
+    'Instalasi Listrik & PP (Form 55 L)',
+    'Pesawat Uap (Boiler) (Form 6)',
+    'Bejana Tekan (Form 45 A.1)',
+    'PTP (Compressor/Genset) (Form 54 A)',
+];
+
+// Stage 4 mandatory photo types (Task 9)
+export const STAGE4_PHOTO_TYPES = [
+    'Foto Keberangkatan',
+    'Foto Sampai Lokasi Riksauji',
+    'Foto Kepulangan',
+];
+
+// INS subroles (Task 8) — Ahli K3 vs Petugas / PIC
+export const INS_SUBROLES = {
+    tenaga_ahli: 'Ahli K3',
+    teknisi: 'Petugas / PIC',
+};
+
+// Stage 5 review decisions (Task 14)
+export const STAGE5_DECISIONS = [
+    { value: 'approved', label: 'Setujui' },
+    { value: 'approved_conditional', label: 'Setujui Bersyarat' },
+    { value: 'rejected', label: 'Tolak' },
+];
+
+// Stage 8 progress / disnaker status
+export const STAGE8_DISNAKER_STATUSES = [
+    { value: 'progress', label: 'Progress (Dalam Proses)' },
+    { value: 'stuck', label: 'Stuck (Terkendala)' },
+    { value: 'ready', label: 'Ready (Selesai Disnaker)' },
+];
+
+// Stage 9 Suket operational workflow statuses
+export const STAGE9_SUKET_STATUSES = [
+    { value: 'diterima', label: 'Diterima' },
+    { value: 'scan', label: 'Scan' },
+    { value: 'penamaan_cover', label: 'Penamaan Cover' },
+    { value: 'pembuatan_tanda_terima', label: 'Pembuatan Tanda Terima' },
+    { value: 'selesai', label: 'Selesai' },
+];
+
+// Legacy Stage 9 progress statuses (Retained for historical records)
+export const PROGRESS_STATUSES = [
+    { value: 'not_started', label: 'Not Started' },
+    { value: 'delayed', label: 'Delayed' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'almost_done', label: 'Almost Done' },
+    { value: 'done', label: 'Done' },
+];
+
+// Stage 2 verification checklist (Task 6)
+export const STAGE2_VERIFY_CHECKLIST = [
+    { no: '01', type: 'PO/SPK', label: 'PO / SPK / Proposal dari Klien', badge: 'WAJIB', hasNa: true, hint: null },
+    { no: '02', type: 'Surat Permohonan', label: 'Surat Permohonan Riksa Uji (bermaterai)', badge: 'WAJIB', hasNa: false, hint: null },
+    { no: '03', type: 'Surat Kuasa', label: 'Surat Kuasa dari Pemilik (bermaterai)', badge: 'WAJIB', hasNa: false, hint: null },
+    { no: '04', type: 'Pernyataan Keabsahan', label: 'Surat Pernyataan Keabsahan Data', badge: 'OPSIONAL', hasNa: true, hint: null },
+    { no: '05', type: 'Form Checklist Klien', label: 'Form Checklist Disnaker (diisi klien)', badge: 'OPSIONAL', hasNa: true, hint: null },
+    { no: '06', type: 'Drawing/As-Built', label: 'Drawing / Gambar Teknis (as-built)', badge: 'OPSIONAL', hasNa: true, hint: 'Opsional' },
+    { no: '07', type: 'Manual Book', label: 'Manual Book / Spesifikasi Teknis', badge: 'OPSIONAL', hasNa: true, hint: 'Opsional' },
+    // { no: '08', type: 'Pengesahan Gambar Kemnaker', label: 'Pengesahan Gambar dari Kemnaker', badge: 'OPSIONAL', hasNa: true, hint: 'Opsional' },
+    { no: '09', type: 'Copy Suket Lama', label: 'Copy Suket Lama (perpanjangan)', badge: 'OPSIONAL', hasNa: true, hint: null },
+    { no: '10', type: 'Dokumen Tambahan', label: 'Dokumen Tambahan', badge: 'OPSIONAL', hasNa: true, hint: 'Opsional' },
+    // { no: '11', type: 'Catatan Verifikasi', label: 'Verifikasi: Drawing SESUAI dengan Nameplate (cek visual foto)', badge: 'OPSIONAL', badge2: 'CEK VISUAL', hasNa: true, hint: 'Cek manual oleh Admin', isManual: true },
+];
+
+// Required document types per stage
+export const DOC_TYPES_BY_STAGE = {
+    1: ['PO/SPK', 'Surat Permohonan', 'Surat Kuasa', 'Pernyataan Keabsahan', 'Form Checklist Klien', 'Drawing/As-Built', 'Manual Book', 'Copy Suket Lama', 'Dokumen Tambahan'],
+    2: ['PO/SPK', 'Surat Permohonan', 'Surat Kuasa', 'Pernyataan Keabsahan', 'Form Checklist Klien', 'Drawing/As-Built', 'Manual Book', /* 'Pengesahan Gambar Kemnaker', */ 'Copy Suket Lama', 'Dokumen Tambahan', /* 'Catatan Verifikasi' */],
+    3: ['Surat Tugas', 'Surat Pemberitahuan H-5', 'Bukti Submit Teman K3'],
+    4: ['Foto Nameplate', 'Foto Kondisi Fisik', 'BAP', 'Foto Hasil Pengukuran', 'Foto Alat Pengaman', 'Foto APD & Tim di Lokasi', 'Foto Dokumentasi Lapangan', 'Data Pengukuran'],
+    5: ['LHPP'],                                         // Stage 5 = Penyusunan LHPP (Inspektur / Tim Ahli)
+    6: ['LHPP Draft', 'BAP', 'Catatan Review MGR'],         // Stage 6 = Review Laporan Teknis (Manager)
+    7: ['Bukti Penyerahan ke Disnaker'],
+    8: ['Tanda Terima Disnaker', 'Revisi Dokumen Disnaker', 'Scan File Disnaker'],
+    9: ['Suket (Asli) dari Disnaker'],
+    10: ['Invoice, Kwitansi & Faktur Pajak'],
+    11: ['Bukti Follow-up / Penagihan', 'Surat Pengantar Tagihan', 'Dokumen Tagihan Tambahan'],
+    14: ['Bukti Transfer', 'Bukti Transfer / Pembayaran', 'Bukti Potong PPh', 'Kwitansi Lunas', 'Keterangan Pelunasan'],
+    15: ['Tanda Terima Suket', 'Bukti Pengiriman / Resi', 'Dokumen Penyerahan'],
+    12: ['Dokumen Closing Final', 'Rekap Keuangan'],
+    13: [],
+    16: [], // Selesai — no required docs
+};
+
+// Stage 1 docs that gate Stage 2 (at least one required — Task 5)
+export const STAGE1_REQUIRED_DOCS = ['PO/SPK', 'Surat Permohonan', 'Surat Kuasa'];
+
+// Stage 2 mandatory docs (can be bypassed by Kadiv approval — Task 6)
+export const STAGE2_REQUIRED_DOCS = ['Surat Permohonan', 'Surat Kuasa'];
+
+// Stage 4 lapangan checklist items (saved as s4_checklist JSON on dnp_jobs)
+// Each item key matches the id; stored as { [id]: { status: 'checked'|'unchecked', catatan: string } }
+export const STAGE4_CHECKLIST_ITEMS = [
+    { id: 'nameplate', label: 'Verifikasi Nameplate', kritis: true },
+    { id: 'visual', label: 'Pemeriksaan Visual (korosi, retak, kebocoran, deformasi)', kritis: true },
+    { id: 'dimensi', label: 'Pengukuran Dimensi & Ketebalan Material', kritis: false },
+    { id: 'kelistrikan', label: 'Pemeriksaan Sistem Kelistrikan & Grounding', kritis: false },
+    { id: 'pengaman', label: 'Test Fungsi Alat Pengaman (safety valve, limit switch)', kritis: true },
+    { id: 'fungsi', label: 'Test Fungsi Operasional (load/pressure/functional test)', kritis: true },
+    { id: 'apd', label: 'APD lengkap digunakan selama pengujian', kritis: false },
+    { id: 'bap', label: 'BAP ditandatangani PIC Klien di lapangan', kritis: true },
+];
+
+// Stage 7 bundel fisik checklist items (saved as s7_bundel_checklist JSON on dnp_jobs)
+// Stored as { grupA: [...], grupB: [...], grupC: [...] } where each item is { id, status, catatan }
+export const STAGE7_BUNDEL_GRUP_A = [
+    { id: 'surat_permohonan_disnaker', label: 'Surat Permohonan ke Disnaker (asli, bermaterai)' },
+    { id: 'surat_kuasa', label: 'Surat Kuasa dari Pemilik ke PJK3 (asli, bermaterai)' },
+    { id: 'pernyataan_keabsahan', label: 'Pernyataan Keabsahan Data (asli, bermaterai)' },
+    { id: 'form_checklist_disnaker', label: 'Form Checklist Disnaker (TTD klien)' },
+    { id: 'drawing_as_built', label: 'Drawing / As-Built' },
+    { id: 'manual_book', label: 'Manual Book / Spesifikasi Pabrik' },
+    // { id: 'pengesahan_gambar', label: 'Pengesahan Gambar Kemnaker (kondisional)' },
+    { id: 'copy_suket_lama', label: 'Copy Suket Lama (perpanjangan saja)' },
+];
+
+export const STAGE7_BUNDEL_GRUP_B = [
+    { id: 'lhpp', label: 'LHPP (dari Upload Stage 5)' },
+    { id: 'bap', label: 'BAP (dari Upload Stage 5)' },
+    { id: 'copy_skp_ak3', label: 'Copy SKP Ahli K3 Inspektur' },
+    { id: 'sertifikat_pjk3', label: 'Copy Sertifikat PJK3 (SK Kemnaker)' },
+    { id: 'foto_dokumentasi', label: 'Foto Dokumentasi Pemeriksaan (dari Upload Stage 4)' },
+    { id: 'sertifikat_kalibrasi', label: 'Copy Sertifikat Kalibrasi Alat Ukur' },
+];
+
+export const STAGE7_BUNDEL_GRUP_C = [
+    { id: 'cover_bundel', label: 'Cover bundel (nama klien & jenis pesawat)' },
+    { id: 'daftar_isi', label: 'Daftar isi bundel' },
+    { id: 'dijilid', label: 'Dokumen dijilid / distaples rapi' },
+    { id: 'salinan_arsip', label: 'Salinan bundel untuk arsip internal' },
+];
+
+// Default Suket validity in months per pesawat type (Stage 9)
+export const SUKET_VALIDITY_DEFAULTS = {
+    'Bejana Tekan (Form 45 A.1)': 24,  // Luar — 24 bln; Hydrotest — 60 bln
+    'Pesawat Uap (Boiler) (Form 6)': 24,
+    'Proteksi Kebakaran (Form 65 K)': 12,
+    'PAPA (Crane/Forklift/dll) (Form A 52)': 12,
+    'Lift / Dumbwaiter (Form 36/38/39)': 12,
+    'Eskalator / Travelator (Form 52)': 12,
+    'Instalasi Listrik & PP (Form 55 L)': 12,
+    'PTP (Compressor/Genset) (Form 54 A)': 12,
+};
+
+// Indonesian Provinces list for Disnaker Tujuan
+export const INDONESIA_PROVINCES = [
+    'Aceh',
+    'Bali',
+    'Banten',
+    'Bengkulu',
+    'D.I. Yogyakarta',
+    'D.K.I. Jakarta',
+    'Gorontalo',
+    'Jambi',
+    'Jawa Barat',
+    'Jawa Tengah',
+    'Jawa Timur',
+    'Kalimantan Barat',
+    'Kalimantan Selatan',
+    'Kalimantan Tengah',
+    'Kalimantan Timur',
+    'Kalimantan Utara',
+    'Kepulauan Bangka Belitung',
+    'Kepulauan Riau',
+    'Lampung',
+    'Maluku',
+    'Maluku Utara',
+    'Nusa Tenggara Barat',
+    'Nusa Tenggara Timur',
+    'Papua',
+    'Papua Barat',
+    'Papua Barat Daya',
+    'Papua Pegunungan',
+    'Papua Selatan',
+    'Papua Tengah',
+    'Riau',
+    'Sulawesi Barat',
+    'Sulawesi Selatan',
+    'Sulawesi Tengah',
+    'Sulawesi Tenggara',
+    'Sulawesi Utara',
+    'Sumatera Barat',
+    'Sumatera Selatan',
+    'Sumatera Utara',
+];

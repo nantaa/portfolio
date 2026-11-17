@@ -1,0 +1,148 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\Api\InspectorRecommendationController;
+use App\Http\Middleware\BlockAiAndScraperBots;
+use Inertia\Inertia;
+
+Route::middleware([BlockAiAndScraperBots::class])->group(function () {
+    Route::middleware(['auth', 'verified'])->group(function () {
+    // Feature 1: Role-based Dashboard
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Feature 2: Visual Kanban Board
+    Route::get('/kanban', [DashboardController::class, 'kanban'])->name('kanban');
+    
+    // Feature 3: Tabular Job List
+    Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+
+    // Reminder Suket & SKP
+    Route::get('/reminder-suket', [DashboardController::class, 'reminderSuket'])->name('reminder.suket');
+    Route::get('/inventory', [DashboardController::class, 'inventory'])->name('inventory');
+    
+    // Pelaporan / Reports
+    Route::get('/pelaporan', [\App\Http\Controllers\ReportController::class, 'index'])->name('pelaporan.index');
+    Route::post('/pelaporan/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('pelaporan.export');
+
+    // API/Actions
+    Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
+    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::post('/jobs/store', [JobController::class, 'store']);
+    Route::match(['put', 'post'], '/jobs/{job}', [JobController::class, 'update'])->where('job', '[0-9]+')->name('jobs.update');
+    Route::post('/jobs/{job}/move', [JobController::class, 'updateStage'])->name('jobs.move');
+    Route::post('/jobs/{job}/reject', [JobController::class, 'rejectStage'])->name('jobs.reject');
+    Route::post('/jobs/{job}/ask-approval', [JobController::class, 'askApproval'])->name('jobs.ask-approval');
+    Route::post('/jobs/{job}/approve', [JobController::class, 'approveAsManager'])->name('jobs.approve');
+    Route::post('/jobs/{job}/return-to-stage1', [JobController::class, 'returnToStage1'])->name('jobs.return-to-stage1');
+    Route::post('/jobs/{job}/stage4-data', [JobController::class, 'saveStage4Data'])->name('jobs.stage4-data');
+    Route::post('/jobs/{job}/stage5-data', [JobController::class, 'saveStage5Data'])->name('jobs.stage5-data');
+    Route::post('/jobs/{job}/stage5-review', [JobController::class, 'saveStage5Review'])->name('jobs.stage5-review');
+    Route::post('/jobs/{job}/stage7-data', [JobController::class, 'saveStage7Data'])->name('jobs.stage7-data');
+    Route::post('/jobs/{job}/stage8-data', [JobController::class, 'saveStage8Data'])->name('jobs.stage8-data');
+    Route::post('/jobs/{job}/stage9-data', [JobController::class, 'saveStage9Data'])->name('jobs.stage9-data');
+    Route::post('/jobs/{job}/stage10-data', [JobController::class, 'saveStage10Data'])->name('jobs.stage10-data');
+    Route::post('/jobs/{job}/stage11-data', [JobController::class, 'saveStage11Data'])->name('jobs.stage11-data');
+    Route::post('/jobs/{job}/stage14-data', [JobController::class, 'saveStage14Data'])->name('jobs.stage14-data');
+    Route::post('/jobs/{job}/stage15-data', [JobController::class, 'saveStage15Data'])->name('jobs.stage15-data');
+    Route::post('/jobs/{job}/stage12-data', [JobController::class, 'saveStage12Data'])->name('jobs.stage12-data');
+    Route::post('/jobs/{job}/documents', [JobController::class, 'uploadDocument'])->name('jobs.documents.upload');
+    Route::get('/jobs/{job}/documents/{document}/file/{filename?}', [JobController::class, 'downloadDocument'])->name('jobs.documents.file');
+    Route::get('/jobs/{job}/documents/{document}/download/{filename?}', [JobController::class, 'downloadDocument'])->name('jobs.documents.download.named');
+    Route::get('/jobs/{job}/documents/{document}/download', [JobController::class, 'downloadDocument'])->name('jobs.documents.download');
+    Route::delete('/jobs/{job}/documents/{document}', [JobController::class, 'deleteDocument'])->name('jobs.documents.delete');
+    Route::post('/jobs/{job}/invoice-revise', [JobController::class, 'reviseInvoice'])->name('jobs.invoice-revise');
+    Route::post('/jobs/{job}/po-revise', [JobController::class, 'revisePo'])->name('jobs.po-revise');
+    Route::post('/jobs/{job}/s2-verify', [JobController::class, 'saveS2Verify'])->name('jobs.s2-verify');
+    Route::post('/jobs/{job}/evaluations', [JobController::class, 'saveEvaluation'])->name('jobs.evaluations.save');
+    Route::delete('/jobs/{job}/evaluations/{evaluation}', [JobController::class, 'deleteEvaluation'])->name('jobs.evaluations.delete');
+    Route::post('/jobs/{job}/disnaker-followup', [JobController::class, 'saveDisnakerFollowup'])->name('jobs.disnaker-followup');
+    Route::post('/jobs/{job}/unit-tracking', [JobController::class, 'saveUnitTracking'])->name('jobs.unit-tracking');
+    Route::get('/jobs/{job}/download-surat-tugas', [JobController::class, 'downloadSuratTugas'])->name('jobs.download-surat-tugas');
+    Route::delete('/jobs/clear-all', [JobController::class, 'clearAll'])->name('jobs.clear-all');
+    Route::post('/jobs/{job}/reopen', [JobController::class, 'reopenJob'])->name('jobs.reopen');
+    Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+
+    // Master data & Smart Recommendations API
+    Route::get('/api/master-data', [JobController::class, 'getMasterData'])->name('api.master-data');
+    Route::get('/api/jobs/{job}/recommendations', [InspectorRecommendationController::class, 'getForJob'])->name('api.jobs.recommendations');
+
+    // Notification API
+    Route::get('/api/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('api.notifications.index');
+    Route::post('/api/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('api.notifications.read');
+    Route::post('/api/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('api.notifications.read-all');
+
+    // User Self-Service Profile Routes
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    // Feature 4: User Management (Superadmin Only)
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions.update');
+    Route::post('/users/{user}/phone', [UserController::class, 'updatePhone'])->name('users.phone.update');
+
+    // Feature 5: Inventory CRUD (Admin / Manager / Superadmin)
+    Route::post('/inventory/alat', [InventoryController::class, 'storeAlat'])->name('inventory.alat.store');
+    Route::match(['put', 'post'], '/inventory/alat/{alatUji}', [InventoryController::class, 'updateAlat'])->name('inventory.alat.update');
+    Route::delete('/inventory/alat/{alatUji}', [InventoryController::class, 'destroyAlat'])->name('inventory.alat.destroy');
+
+    Route::post('/inventory/inspector', [InventoryController::class, 'storeInspector'])->name('inventory.inspector.store');
+    Route::match(['put', 'post'], '/inventory/inspector/{inspectorProfile}', [InventoryController::class, 'updateInspector'])->name('inventory.inspector.update');
+    Route::delete('/inventory/inspector/{inspectorProfile}', [InventoryController::class, 'destroyInspector'])->name('inventory.inspector.destroy');
+    Route::post('/inventory/recommendations', [InventoryController::class, 'updateRecommendations'])->name('inventory.recommendations.update');
+
+    Route::post('/inventory/sertifikat', [InventoryController::class, 'storeSertifikat'])->name('inventory.sertifikat.store');
+    Route::match(['put', 'post'], '/inventory/sertifikat/{sertifikatPjk3}', [InventoryController::class, 'updateSertifikat'])->name('inventory.sertifikat.update');
+    Route::delete('/inventory/sertifikat/{sertifikatPjk3}', [InventoryController::class, 'destroySertifikat'])->name('inventory.sertifikat.destroy');
+
+    Route::post('/inventory/regulasi', [InventoryController::class, 'storeRegulasi'])->name('inventory.regulasi.store');
+    Route::match(['put', 'post'], '/inventory/regulasi/{regulasiK3}', [InventoryController::class, 'updateRegulasi'])->name('inventory.regulasi.update');
+    Route::delete('/inventory/regulasi/{regulasiK3}', [InventoryController::class, 'destroyRegulasi'])->name('inventory.regulasi.destroy');
+
+    Route::post('/inventory/form-disnaker', [InventoryController::class, 'storeFormDisnaker'])->name('inventory.form-disnaker.store');
+    Route::match(['put', 'post'], '/inventory/form-disnaker/{id}', [InventoryController::class, 'updateFormDisnaker'])->name('inventory.form-disnaker.update');
+    Route::delete('/inventory/form-disnaker/{id}', [InventoryController::class, 'destroyFormDisnaker'])->name('inventory.form-disnaker.destroy');
+});
+
+    require __DIR__.'/auth.php'; // Keep Breeze Auth routes
+
+    Route::get('/run-migrations-dnp', function() {
+        if (!app()->environment('local') && !auth()->check()) {
+            abort(403, 'Unauthorized debug route.');
+        }
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            return '<pre>Migration Output:\n' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+        } catch (\Exception $e) {
+            return 'Migration failed: ' . $e->getMessage() . '\n\nTrace:\n' . $e->getTraceAsString();
+        }
+    });
+
+    Route::get('/check-db-schema', function() {
+        if (!app()->environment('local') && !auth()->check()) {
+            abort(403, 'Unauthorized debug route.');
+        }
+        try {
+            $columns = \Illuminate\Support\Facades\Schema::getColumnListing('job_inspectors');
+            $types = [];
+            foreach ($columns as $column) {
+                $types[$column] = \Illuminate\Support\Facades\Schema::getColumnType('job_inspectors', $column);
+            }
+            return response()->json([
+                'table' => 'job_inspectors',
+                'columns' => $types,
+                'dnp_jobs_exists' => \Illuminate\Support\Facades\Schema::hasTable('dnp_jobs'),
+                'users_exists' => \Illuminate\Support\Facades\Schema::hasTable('users'),
+            ]);
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    });
+});
+

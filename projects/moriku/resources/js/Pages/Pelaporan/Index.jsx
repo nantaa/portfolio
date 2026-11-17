@@ -1,0 +1,237 @@
+import React, { useState } from 'react';
+import AppLayout from '@/Layouts/AppLayout';
+import { Head } from '@inertiajs/react';
+import { Download, FileSpreadsheet, FileText, Loader2, Calendar } from 'lucide-react';
+import { showError, showSuccess } from '@/swal';
+import axios from 'axios';
+
+export default function Index({ defaultStartDate, defaultEndDate }) {
+    const [startDate, setStartDate] = useState(defaultStartDate);
+    const [endDate, setEndDate] = useState(defaultEndDate);
+    const [filterBy, setFilterBy] = useState('created_at');
+    const [loading, setLoading] = useState(false);
+    const [previewData, setPreviewData] = useState([]);
+
+    const fetchReportData = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.post('/pelaporan/export', {
+                start_date: startDate,
+                end_date: endDate,
+                filter_by: filterBy,
+            });
+            if (res.data.success) {
+                setPreviewData(res.data.data);
+                if (res.data.data.length === 0) {
+                    showError('Kosong', 'Tidak ada data pekerjaan pada periode tersebut.');
+                }
+                return res.data.data;
+            }
+        } catch (error) {
+            console.error(error);
+            showError('Gagal', 'Gagal menarik data laporan.');
+        } finally {
+            setLoading(false);
+        }
+        return null;
+    };
+
+    const handlePreview = async () => {
+        await fetchReportData();
+    };
+
+    const exportToExcel = async () => {
+        const data = previewData.length > 0 ? previewData : await fetchReportData();
+        if (!data || data.length === 0) return;
+
+        const headers = Object.keys(data[0]);
+        let tableHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Laporan Pekerjaan</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+        <body><table border="1"><thead><tr style="background-color:#1e3a8a;color:#ffffff;font-weight:bold;">`;
+        
+        headers.forEach(h => {
+            tableHtml += `<th style="background-color:#1e3a8a;color:#ffffff;padding:8px;">${h}</th>`;
+        });
+        tableHtml += `</tr></thead><tbody>`;
+
+        data.forEach(row => {
+            tableHtml += `<tr>`;
+            headers.forEach(h => {
+                const val = row[h] !== null && row[h] !== undefined ? row[h] : '';
+                tableHtml += `<td style="padding:6px;">${val}</td>`;
+            });
+            tableHtml += `</tr>`;
+        });
+
+        tableHtml += `</tbody></table></body></html>`;
+
+        const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Laporan_Riksa_Uji_${startDate}_sd_${endDate}.xlsx`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showSuccess('Berhasil', 'File Excel (.xlsx) berhasil diunduh.');
+    };
+
+    const exportToCSV = async () => {
+        const data = previewData.length > 0 ? previewData : await fetchReportData();
+        if (!data || data.length === 0) return;
+
+        const headers = Object.keys(data[0]);
+        const csvRows = [];
+        
+        // Add headers
+        csvRows.push(headers.join(','));
+
+        // Add rows
+        for (const row of data) {
+            const values = headers.map(header => {
+                const val = row[header];
+                // Escape quotes and wrap in quotes if contains comma
+                const escaped = ('' + (val || '')).replace(/"/g, '""');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Laporan_Riksa_Uji_${startDate}_sd_${endDate}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showSuccess('Berhasil', 'File CSV berhasil diunduh.');
+    };
+
+    return (
+        <AppLayout header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Pelaporan & Export</h2>}>
+            <Head title="Pelaporan" />
+
+            <div className="py-8">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                    
+                    {/* Header & Filters */}
+                    <div className="bg-white p-6 shadow-sm rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <Calendar size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800">Filter Laporan & Rekapitulasi</h3>
+                                <p className="text-sm text-gray-500">Pilih dasar periode dan rentang tanggal untuk melihat dan mengunduh laporan pekerjaan.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="w-full md:w-56">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Berdasarkan Tanggal</label>
+                                <select 
+                                    className="w-full rounded border-gray-300 shadow-sm text-sm"
+                                    value={filterBy}
+                                    onChange={e => setFilterBy(e.target.value)}
+                                >
+                                    <option value="created_at">Tanggal Dibuat (Job Entry)</option>
+                                    <option value="tgl_pelaksanaan">Tanggal Riksa Uji (Pelaksanaan)</option>
+                                </select>
+                            </div>
+                            <div className="w-full md:w-48">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Dari Tanggal</label>
+                                <input 
+                                    type="date" 
+                                    className="w-full rounded border-gray-300 shadow-sm text-sm"
+                                    value={startDate}
+                                    onChange={e => setStartDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="w-full md:w-48">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Sampai Tanggal</label>
+                                <input 
+                                    type="date" 
+                                    className="w-full rounded border-gray-300 shadow-sm text-sm"
+                                    value={endDate}
+                                    onChange={e => setEndDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-2 w-full md:w-auto pt-2 md:pt-0">
+                                <button 
+                                    onClick={handlePreview}
+                                    disabled={loading}
+                                    className="flex-1 md:flex-none px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold rounded-md shadow-sm border border-gray-200 text-sm transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="animate-spin" size={16} /> : 'Lihat Data'}
+                                </button>
+                                <button 
+                                    onClick={exportToExcel}
+                                    disabled={loading}
+                                    className="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold rounded-md shadow-sm text-sm transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <FileSpreadsheet size={16} />
+                                    Export Excel (.xls)
+                                </button>
+                                <button 
+                                    onClick={exportToCSV}
+                                    disabled={loading}
+                                    className="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 font-bold rounded-md shadow-sm text-sm transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <FileText size={16} />
+                                    Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Preview Table */}
+                    {previewData.length > 0 && (
+                        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+                            <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                                <h4 className="font-bold text-gray-700">Preview Data ({previewData.length} Pekerjaan)</h4>
+                            </div>
+                            <div className="overflow-x-auto max-h-[600px]">
+                                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead className="bg-blue-900 sticky top-0 z-10">
+                                        <tr>
+                                            {Object.keys(previewData[0]).map(header => (
+                                                <th key={header} className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap">
+                                                    {header}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {previewData.map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
+                                                {Object.entries(row).map(([key, val], cellIdx) => (
+                                                    <td key={cellIdx} className="px-4 py-2 text-gray-700 text-xs whitespace-nowrap font-medium">
+                                                        {key === 'Yang Jalan Riksa Uji' && typeof val === 'string' && val !== '-' ? (
+                                                            <div className="flex flex-wrap gap-1 items-center max-w-xs">
+                                                                {val.split(', ').map((name, i) => (
+                                                                    <span key={i} className="inline-block bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[11px] border border-blue-200">
+                                                                        {name}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            val
+                                                        )}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

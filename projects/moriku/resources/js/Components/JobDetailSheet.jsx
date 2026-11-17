@@ -1,0 +1,4298 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useForm, router } from '@inertiajs/react';
+import SmartRecommendation from './SmartRecommendation';
+import IndonesiaLocationSelect from './IndonesiaLocationSelect';
+import DocumentPreviewModal from './DocumentPreviewModal';
+import { showError, showSuccess, showConfirm, showWarning } from '@/swal';
+import Swal from 'sweetalert2';
+import { Trash2, ChevronDown, Eye } from 'lucide-react';
+import {
+    DOC_TYPES_BY_STAGE, STAGES, STAGE4_PHOTO_TYPES, STAGE5_DECISIONS,
+    STAGE9_SUKET_STATUSES, PROGRESS_STATUSES, STAGE8_DISNAKER_STATUSES, MKT_STAGES, FIN_STAGES, STAGE1_REQUIRED_DOCS, STAGE2_REQUIRED_DOCS,
+    STAGE2_VERIFY_CHECKLIST, INDONESIA_PROVINCES, getStageDisplayId, PIC_THEMES,
+    isManagerRole, isS3Excluded
+} from '@/Constants';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const parseJsonArray = (v) => {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    try { return JSON.parse(v); } catch { return []; }
+};
+
+const parseJsonObject = (v) => {
+    if (!v) return {};
+    if (typeof v === 'object' && !Array.isArray(v) && v !== null) return v;
+    try {
+        const parsed = JSON.parse(v);
+        return (typeof parsed === 'object' && parsed !== null) ? parsed : {};
+    } catch { return {}; }
+};
+
+const parseLhppLinks = (rawLink, unitCount = 1) => {
+    const count = Math.max(1, parseInt(unitCount) || 1);
+    let list = [];
+
+    if (typeof rawLink === 'string' && rawLink.trim().startsWith('[')) {
+        try {
+            const parsed = JSON.parse(rawLink);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                list = parsed.map((item, idx) => ({
+                    id: item?.id || `unit-${idx + 1}`,
+                    unit_no: item?.unit_no || idx + 1,
+                    label: item?.label || (typeof item === 'string' ? `Unit ${idx + 1}` : `Unit ${idx + 1}`),
+                    url: item?.url || (typeof item === 'string' ? item : ''),
+                    notes: item?.notes || '',
+                }));
+            }
+        } catch {
+            list = [];
+        }
+    } else if (Array.isArray(rawLink) && rawLink.length > 0) {
+        list = rawLink.map((item, idx) => ({
+            id: item?.id || `unit-${idx + 1}`,
+            unit_no: item?.unit_no || idx + 1,
+            label: item?.label || `Unit ${idx + 1}`,
+            url: item?.url || (typeof item === 'string' ? item : ''),
+            notes: item?.notes || '',
+        }));
+    } else if (typeof rawLink === 'string' && rawLink.trim()) {
+        list = [
+            { id: 'unit-1', unit_no: 1, label: 'Unit 1 / Folder Utama', url: rawLink.trim(), notes: '' }
+        ];
+    }
+
+    if (list.length === 0) {
+        return Array.from({ length: count }, (_, i) => ({
+            id: `unit-${i + 1}`,
+            unit_no: i + 1,
+            label: `Unit ${i + 1}`,
+            url: '',
+            notes: '',
+        }));
+    }
+
+    // Ensure list has at least `count` rows based on units
+    while (list.length < count) {
+        const nextIdx = list.length + 1;
+        list.push({
+            id: `unit-${nextIdx}-${Date.now()}`,
+            unit_no: nextIdx,
+            label: `Unit ${nextIdx}`,
+            url: '',
+            notes: '',
+        });
+    }
+
+    return list;
+};
+
+const hasValidLhppLink = (links) => {
+    if (!Array.isArray(links)) return false;
+    return links.some(item => typeof item?.url === 'string' && item.url.trim().length > 0);
+};
+
+const toDateInput = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string') {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        if (val.includes('T')) {
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const date = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${date}`;
+            }
+        }
+        return val.slice(0, 10);
+    }
+    if (val instanceof Date && !isNaN(val.getTime())) {
+        const year = val.getFullYear();
+        const month = String(val.getMonth() + 1).padStart(2, '0');
+        const date = String(val.getDate()).padStart(2, '0');
+        return `${year}-${month}-${date}`;
+    }
+    return String(val).slice(0, 10);
+};
+
+const fmt = (d, opts = { day: '2-digit', month: 'short', year: 'numeric' }) => {
+    if (!d) return '—';
+    const dateObj = new Date(d);
+    if (isNaN(dateObj.getTime())) return '—';
+    return dateObj.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', ...opts });
+};
+
+const fmtDateTimeWib = (d) => {
+    if (!d) return '—';
+    const dateObj = new Date(d);
+    if (isNaN(dateObj.getTime())) return '—';
+    const formatted = dateObj.toLocaleDateString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    return `${formatted} WIB`;
+};
+
+const fmtCurrency = (n) =>
+    n != null && n !== '' ? 'Rp ' + Number(n).toLocaleString('id-ID') : '—';
+
+const fmtSize = (bytes) => {
+    if (!bytes) return '';
+    const k = 1024, s = ['B','KB','MB','GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + s[i];
+};
+
+const daysElapsed = (from) => {
+    if (!from) return null;
+    return Math.ceil((new Date() - new Date(from)) / 86400000);
+};
+
+const isSlaOverdue = (days, slaLimit) => days != null && slaLimit && days > slaLimit;
+
+const getSlaBadge = (days, slaLimit) => {
+    if (days == null || !slaLimit) return null;
+    const diff = days - slaLimit;
+    if (diff > 0) return { text: `+${diff}h OVERDUE`, cls: 'bg-red-500 text-white' };
+    if (diff === 0) return { text: 'Hari Terakhir', cls: 'bg-orange-500 text-white' };
+    return { text: `${Math.abs(diff)}h tersisa`, cls: 'bg-green-600 text-white' };
+};
+
+const getSlaTag = (days, slaLimit) => {
+    if (days == null || !slaLimit) return null;
+    if (days > slaLimit)  return { label: 'OVERDUE',  cls: 'bg-red-100 text-red-800 font-bold' };
+    if (days >= slaLimit) return { label: 'LAST DAY', cls: 'bg-orange-100 text-orange-800 font-bold' };
+    return { label: 'ON TRACK', cls: 'bg-green-100 text-green-800' };
+};
+
+const getDocumentUrl = (doc, fallbackJobId) => {
+    if (!doc) return '#';
+    const jId = doc.job_id || doc.jobId || fallbackJobId;
+    if (doc.id && jId) {
+        const encodedName = encodeURIComponent(doc.name || 'Dokumen.pdf');
+        return `/jobs/${jId}/documents/${doc.id}/file/${encodedName}`;
+    }
+    return doc.path ? `/storage/${doc.path}` : '#';
+};
+
+const getDocDownloadUrl = (doc, fallbackJobId) => getDocumentUrl(doc, fallbackJobId);
+
+const isPoLockedForIns = (doc, isINS) => {
+    if (!isINS || !doc) return false;
+    const type = String(doc.type || '').toUpperCase();
+    const name = String(doc.name || '').toUpperCase();
+    return (
+        type.includes('PO') ||
+        type.includes('SPK') ||
+        name.includes('PO') ||
+        name.includes('SPK')
+    );
+};
+
+// ── Top-level Subcomponents (to maintain stable DOM identity across re-renders) ──
+const DocChip = ({ doc, canManage, onDelete, jobId, isINS, onPreview }) => {
+    if (!doc) return null;
+    if (isPoLockedForIns(doc, isINS)) {
+        return (
+            <div className="flex items-center gap-1.5 bg-gray-100 border border-gray-300 rounded px-2 py-1 text-xs text-gray-400 italic cursor-not-allowed" title="Dokumen PO/SPK terkunci untuk Inspektur">
+                <span>🔒</span>
+                <span className="font-medium text-gray-500">Dokumen PO/SPK (Terkunci)</span>
+            </div>
+        );
+    }
+    const fileUrl = getDocumentUrl(doc, jobId);
+    const handleClick = (e) => {
+        if (onPreview) {
+            e.preventDefault();
+            onPreview(doc);
+        }
+    };
+    return (
+        <div className="flex items-center gap-1.5 bg-gray-50 hover:bg-blue-50/70 border border-gray-200 hover:border-blue-200 rounded px-2 py-1 text-xs group transition-colors">
+            <button
+                type="button"
+                onClick={handleClick}
+                className="text-blue-600 hover:underline font-medium truncate max-w-[160px] text-left cursor-pointer"
+                title={`Klik untuk pratinjau: ${doc.name || 'Dokumen'}`}
+            >
+                {doc.name || 'Dokumen'}
+            </button>
+            <a 
+                href={fileUrl} 
+                download={doc.name || 'Dokumen'}
+                onClick={(e) => e.stopPropagation()}
+                className="text-gray-400 hover:text-blue-600 p-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
+                title={`Unduh berkas: ${doc.name || 'Dokumen'}`}
+            >
+                <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+            </a>
+            {canManage && (
+                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(doc.id); }}
+                    className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 p-0.5" title="Hapus dokumen">x</button>
+            )}
+        </div>
+    );
+};
+
+const MoveRow = ({ disabled = false, disabledMsg = '', stage, processing, onReject, onMove }) => {
+    const getNextLabel = () => {
+        if (stage === 4) return 'Lanjut ke Stage 5 (LHPP) →';
+        if (stage === 13) return 'Lanjut ke Stage 5 (LHPP) →';
+        if (stage === 10) return 'Lanjut ke Stage 11 (Penagihan) →';
+        if (stage === 11) return 'Lanjut ke Stage 11b (Verifikasi Bayar) →';
+        if (stage === 14) return 'Lanjut ke Stage 11c (Kirim SUKET) →';
+        if (stage === 15) return 'Lanjut ke Stage 12 (Final Closing) →';
+        if (stage === 12) return 'Selesaikan & Arsipkan ke Selesai →';
+        const currIdx = STAGES.findIndex(s => s.id === stage);
+        if (currIdx !== -1 && currIdx < STAGES.length - 1) {
+            let next = STAGES[currIdx + 1];
+            if (next.id === 13) {
+                next = STAGES[currIdx + 2];
+            }
+            if (next) {
+                return `Lanjut ke Stage ${next.displayId || next.id} (${next.short}) →`;
+            }
+        }
+        return `Lanjut ke Stage ${stage + 1} →`;
+    };
+
+    return (
+        <div className="mt-4 flex flex-col gap-2">
+            {disabledMsg && (
+                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                    {disabledMsg}
+                </div>
+            )}
+            <div className="flex gap-2">
+                {[2,4,5,7,8,9,10,13].includes(stage) && (
+                    <button type="button" onClick={onReject} disabled={processing}
+                        className="px-4 py-2 rounded text-sm font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+                        Tolak / Kembalikan
+                    </button>
+                )}
+                <button type="button" onClick={onMove} disabled={processing || disabled}
+                    className="flex-1 px-4 py-2 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40">
+                    {processing ? '...' : getNextLabel()}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const NoteField = React.memo(function NoteField({ value, onChange }) {
+    return (
+        <div className="mt-3">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Catatan / Keterangan</label>
+            <textarea
+                rows={2}
+                value={value || ''}
+                onChange={onChange}
+                className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-blue-400"
+                placeholder="Tulis catatan atau keterangan..."
+            />
+        </div>
+    );
+});
+
+const UploadSlot = ({ type, stageId, docs, triggerUpload, uploadFileDirectly, canManageStageDocs, deleteDoc, isOptional, isINS = false, onPreview, acceptedTypes }) => {
+    const [isDragging, setIsDragging] = useState(false);
+    const existing = (docs || []).filter(d => {
+        if (d.stage !== stageId) return false;
+        if (stageId === 10) {
+            return ['Invoice, Kwitansi & Faktur Pajak', 'Invoice (PDF)', 'Invoice', 'Kwitansi', 'Faktur Pajak', 'Faktur / Invoice', 'Faktur'].includes(d.type) || d.stage === 10;
+        }
+        if (acceptedTypes && Array.isArray(acceptedTypes)) {
+            return acceptedTypes.includes(d.type);
+        }
+        return (!type || d.type === type);
+    });
+    const canManage = typeof canManageStageDocs === 'function' ? canManageStageDocs(stageId) : true;
+    const handlePreview = onPreview || (typeof window !== 'undefined' ? window.__dnpPreviewDoc : null);
+
+    const handleDragOver = (e) => {
+        if (!canManage) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDragging) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        if (!canManage) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        if (!canManage) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length === 1) {
+                if (uploadFileDirectly) uploadFileDirectly(files[0], stageId, type);
+            } else {
+                files.forEach((file, idx) => {
+                    setTimeout(() => {
+                        if (uploadFileDirectly) uploadFileDirectly(file, stageId, type);
+                    }, idx * 500);
+                });
+            }
+        }
+    };
+
+    return (
+        <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-2.5 transition-all duration-200 ${
+                isDragging 
+                    ? 'border-blue-500 bg-blue-50/80 shadow-md scale-[1.01]' 
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+        >
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="text-xs font-semibold text-gray-700 truncate">{type}</span>
+                    {isOptional && (
+                        <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 flex-shrink-0">
+                            OPSIONAL
+                        </span>
+                    )}
+                </div>
+                {canManage && (
+                    <button type="button" onClick={() => triggerUpload(stageId, type)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded transition-colors flex-shrink-0">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>+ Upload</span>
+                    </button>
+                )}
+            </div>
+            {existing.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                    {existing.map(d => (
+                        <DocChip key={d.id} doc={d} canManage={canManage} onDelete={deleteDoc} isINS={isINS} onPreview={handlePreview} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-1.5 px-2 bg-gray-50/50 rounded border border-dashed border-gray-100">
+                    <p className="text-[11px] text-gray-400 italic">
+                        {isDragging ? 'Lepaskan file di sini untuk upload' : (canManage ? 'Belum ada dokumen • Tarik & lepas file ke sini atau klik + Upload' : 'Belum ada dokumen')}
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
+export default function JobDetailSheet({ job, onClose, auth, canManage: propCanManage }) {
+    const getNextStageId = (currentStageId) => {
+        if (currentStageId === 4) return 5;
+        if (currentStageId === 13) return 5;
+        if (currentStageId === 10) return 11;
+        if (currentStageId === 11) return 14;
+        if (currentStageId === 14) return 15;
+        if (currentStageId === 15) return 12;
+        if (currentStageId === 12) return 16; // Stage 12 → Stage 16 (Selesai)
+        const currIdx = STAGES.findIndex(s => s.id === currentStageId);
+        if (currIdx !== -1 && currIdx < STAGES.length - 1) {
+            let next = STAGES[currIdx + 1];
+            if (next.id === 13) {
+                next = STAGES[currIdx + 2];
+            }
+            return next ? next.id : currentStageId + 1;
+        }
+        return currentStageId + 1;
+    };
+
+    // ── Forms ────────────────────────────────────────────────────────────────
+    const { data, setData, post, processing, errors } = useForm({
+        next_stage:      getNextStageId(job.stage),
+        notes:           '',
+        inspector_ids:   job.inspectors ? job.inspectors.map(i => i.id) : [],
+        report_writer_id: job.report_writer_id || '',
+        tgl_pelaksanaan: job.tgl_pelaksanaan || '',
+        jam_mulai:       job.jam_mulai || '08:00',
+        durasi_hari:     job.durasi_hari || 1,
+        disnaker_tujuan: job.disnaker_tujuan || '',
+        alat_ids:        parseJsonArray(job.alat_ids),
+        cert_ids:        parseJsonArray(job.cert_ids),
+    });
+
+    const editForm = useForm({
+        no_po:   job.no_po   || '',
+        tgl_po:  job.tgl_po  || '',
+        klien:   job.klien   || '',
+        pesawat: job.pesawat || '',
+        lokasi:  job.lokasi  || '',
+        nilai:   job.nilai   || '',
+        units:   job.units   || 1,
+    });
+
+    // ── UI State ─────────────────────────────────────────────────────────────
+    const [activeTab,    setActiveTab]    = useState('timeline');
+    const [previewDoc,   setPreviewDoc]   = useState(null);
+    const [isEditing,    setIsEditing]    = useState(false);
+    const [isUploading,  setIsUploading]  = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadStage,  setUploadStage]  = useState(null);
+    const [uploadType,   setUploadType]   = useState('');
+    const [photoNotes,   setPhotoNotes]   = useState({});   // key: photo type
+    const [returnNotes,  setReturnNotes]  = useState('');
+    const fileInputRef = useRef(null);
+    const uploadTargetRef = useRef({ stage: null, type: null, extraNotes: '' });
+    const stageRefs = useRef({});
+    const contentScrollRef = useRef(null);
+    const prevJobIdRef = useRef(job?.id);
+    const prevJobStageRef = useRef(job?.stage);
+
+    // ── Stage Accordion / Dropdown & Auto-Scroll State ────────────────────────
+    const [expandedStages, setExpandedStages] = useState(() => {
+        const initial = {};
+        STAGES.forEach(s => {
+            // Current stage is open by default, others collapsed
+            initial[s.id] = (s.id === job.stage);
+        });
+        return initial;
+    });
+
+    const toggleStage = (stageId) => {
+        setExpandedStages(prev => ({
+            ...prev,
+            [stageId]: !prev[stageId]
+        }));
+    };
+
+    const expandAllStages = () => {
+        const allOpen = {};
+        STAGES.forEach(s => { allOpen[s.id] = true; });
+        setExpandedStages(allOpen);
+    };
+
+    const collapseAllStages = () => {
+        const allClosed = {};
+        STAGES.forEach(s => {
+            allClosed[s.id] = (s.id === job.stage);
+        });
+        setExpandedStages(allClosed);
+    };
+
+    const scrollToStage = (stageId, smooth = true) => {
+        setExpandedStages(prev => ({ ...prev, [stageId]: true }));
+        setTimeout(() => {
+            const el = stageRefs.current[stageId];
+            if (el) {
+                el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+            }
+        }, 80);
+    };
+
+    // Global document preview trigger for nested/unthreaded DocChips
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.__dnpPreviewDoc = setPreviewDoc;
+            return () => {
+                delete window.__dnpPreviewDoc;
+            };
+        }
+    }, []);
+
+    // Auto-scroll on initial mount or when opening 'timeline' tab
+    useEffect(() => {
+        if (activeTab === 'timeline') {
+            const timer = setTimeout(() => {
+                const el = stageRefs.current[job.stage];
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [activeTab, job.stage]);
+
+    // Stage-specific form state
+    const [s4, setS4] = useState({
+        actual_units:     job.actual_units     ?? job.units,
+        unit_count_notes: job.unit_count_notes ?? '',
+    });
+    const [s5, setS5] = useState({
+        s5_review_decision: job.s5_review_decision ?? '',
+        s5_review_notes:    job.s5_review_notes    ?? '',
+    });
+    const [lhppLinks, setLhppLinks] = useState(() => parseLhppLinks(job.link_lhpp, job.actual_units ?? job.units));
+    const [isSavingLink, setIsSavingLink] = useState(false);
+    const [isSavingStage, setIsSavingStage] = useState(false);
+    const [s7, setS7] = useState({ tgl_submit_disnaker: toDateInput(job.tgl_submit_disnaker) });
+    const [s8, setS8] = useState({
+        tgl_doc_submitted_disnaker: toDateInput(job.tgl_doc_submitted_disnaker || job.tgl_submit_disnaker),
+        tgl_doc_received_disnaker:  toDateInput(job.tgl_doc_received_disnaker),
+        s8_progress_status:         job.s8_progress_status         ?? '',
+        s8_delay_reason:            job.s8_delay_reason            ?? '',
+    });
+    const [s9,  setS9]  = useState({ s9_progress_status: job.s9_progress_status  ?? '' });
+    const [s10, setS10] = useState({
+        invoice_no:           job.invoice_no           ?? '',
+        total_invoice_amount: job.total_invoice_amount ?? '',
+        tgl_invoice_issued:   job.tgl_invoice_issued   ?? '',
+        s10_progress_status:  job.s10_progress_status  ?? '',
+        tgl_submit_mkt:       job.tgl_submit_mkt       ?? '',
+        no_faktur_pajak:      job.no_faktur_pajak      ?? '',
+        tgl_faktur_pajak:     job.tgl_faktur_pajak ? String(job.tgl_faktur_pajak).slice(0, 10) : '',
+    });
+    const [s11, setS11] = useState({
+        tgl_submit_mkt: job.tgl_submit_mkt ?? '',
+        notes: '',
+    });
+    const [s15, setS15] = useState({
+        no_resi: job.no_resi ?? '',
+        tgl_submit_mkt: job.tgl_submit_mkt ?? '',
+    });
+    const [isMoving, setIsMoving] = useState(false);
+
+    // Watchdog safety: never let loading overlay stay stuck forever (25s for file uploads up to 25MB)
+    const [showStuckDismiss, setShowStuckDismiss] = useState(false);
+    useEffect(() => {
+        let dismissTimer;
+        let hardResetTimer;
+        if (isUploading || isMoving) {
+            setShowStuckDismiss(false);
+            dismissTimer = setTimeout(() => {
+                setShowStuckDismiss(true);
+            }, 25000);
+            hardResetTimer = setTimeout(() => {
+                setIsUploading(false);
+                setIsMoving(false);
+                setShowStuckDismiss(false);
+                setUploadProgress(0);
+            }, 60000);
+        } else {
+            setShowStuckDismiss(false);
+            setUploadProgress(0);
+        }
+        return () => {
+            clearTimeout(dismissTimer);
+            clearTimeout(hardResetTimer);
+        };
+    }, [isUploading, isMoving]);
+
+    // ── Schedule builder state (Stage 3) ─────────────────────────────────────
+    const initScheduleDays = (j) => {
+        const saved = j.schedule_days;
+        if (Array.isArray(saved) && saved.length > 0) {
+            return saved.map(d => ({
+                date: d.date || '',
+                inspector_ids: Array.isArray(d.inspector_ids) ? d.inspector_ids : [],
+            }));
+        }
+        // Backward compat: single-day from flat fields
+        if (j.tgl_pelaksanaan) {
+            return [{
+                date: j.tgl_pelaksanaan.slice(0, 10),
+                inspector_ids: j.inspectors ? j.inspectors.map(i => i.id) : [],
+            }];
+        }
+        return [{ date: '', inspector_ids: [] }];
+    };
+    const [scheduleDays, setScheduleDays] = useState(() => initScheduleDays(job));
+    const [s14, setS14] = useState({
+        s14_payment_status: job.s14_payment_status ?? 'pending',
+        s14_payment_notes:  job.s14_payment_notes  ?? '',
+    });
+
+    const [showReviseInvoiceModal, setShowReviseInvoiceModal] = useState(false);
+    const [reviseInvoiceForm, setReviseInvoiceForm] = useState({
+        invoice_no:           job.invoice_no           ?? '',
+        total_invoice_amount: job.total_invoice_amount ?? job.nilai ?? '',
+        tgl_invoice_issued:   job.tgl_invoice_issued   ?? new Date().toISOString().slice(0, 10),
+        no_faktur_pajak:      job.no_faktur_pajak      ?? '',
+        tgl_faktur_pajak:     job.tgl_faktur_pajak ? String(job.tgl_faktur_pajak).slice(0, 10) : '',
+        revision_notes:       '',
+    });
+
+    const [showRevisePoModal, setShowRevisePoModal] = useState(false);
+    const [revisePoForm, setRevisePoForm] = useState({
+        no_po:             job.no_po             ?? '',
+        tgl_po:            job.tgl_po            ?? '',
+        nilai:             job.nilai             ?? '',
+        termin_pembayaran: job.termin_pembayaran ?? 'FULL',
+        revision_notes:    '',
+    });
+
+    // Stage 2 per-item verification status: { [type]: 'ok' | 'tidak' | 'na' | '' }
+    const [s2Verify, setS2Verify] = useState(() => {
+        const saved = parseJsonObject(job.s2_verify_data);
+        const init = {};
+        STAGE2_VERIFY_CHECKLIST.forEach(item => {
+            init[item.type] = saved[item.type] || '';
+        });
+        return init;
+    });
+
+    const handleSetS2Status = (type, val) => {
+        const updated = { ...s2Verify, [type]: val };
+        setS2Verify(updated);
+        router.post(`/jobs/${job.id}/s2-verify`, { s2_verify_data: updated }, { preserveScroll: true });
+    };
+
+    // Master data & recommendations (Stage 3)
+    const [masterData,       setMasterData]       = useState({ alat_uji: [], sertifikat_pjk3: [] });
+    const [recommendations,  setRecommendations]  = useState({ recommended: [], eliminated: [] });
+    useEffect(() => {
+        if (job.stage === 3) {
+            fetch('/api/master-data')
+                .then(r => {
+                    if (!r.ok) throw new Error('Master data request failed');
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && Array.isArray(data.alat_uji) && Array.isArray(data.sertifikat_pjk3)) {
+                        setMasterData(data);
+                    }
+                })
+                .catch(console.error);
+
+            fetch(`/api/jobs/${job.id}/recommendations`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Recommendations request failed');
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && Array.isArray(data.recommended) && Array.isArray(data.eliminated)) {
+                        setRecommendations(data);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [job.id, job.stage]);
+
+    // Keep local form states synchronized when job prop updates
+    useEffect(() => {
+        // Guard against background polling wipes:
+        // Only reset in-progress form inputs if user switched to a different job or stage moved
+        if (prevJobIdRef.current !== job?.id || prevJobStageRef.current !== job?.stage) {
+            prevJobIdRef.current = job?.id;
+            prevJobStageRef.current = job?.stage;
+
+            setIsUploading(false);
+            setIsMoving(false);
+            setIsSavingLink(false);
+            setUploadStage(null);
+            setUploadType('');
+            setData({
+                next_stage:      getNextStageId(job.stage),
+                notes:           '',
+                inspector_ids:   job.inspectors ? job.inspectors.map(i => i.id) : [],
+                report_writer_id: job.report_writer_id || '',
+                tgl_pelaksanaan: job.tgl_pelaksanaan || '',
+                jam_mulai:       job.jam_mulai || '08:00',
+                durasi_hari:     job.durasi_hari || 1,
+                disnaker_tujuan: job.disnaker_tujuan || '',
+                alat_ids:        parseJsonArray(job.alat_ids),
+                cert_ids:        parseJsonArray(job.cert_ids),
+            });
+            editForm.setData({
+                klien:   job.klien   || '',
+                pesawat: job.pesawat || '',
+                lokasi:  job.lokasi  || '',
+                nilai:   job.nilai   || '',
+                units:   job.units   || 1,
+            });
+            setS4({
+                actual_units:     job.actual_units     ?? job.units,
+                unit_count_notes: job.unit_count_notes ?? '',
+            });
+            setS5({
+                s5_review_decision: job.s5_review_decision ?? '',
+                s5_review_notes:    job.s5_review_notes    ?? '',
+            });
+            setLhppLinks(parseLhppLinks(job.link_lhpp, job.actual_units ?? job.units));
+            setS7({ tgl_submit_disnaker: toDateInput(job.tgl_submit_disnaker) });
+            setS8({
+                tgl_doc_submitted_disnaker: toDateInput(job.tgl_doc_submitted_disnaker || job.tgl_submit_disnaker),
+                tgl_doc_received_disnaker:  toDateInput(job.tgl_doc_received_disnaker),
+                s8_progress_status:         job.s8_progress_status         ?? '',
+                s8_delay_reason:            job.s8_delay_reason            ?? '',
+            });
+            setS9({ s9_progress_status: job.s9_progress_status ?? '' });
+            setS10({
+                invoice_no:           job.invoice_no           ?? '',
+                total_invoice_amount: job.total_invoice_amount ?? '',
+                tgl_invoice_issued:   job.tgl_invoice_issued   ?? '',
+                s10_progress_status:  job.s10_progress_status  ?? '',
+                tgl_submit_mkt:       job.tgl_submit_mkt       ?? '',
+                no_faktur_pajak:      job.no_faktur_pajak      ?? '',
+                tgl_faktur_pajak:     job.tgl_faktur_pajak ? String(job.tgl_faktur_pajak).slice(0, 10) : '',
+            });
+            setS11({
+                tgl_submit_mkt: job.tgl_submit_mkt ?? '',
+                notes: '',
+            });
+            setS15({
+                no_resi: job.no_resi ?? '',
+                tgl_submit_mkt: job.tgl_submit_mkt ?? '',
+            });
+            setS14({
+                s14_payment_status: job.s14_payment_status ?? 'pending',
+                s14_payment_notes:  job.s14_payment_notes  ?? '',
+            });
+            setReviseInvoiceForm({
+                invoice_no:           job.invoice_no           ?? '',
+                total_invoice_amount: job.total_invoice_amount ?? job.nilai ?? '',
+                tgl_invoice_issued:   job.tgl_invoice_issued   ?? new Date().toISOString().slice(0, 10),
+                no_faktur_pajak:      job.no_faktur_pajak      ?? '',
+                tgl_faktur_pajak:     job.tgl_faktur_pajak ? String(job.tgl_faktur_pajak).slice(0, 10) : '',
+                revision_notes:       '',
+            });
+            setRevisePoForm({
+                no_po:             job.no_po             ?? '',
+                tgl_po:            job.tgl_po            ?? '',
+                nilai:             job.nilai             ?? '',
+                termin_pembayaran: job.termin_pembayaran ?? 'FULL',
+                revision_notes:    '',
+            });
+            setScheduleDays(initScheduleDays(job));
+
+            const saved = parseJsonObject(job.s2_verify_data);
+            const init = {};
+            STAGE2_VERIFY_CHECKLIST.forEach(item => {
+                init[item.type] = saved[item.type] || '';
+            });
+            setS2Verify(init);
+        }
+    }, [job]);
+
+    // ── Permissions ──────────────────────────────────────────────────────────
+    const { permissions, user } = auth || {};
+    const isInspector = user?.role === 'inspektur' || user?.role === 'inspector' || user?.role === 'tim_ru';
+    const isMGR = isManagerRole(user?.role);
+    const isAssignedInspector = (job.inspectors || []).some(ins => 
+        String(ins.id) === String(user?.id) || 
+        String(ins.user_id) === String(user?.id) || 
+        String(ins.pivot?.inspector_id) === String(user?.id) || 
+        String(ins.pivot?.user_id) === String(user?.id)
+    ) || String(job.report_writer_id) === String(user?.id);
+
+    // INS (inspektur/inspector/tim_ru) is the ONLY role that cannot see pricing/nilai data.
+    // All other roles (admin, marketing, finance, manager, superadmin) can see it.
+    const isINS = ['inspektur', 'inspector', 'tim_ru'].includes(user?.role);
+    const canSeeNilai = !isINS;
+
+    // Revision month cutoffs:
+    // Revisi PO is allowed as long as still in the same calendar month as job.created_at
+    const canRevisePoMonth = (() => {
+        if (!job.created_at) return true;
+        const now = new Date();
+        const d = new Date(job.created_at);
+        return now.getFullYear() === d.getFullYear() && now.getMonth() === d.getMonth();
+    })();
+
+    // Revisi Invoice is allowed as long as still in the same calendar month as invoice issue date (or created_at)
+    const canReviseInvoiceMonth = (() => {
+        const ref = job.tgl_invoice_issued || job.created_at;
+        if (!ref) return true;
+        const now = new Date();
+        const d = new Date(ref);
+        return now.getFullYear() === d.getFullYear() && now.getMonth() === d.getMonth();
+    })();
+
+    // Finance is the sole owner/editor of invoice & PO pricing.
+    // TODO: [LOCKED-AFTER-TGL-15] When lock is activated, also gate by !isPastTgl15
+    const _today = new Date();
+    const isPastTgl15 = _today.getDate() > 15;
+    const canEditNilai = user?.role === 'finance' || user?.role === 'superadmin';
+    const showTgl15Warning = canEditNilai && isPastTgl15;
+
+    const canManage = (() => {
+        if (propCanManage !== undefined) return propCanManage;
+        const curStage = Number(job.stage);
+        if (user?.role === 'superadmin' || permissions === 'superadmin') return true;
+        // Stage 16 (Selesai Archival Vault) is strictly a Superadmin special privilege
+        if (curStage === 16) return false;
+        // Stage 1 is strictly owned by Marketing (Admin is view-only on Stage 1). Admin manages [2, 3, 7, 8, 9].
+        if (user?.role === 'admin') return curStage !== 1 && [2, 3, 7, 8, 9].includes(curStage);
+        if (user?.role === 'marketing' && [1, 11, 13, 15].includes(curStage)) return true;
+        if (user?.role === 'finance' && [10, 12, 14].includes(curStage)) return true;
+        if (['tim_ahli', 'ahli'].includes(user?.role) && curStage === 6) return true;
+        // Stage 3 (Penjadwalan & ST) is strictly Admin owned; Management is view-only (cannot edit)
+        if (isMGR && curStage === 3) return false;
+        if (isMGR && !MKT_STAGES.includes(curStage) && !FIN_STAGES.includes(curStage)) return true;
+        if (isInspector || isAssignedInspector) {
+            return [4, 5].includes(curStage);
+        }
+        if (!permissions) return false;
+        const p = permissions[curStage] || permissions[job.stage];
+        return p && (p.is_owner === true || p.is_owner === 1 || p.is_owner === '1');
+    })();
+
+    const canViewStageDocs = (sid) => {
+        const sIdNum = Number(sid);
+        if (['superadmin','admin'].includes(user?.role) || isManagerRole(user?.role)) return true;
+        if (user?.role === 'marketing' && (job.owner_marketing === user?.name || [1, 11, 13, 15].includes(sIdNum))) return true;
+        if (user?.role === 'finance' && [10, 12, 14].includes(sIdNum)) return true;
+        if (isInspector || isAssignedInspector) return true;
+        const p = permissions?.[sIdNum] || permissions?.[sid];
+        return p && (p.can_view || p.is_owner);
+    };
+
+    const canManageStageDocs = (sid) => {
+        const sIdNum = Number(sid);
+        const curStageNum = Number(job.stage);
+        if (user?.role === 'superadmin') return true;
+        // Stage 3 docs: Management is view-only (cannot edit/manage)
+        if (isManagerRole(user?.role) && sIdNum === 3) return false;
+        if (isManagerRole(user?.role) && !MKT_STAGES.includes(sIdNum) && !FIN_STAGES.includes(sIdNum)) return true;
+        if (user?.role === 'admin') {
+            if (sIdNum === 1 || ![2, 3, 7, 8, 9].includes(sIdNum)) return false;
+            return true;
+        }
+        if (user?.role === 'marketing' && [1, 11, 13, 15].includes(sIdNum)) return true;
+        if (user?.role === 'finance' && [10, 12, 14].includes(sIdNum)) return true;
+        if ((isInspector || isAssignedInspector) && [4, 5].includes(sIdNum) && sIdNum === curStageNum) return true;
+        if (isInspector || isAssignedInspector) return false;
+        const p = permissions?.[sIdNum] || permissions?.[sid];
+        return p && p.is_owner;
+    };
+
+    // Stage 1 gate: at least one required doc uploaded
+    const stage1DocOk = STAGE1_REQUIRED_DOCS.some(t =>
+        (job.documents || []).some(d => d.stage === 1 && d.type === t));
+
+    // Stage 2 gate: all required docs OR Kadiv approved
+    const stage2DocOk = STAGE2_REQUIRED_DOCS.every(t =>
+        (job.documents || []).some(d => (d.stage === 1 || d.stage === 2) && d.type === t));
+    const stage2Bypass = job.peer_review_status === 'approved';
+    const stage2CanMove = stage2DocOk || stage2Bypass;
+
+    // Stage 4: unit mismatch
+    const s4UnitMismatch = s4.actual_units != null && parseInt(s4.actual_units) !== parseInt(job.units);
+
+    // ── Stage 3 schedule validity ────────────────────────────────────────────
+    const allSelectedInspectorIds = [...new Set(scheduleDays.flatMap(d => d.inspector_ids))];
+    const s3ScheduleValid =
+        scheduleDays.length > 0 &&
+        scheduleDays.every(d => d.date?.trim()) &&
+        scheduleDays.every(d => d.inspector_ids.length > 0);
+
+    // ── Handlers ─────────────────────────────────────────────────────────────
+    const handleMoveStage = (e) => {
+        e.preventDefault();
+        const curStage = Number(job.stage);
+        if (curStage === 1 && !stage1DocOk) return showError('Upload Dokumen', 'Upload minimal satu dokumen PO/SPK, Surat Permohonan, atau Surat Kuasa!');
+        if (curStage === 2 && !stage2CanMove) return showError('Dokumen Belum Lengkap', 'Lengkapi dokumen atau minta persetujuan Kadiv/MGR.');
+        if (curStage === 3) {
+            if (!data.disnaker_tujuan) return showError('Validasi', 'Pilih Disnaker Tujuan!');
+            if (!s3ScheduleValid) return showError('Validasi', 'Lengkapi tanggal dan inspektur untuk setiap hari!');
+            setIsMoving(true);
+            router.post(`/jobs/${job.id}/move`, {
+                next_stage:      data.next_stage,
+                notes:           data.notes,
+                jam_mulai:       data.jam_mulai,
+                disnaker_tujuan: data.disnaker_tujuan,
+                report_writer_id: data.report_writer_id,
+                alat_ids:        data.alat_ids,
+                cert_ids:        data.cert_ids,
+                schedule_days:   scheduleDays,
+            }, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => { setIsMoving(false); onClose(); },
+                onError: (errs) => {
+                    setIsMoving(false);
+                    const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                    showError('Gagal Memindahkan Tahap', msg || 'Terjadi kesalahan saat memindahkan tahap.');
+                },
+                onFinish: () => setIsMoving(false),
+            });
+            return;
+        }
+        if (curStage === 5) {
+            const hasLhppDoc = (job.documents || []).some(d => Number(d.stage) === 5 || ['LHPP', 'LHPP (PDF)', 'LHPP Draft', 'LHPP Final'].includes(d.type));
+            const hasValidLink = hasValidLhppLink(lhppLinks);
+            if (!hasValidLink && !hasLhppDoc) {
+                return showError('Link LHPP Belum Diisi', 'Silakan isi minimal satu link dokumen LHPP unit (Google Drive / Cloud) atau unggah dokumen LHPP terlebih dahulu.');
+            }
+            setIsMoving(true);
+            router.post(`/jobs/${job.id}/move`, {
+                next_stage: data.next_stage || 6,
+                notes: data.notes,
+                link_lhpp: lhppLinks,
+            }, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => { setIsMoving(false); onClose(); },
+                onError: (errs) => {
+                    setIsMoving(false);
+                    const msg = Object.values(errs).flat().join('\n') || 'Gagal memindahkan stage.';
+                    showError('Gagal Pindah Stage', msg);
+                },
+                onFinish: () => setIsMoving(false),
+            });
+            return;
+        }
+        if (curStage === 10) {
+            if (!s10.invoice_no?.trim()) return showError('Validasi', 'Nomor Invoice wajib diisi.');
+            if (!s10.total_invoice_amount || parseFloat(s10.total_invoice_amount) <= 0) return showError('Validasi', 'Total Invoice (Nilai Tagihan) wajib diisi dengan benar.');
+            const invDate = s10.tgl_invoice_issued || s10.invoice_date;
+            if (!invDate) return showError('Validasi', 'Tanggal Invoice Diterbitkan wajib diisi.');
+            
+            const hasInvoiceDoc = (job.documents || []).some(d => 
+                ['Invoice, Kwitansi & Faktur Pajak', 'Invoice (PDF)', 'Invoice', 'Faktur / Invoice', 'Faktur', 'Faktur Pajak', 'Kwitansi', 'Bukti Transfer'].includes(d.type) ||
+                d.stage === 10
+            );
+            if (!hasInvoiceDoc) return showError('Dokumen Belum Lengkap', 'Dokumen "Invoice, Kwitansi & Faktur Pajak" atau dokumen penagihan wajib diunggah sebelum melanjutkan.');
+
+            setIsMoving(true);
+            router.post(`/jobs/${job.id}/move`, {
+                next_stage: data.next_stage || 11,
+                notes: data.notes,
+                ...s10,
+            }, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => { setIsMoving(false); onClose(); },
+                onError: (errs) => {
+                    setIsMoving(false);
+                    const msg = Object.values(errs).flat().join('\n') || 'Gagal memindahkan stage.';
+                    showError('Gagal Pindah Stage', msg);
+                },
+                onFinish: () => setIsMoving(false),
+            });
+            return;
+        }
+        setIsMoving(true);
+        router.post(`/jobs/${job.id}/move`, data, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => onClose(),
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                showError('Gagal Memindahkan Tahap', msg || 'Terjadi kesalahan saat memindahkan tahap.');
+            },
+            onFinish: () => setIsMoving(false),
+        });
+    };
+
+    const handleBypassStage5 = async () => {
+        const hasLhppDoc = (job.documents || []).some(d => Number(d.stage) === 5 || ['LHPP', 'LHPP (PDF)', 'LHPP Draft', 'LHPP Final'].includes(d.type));
+        const hasValidLink = hasValidLhppLink(lhppLinks);
+        if (!hasValidLink && !hasLhppDoc) {
+            return showError('Link LHPP Belum Diisi', 'Silakan isi minimal satu link dokumen LHPP unit (Google Drive / Cloud) atau unggah dokumen LHPP terlebih dahulu.');
+        }
+
+        const res = await showConfirm(
+            'Bypass Review Berjenjang',
+            'Apakah Anda yakin ingin melakukan Bypass pada penyusunan LHPP ini? Pekerjaan akan langsung diteruskan ke Stage 7 (Verifikasi ke Dinas) tanpa melalui review Stage 6.',
+            'Ya, Lakukan Bypass',
+            'Batal'
+        );
+        if (!res.isConfirmed) return;
+
+        setIsMoving(true);
+        const bypassNote = `[BYPASS REVIEW] ${data.notes || ''}`.trim();
+        router.post(`/jobs/${job.id}/move`, {
+            next_stage: 7,
+            notes: bypassNote,
+            link_lhpp: lhppLinks,
+            is_bypass: true,
+        }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setIsMoving(false);
+                showSuccess('Bypass Berhasil', 'LHPP disetujui otomatis dan pekerjaan berhasil diteruskan ke Stage 7 (Verifikasi ke Dinas).');
+                onClose();
+            },
+            onError: (errs) => {
+                setIsMoving(false);
+                const msg = Object.values(errs).flat().join('\n') || 'Gagal memindahkan stage.';
+                showError('Gagal Pindah Stage', msg);
+            },
+            onFinish: () => setIsMoving(false),
+        });
+    };
+
+    const handleMoveToStage5 = (e) => {
+        e?.preventDefault();
+        setIsMoving(true);
+        router.post(`/jobs/${job.id}/move`, { ...data, next_stage: 5 }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => onClose(),
+            onError: (errs) => showError('Gagal', typeof errs === 'object' ? Object.values(errs).flat().join('\n') : 'Gagal memindahkan tahap.'),
+            onFinish: () => setIsMoving(false),
+        });
+    };
+
+    const handleArchiveStage16 = (e) => {
+        e?.preventDefault();
+        setIsMoving(true);
+        router.post(`/jobs/${job.id}/move`, { ...data, next_stage: 16 }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => onClose(),
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                showError('Gagal Mengarsipkan', msg || 'Gagal mengarsipkan pekerjaan.');
+            },
+            onFinish: () => setIsMoving(false),
+        });
+    };
+
+    const handleReviseInvoice = (e) => {
+        e?.preventDefault();
+        if (!reviseInvoiceForm.invoice_no?.trim()) {
+            return showError('Validasi Gagal', 'Nomor invoice wajib diisi.');
+        }
+        if (!reviseInvoiceForm.total_invoice_amount || parseFloat(reviseInvoiceForm.total_invoice_amount) <= 0) {
+            return showError('Validasi Gagal', 'Total invoice harus lebih besar dari 0.');
+        }
+
+        const formData = new FormData();
+        formData.append('invoice_no', reviseInvoiceForm.invoice_no || '');
+        formData.append('total_invoice_amount', reviseInvoiceForm.total_invoice_amount || '');
+        if (reviseInvoiceForm.tgl_invoice_issued) formData.append('tgl_invoice_issued', reviseInvoiceForm.tgl_invoice_issued);
+        if (reviseInvoiceForm.no_faktur_pajak) formData.append('no_faktur_pajak', reviseInvoiceForm.no_faktur_pajak);
+        if (reviseInvoiceForm.tgl_faktur_pajak) formData.append('tgl_faktur_pajak', reviseInvoiceForm.tgl_faktur_pajak);
+        if (reviseInvoiceForm.revision_notes) formData.append('revision_notes', reviseInvoiceForm.revision_notes);
+        if (reviseInvoiceForm.invoice_file) formData.append('invoice_file', reviseInvoiceForm.invoice_file);
+        if (reviseInvoiceForm.faktur_file) formData.append('faktur_file', reviseInvoiceForm.faktur_file);
+
+        router.post(`/jobs/${job.id}/invoice-revise`, formData, {
+            preserveScroll: true,
+            preserveState: true,
+            forceFormData: true,
+            only: ['jobs'],
+            onProgress: (progress) => {
+                if (progress?.percentage) setUploadProgress(Math.round(progress.percentage));
+            },
+            onSuccess: () => {
+                showSuccess('Berhasil', 'Data invoice berhasil direvisi secara paralel tanpa mengubah stage alur kerja.');
+                setShowReviseInvoiceModal(false);
+            },
+            onError: (errs) => {
+                const msg = Object.values(errs).flat().join('\n') || 'Gagal merevisi invoice.';
+                showError('Gagal Revisi Invoice', msg);
+            },
+            onFinish: () => {
+                setUploadProgress(0);
+            }
+        });
+    };
+
+    const handleRevisePo = (e) => {
+        e?.preventDefault();
+        if (!revisePoForm.no_po?.trim()) {
+            return showError('Validasi Gagal', 'Nomor PO wajib diisi.');
+        }
+        if (revisePoForm.nilai === '' || parseFloat(revisePoForm.nilai) < 0) {
+            return showError('Validasi Gagal', 'Nilai kontrak PO wajib diisi dengan benar.');
+        }
+
+        router.post(`/jobs/${job.id}/po-revise`, revisePoForm, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSuccess('Berhasil', 'Data PO/SPK berhasil direvisi.');
+                setShowRevisePoModal(false);
+            },
+            onError: (errs) => {
+                const msg = Object.values(errs).flat().join('\n') || 'Gagal merevisi PO.';
+                showError('Gagal Revisi PO', msg);
+            }
+        });
+    };
+
+    const handleReopenJob = async () => {
+        const isFromSelesai = Number(job.stage) === 16;
+        const { value: formValues } = await Swal.fire({
+            title: isFromSelesai ? 'Pulihkan Job dari Arsip Selesai' : 'Buka Kembali Job',
+            html:
+                '<div class="text-left text-xs space-y-2">' +
+                '<label class="block font-bold text-gray-700">Kembalikan ke Stage:</label>' +
+                '<select id="swal-target-stage" class="w-full border rounded p-2 text-sm">' +
+                (isFromSelesai ? '<option value="12">Stage 12: Final Financial Closing (Finance)</option>' : '') +
+                '<option value="15">Stage 11c: Kirim SUKET ke Klien (Marketing)</option>' +
+                '<option value="14">Stage 11b: Verifikasi Bayar & PPh (Finance)</option>' +
+                '<option value="11">Stage 11: Penagihan / Follow-up (Marketing)</option>' +
+                '<option value="10">Stage 10: Invoice & Kwitansi (Finance)</option>' +
+                '<option value="9">Stage 9: Pengurusan Suket (Admin)</option>' +
+                '</select>' +
+                '<label class="block font-bold text-gray-700 mt-2">Alasan Pembukaan Kembali *:</label>' +
+                '<textarea id="swal-reopen-notes" class="w-full border rounded p-2 text-sm" placeholder="Tuliskan alasan lengkap pembukaan kembali..." rows="2"></textarea>' +
+                '</div>',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: isFromSelesai ? 'Pulihkan Job' : 'Buka Kembali Job',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: isFromSelesai ? '#059669' : '#d97706',
+            preConfirm: () => {
+                const targetStage = document.getElementById('swal-target-stage').value;
+                const notes = document.getElementById('swal-reopen-notes').value;
+                if (!notes || notes.trim().length < 3) {
+                    Swal.showValidationMessage('Alasan pembukaan kembali wajib diisi (minimal 3 karakter)!');
+                    return false;
+                }
+                return { target_stage: parseInt(targetStage, 10), notes: notes.trim() };
+            }
+        });
+
+        if (!formValues) return;
+
+        router.post(`/jobs/${job.id}/reopen`, formValues, {
+            onSuccess: () => {
+                showSuccess('Berhasil', isFromSelesai
+                    ? `Job berhasil dipulihkan ke Stage ${formValues.target_stage}.`
+                    : `Job berhasil dibuka kembali ke Stage ${formValues.target_stage}.`);
+                onClose();
+            },
+            onError: (errs) => {
+                const msg = Object.values(errs).flat().join('\n') || 'Gagal membuka kembali job.';
+                showError('Gagal Re-open', msg);
+            }
+        });
+    };
+
+    const handleRouteTo13 = (e) => {
+        e.preventDefault();
+        router.post(`/jobs/${job.id}/move`, { ...data, next_stage: 13 }, { onSuccess: () => onClose() });
+    };
+
+    const handleRejectStage = async () => {
+        if (!data.notes?.trim()) return showError('Validasi', 'Isi catatan penolakan terlebih dahulu!');
+        const curStage = Number(job.stage);
+        let targetStage = Math.max(1, curStage - 1);
+        if (curStage === 13) targetStage = 4; // Stage 4b (Aktualisasi Unit) rejects to Stage 4 (Pelaksanaan RU)
+        else if (curStage === 5) targetStage = 4;
+        else if (curStage === 7) targetStage = 5;
+        else if (curStage === 8) targetStage = 6;
+        else if (curStage === 10) targetStage = 9;
+        else if (curStage === 11) targetStage = 10;
+        else if (curStage === 14) targetStage = 11;
+        else if (curStage === 15) targetStage = 14;
+        else if (curStage === 12) targetStage = 15;
+        const res = await showConfirm('Tolak / Kembalikan Job', `Kembalikan job ini ke Stage ${targetStage}?`);
+        if (!res.isConfirmed) return;
+        router.post(`/jobs/${job.id}/reject`, {
+            notes: data.notes,
+            target_stage: targetStage
+        }, {
+            onSuccess: () => onClose()
+        });
+    };
+
+    const handleAskApproval = async () => {
+        const res = await showConfirm('Minta Persetujuan', 'Kirim permintaan persetujuan ke Kadiv/MGR?');
+        if (!res.isConfirmed) return;
+        router.post(`/jobs/${job.id}/ask-approval`, {}, { onSuccess: () => onClose() });
+    };
+
+    const handleApproveAsManager = async () => {
+        const res = await showConfirm('Setujui Permintaan', 'Setujui permintaan ini? Admin dapat melanjutkan tanpa dokumen lengkap.');
+        if (!res.isConfirmed) return;
+        router.post(`/jobs/${job.id}/approve`, {}, { onSuccess: () => onClose() });
+    };
+
+    const handleReturnToStage1 = (e) => {
+        e.preventDefault();
+        if (!returnNotes.trim()) return showError('Validasi', 'Isi alasan pengembalian!');
+        router.post(`/jobs/${job.id}/return-to-stage1`, { notes: returnNotes }, { onSuccess: () => onClose() });
+    };
+
+    const executeSave = (url, payload, successMsg, customCb) => {
+        if (isSavingStage || isSavingLink) return;
+        setIsSavingStage(true);
+        const finalPayload = { ...payload };
+        if (data.notes && finalPayload.notes === undefined) {
+            finalPayload.notes = data.notes;
+        }
+
+        router.post(url, finalPayload, {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['jobs', 'flash'],
+            onSuccess: () => {
+                showSuccess('Berhasil', successMsg || 'Perubahan berhasil disimpan.');
+                if (typeof customCb === 'function') customCb();
+            },
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : (errs || 'Gagal menyimpan perubahan.');
+                showError('Gagal Simpan', msg);
+            },
+            onFinish: () => {
+                setIsSavingStage(false);
+            }
+        });
+    };
+
+    const handleSaveS4  = () => executeSave(`/jobs/${job.id}/stage4-data`, s4, 'Data lapangan berhasil disimpan.');
+    const handleUpdateLhppLink = (index, field, value) => {
+        setLhppLinks(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleAddLhppLink = () => {
+        setLhppLinks(prev => [
+            ...prev,
+            {
+                id: `unit-${prev.length + 1}-${Date.now()}`,
+                unit_no: prev.length + 1,
+                label: `Unit ${prev.length + 1}`,
+                url: '',
+                notes: '',
+            }
+        ]);
+    };
+
+    const handleRemoveLhppLink = (index) => {
+        if (lhppLinks.length <= 1) {
+            setLhppLinks([{
+                id: 'unit-1',
+                unit_no: 1,
+                label: 'Unit 1',
+                url: '',
+                notes: '',
+            }]);
+            return;
+        }
+        setLhppLinks(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSaveLhppLinks = () => {
+        if (isSavingLink || isSavingStage) return;
+        setIsSavingLink(true);
+        router.post(`/jobs/${job.id}/stage5-data`, { link_lhpp: lhppLinks, notes: data.notes }, {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['jobs', 'flash'],
+            onSuccess: () => {
+                setIsSavingLink(false);
+                showSuccess('Berhasil', 'Daftar link LHPP unit & catatan berhasil disimpan.');
+            },
+            onError: (errs) => {
+                setIsSavingLink(false);
+                const msg = Object.values(errs).flat().join('\n') || 'Gagal menyimpan link LHPP.';
+                showError('Gagal Simpan', msg);
+            },
+            onFinish: () => {
+                setIsSavingLink(false);
+            }
+        });
+    };
+    const handleSaveS5  = () => {
+        if (!s5.s5_review_decision) return showError('Validasi', 'Pilih keputusan review!');
+        executeSave(`/jobs/${job.id}/stage5-review`, s5, 'Keputusan review berhasil disimpan.');
+    };
+    const handleSaveS7  = () => executeSave(`/jobs/${job.id}/stage7-data`, s7, 'Tanggal penyerahan berhasil disimpan.');
+    const handleSaveS8  = () => executeSave(`/jobs/${job.id}/stage8-data`, s8, 'Data progres Disnaker berhasil disimpan.');
+    const handleSaveS9  = () => executeSave(`/jobs/${job.id}/stage9-data`, s9, 'Status Suket berhasil disimpan.');
+    const handleSaveS10 = () => executeSave(`/jobs/${job.id}/stage10-data`, s10, 'Data tagihan berhasil disimpan.');
+    const handleSaveS11 = () => executeSave(`/jobs/${job.id}/stage11-data`, s11, 'Data follow-up penagihan berhasil disimpan.');
+    const handleSaveS14 = () => executeSave(`/jobs/${job.id}/stage14-data`, s14, 'Status pembayaran berhasil disimpan.');
+    const handleSaveS15 = () => executeSave(`/jobs/${job.id}/stage15-data`, s15, 'Informasi pengiriman SUKET berhasil disimpan.');
+
+    const handleUpdateJob = (e) => {
+        e.preventDefault();
+        router.post(`/jobs/${job.id}`, {
+            _method: 'PUT',
+            ...editForm.data
+        }, {
+            onSuccess: () => {
+                setIsEditing(false);
+                showSuccess('Berhasil', 'Informasi Job berhasil diperbarui.');
+            }
+        });
+    };
+
+    // Generic document upload (for most stages)
+    const triggerUpload = (stage, type, extraNotes = '') => {
+        if (!stage || !type) return;
+        uploadTargetRef.current = { stage, type, extraNotes: extraNotes || '' };
+        setUploadStage(stage);
+        setUploadType(type);
+        if (fileInputRef.current) {
+            // CRITICAL: Always reset value BEFORE click so choosing the exact same file fires onChange every time!
+            fileInputRef.current.value = '';
+            fileInputRef.current.click();
+        }
+    };
+
+    const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+
+    const onFileChange = (e) => {
+        const file = e.target.files?.[0];
+        const target = uploadTargetRef.current || {};
+        const stage = target.stage || uploadStage;
+        const type = target.type || uploadType;
+        const extraNotes = target.extraNotes || '';
+
+        // If user cancelled file selection, reset value and exit cleanly
+        if (!file) {
+            if (e.target) e.target.value = '';
+            return;
+        }
+
+        if (!stage || !type) {
+            showError('Target Dokumen Tidak Ditemukan', 'Gagal mengenali tahap atau jenis dokumen yang dipilih. Silakan klik tombol + Upload kembali.');
+            if (e.target) e.target.value = '';
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            showError('Ukuran File Terlalu Besar', 'Maksimal ukuran file yang diperbolehkan adalah 25 MB. Silakan kompres file Anda terlebih dahulu.');
+            if (e.target) e.target.value = '';
+            return;
+        }
+
+        setIsUploading(true);
+        setUploadProgress(0);
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('type', type);
+        fd.append('stage', stage);
+        if (extraNotes) {
+            fd.append('photo_notes', extraNotes);
+        }
+
+        router.post(`/jobs/${job.id}/documents`, fd, {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: true,
+            only: ['jobs'],
+            onProgress: (progress) => {
+                if (progress?.percentage) {
+                    setUploadProgress(Math.round(progress.percentage));
+                }
+            },
+            onSuccess: () => {
+                showSuccess('Berhasil', 'Dokumen berhasil diunggah.');
+            },
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                showError('Gagal Mengunggah Berkas', msg || 'Format atau ukuran berkas tidak valid.');
+            },
+            onFinish: () => {
+                setIsUploading(false);
+                setUploadProgress(0);
+                setUploadStage(null);
+                setUploadType('');
+                uploadTargetRef.current = { stage: null, type: null, extraNotes: '' };
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
+        });
+
+        if (e.target) e.target.value = '';
+    };
+
+    const uploadFileDirectly = (file, stageId, type, extraNotes = '') => {
+        if (!file || !stageId || !type) return;
+        if (!canManageStageDocs(stageId)) {
+            showError('Akses Ditolak', 'Anda tidak memiliki izin untuk mengunggah dokumen pada tahap ini.');
+            return;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            showError('Ukuran File Terlalu Besar', 'Maksimal ukuran file yang diperbolehkan adalah 25 MB. Silakan kompres file Anda terlebih dahulu.');
+            return;
+        }
+        setIsUploading(true);
+        setUploadProgress(0);
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('type', type);
+        fd.append('stage', stageId);
+        if (extraNotes) fd.append('photo_notes', extraNotes);
+        router.post(`/jobs/${job.id}/documents`, fd, {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: true,
+            only: ['jobs'],
+            onProgress: (progress) => {
+                if (progress?.percentage) {
+                    setUploadProgress(Math.round(progress.percentage));
+                }
+            },
+            onSuccess: () => {
+                showSuccess('Berhasil', 'Dokumen berhasil diunggah.');
+            },
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                showError('Gagal Mengunggah Berkas', msg || 'Format atau ukuran berkas tidak valid.');
+            },
+            onFinish: () => {
+                setIsUploading(false);
+                setUploadProgress(0);
+                setUploadStage(null);
+                setUploadType('');
+                uploadTargetRef.current = { stage: null, type: null, extraNotes: '' };
+            },
+        });
+    };
+
+    // Photo upload (Stage 4, with per-photo notes, routed through reliable persistent input)
+    const uploadPhoto = (type) => {
+        const note = photoNotes[type] || '';
+        triggerUpload(4, type, note);
+    };
+
+    const deleteDoc = async (docId) => {
+        const doc = (job.documents || []).find(d => d.id === docId);
+        if (doc && !canManageStageDocs(doc.stage)) {
+            showError('Akses Ditolak', 'Anda tidak memiliki izin untuk menghapus dokumen pada tahap ini.');
+            return;
+        }
+        const res = await showConfirm('Hapus Dokumen', 'Hapus dokumen ini?');
+        if (!res.isConfirmed) return;
+        router.delete(`/jobs/${job.id}/documents/${docId}`, {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['jobs'],
+            onSuccess: () => showSuccess('Berhasil', 'Dokumen berhasil dihapus.'),
+            onError: (errs) => {
+                const msg = typeof errs === 'object' ? Object.values(errs).flat().join('\n') : '';
+                showError('Gagal Menghapus Dokumen', msg || 'Tidak dapat menghapus dokumen ini.');
+            },
+        });
+    };
+
+    // Get docs for a stage+type
+    const getDocs = (stage, type = null) => {
+        const docs = (job.documents || []).filter(d => d.stage === stage);
+        return type ? docs.filter(d => d.type === type) : docs;
+    };
+
+    // Compute SLA for current stage
+    const currentStageInfo = STAGES.find(s => s.id === job.stage);
+    const daysInStage = daysElapsed(job.stage_started_at);
+    const slaTag = getSlaTag(daysInStage, currentStageInfo?.sla);
+
+// ══ END PART A ══ (DO NOT ADD MORE CODE BELOW THIS LINE — combine with part_b then part_c)
+
+// ══ BEGIN PART B ══
+
+    // ── Stage Action Panel ────────────────────────────────────────────────────
+    const renderStageAction = () => {
+        if (!canManage) return null;
+        const s = Number(job.stage);
+
+        return (
+            <div className="space-y-4">
+                {/* ── STAGE 1 ─────────────────────────────────── */}
+                {s === 1 && (
+                    <div className="space-y-3">
+                        <p className="text-xs text-gray-500">Upload minimal salah satu dokumen berikut untuk melanjutkan:</p>
+                        {STAGE1_REQUIRED_DOCS.map(t => (
+                            <UploadSlot key={t} type={t} stageId={1} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isINS={isINS} />
+                        ))}
+                        <p className="text-xs text-gray-400 mt-1">Dokumen opsional tambahan:</p>
+                        {(DOC_TYPES_BY_STAGE[1] || []).filter(t => !STAGE1_REQUIRED_DOCS.includes(t) && t !== 'Dokumen Tambahan').map(t => (
+                            <UploadSlot key={t} type={t} stageId={1} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isOptional={true} isINS={isINS} />
+                        ))}
+                        <UploadSlot
+                            type="Dokumen Tambahan"
+                            stageId={1}
+                            docs={job.documents}
+                            triggerUpload={triggerUpload}
+                            uploadFileDirectly={uploadFileDirectly}
+                            canManageStageDocs={canManageStageDocs}
+                            deleteDoc={deleteDoc}
+                            isOptional={true}
+                            isINS={isINS}
+                        />
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing} onReject={handleRejectStage} onMove={handleMoveStage} disabled={!stage1DocOk} disabledMsg={!stage1DocOk ? 'Upload minimal 1 dokumen utama (PO/SPK, Surat Permohonan, atau Surat Kuasa)' : ''} />
+                    </div>
+                )}
+
+                {/* ── STAGE 2 ─────────────────────────────────── */}
+                {s === 2 && (
+                    <div className="space-y-3">
+                        {/* Status banners */}
+                        {stage2Bypass && (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded p-3 text-xs text-emerald-800 font-medium">
+                                Persetujuan: Kadiv/MGR sudah menyetujui. Admin dapat melanjutkan.
+                            </div>
+                        )}
+                        {job.peer_review_status === 'requested' && isMGR && (
+                            <div className="bg-blue-50 border border-blue-300 rounded p-3 flex items-center justify-between">
+                                <span className="text-sm text-blue-800 font-medium">Admin meminta persetujuan Anda.</span>
+                                <button type="button" onClick={handleApproveAsManager}
+                                    className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-700">
+                                    Setujui
+                                </button>
+                            </div>
+                        )}
+                        {job.peer_review_status === 'requested' && !isMGR && (
+                            <div className="px-3 py-2 rounded text-sm bg-yellow-50 text-yellow-700 border border-yellow-200 flex items-center gap-1">
+                                Menunggu persetujuan Kadiv/MGR…
+                            </div>
+                        )}
+
+                        {/* ── Verification Checklist Table ── */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden text-xs">
+                            {/* Table Header */}
+                            <div className="grid bg-gray-100 border-b border-gray-200 font-bold text-gray-600 uppercase tracking-wide"
+                                style={{ gridTemplateColumns: '2.5rem 1fr 7rem 10.5rem' }}>
+                                <div className="px-2 py-2 text-center">NO</div>
+                                <div className="px-3 py-2">DOKUMEN</div>
+                                <div className="px-2 py-2 text-center">FILE</div>
+                                <div className="px-2 py-2 text-center">STATUS VERIFIKASI</div>
+                            </div>
+
+                            {/* Rows */}
+                            {STAGE2_VERIFY_CHECKLIST.map((item) => {
+                                // Check stage 1 AND 2 — docs are uploaded by Marketing at Stage 1,
+                                // but Admin can also add/replace them at Stage 2 during verification.
+                                const docs = (job.documents || []).filter(d =>
+                                    (d.stage === 1 || d.stage === 2) && d.type === item.type
+                                );
+                                const hasFile = docs.length > 0;
+                                const status = s2Verify[item.type];
+                                const setStatus = (v) => handleSetS2Status(item.type, v);
+
+                                return (
+                                    <div key={item.type}
+                                        className="grid border-b border-gray-100 hover:bg-gray-50 transition-colors items-start"
+                                        style={{ gridTemplateColumns: '2.5rem 1fr 7rem 10.5rem' }}>
+
+                                        {/* NO */}
+                                        <div className="px-2 py-3 text-center font-bold text-gray-400">{item.no}</div>
+
+                                        {/* DOKUMEN */}
+                                        <div className="px-3 py-3">
+                                            <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                                                <span className="font-medium text-gray-800">{item.label}</span>
+                                                <span className={`px-1.5 py-0.5 rounded border text-[10px] font-bold ${
+                                                    item.badge === 'WAJIB'
+                                                        ? 'border-red-400 text-red-600'
+                                                        : 'border-gray-400 text-gray-500'
+                                                }`}>{item.badge}</span>
+                                                {item.badge2 && (
+                                                    <span className="px-1.5 py-0.5 rounded border border-blue-400 text-blue-600 text-[10px] font-bold">
+                                                        {item.badge2}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {item.hint && (
+                                                <p className="text-[10px] text-gray-400 italic mt-0.5">{item.hint}</p>
+                                            )}
+                                        </div>
+
+                                        {/* FILE */}
+                                        <div className="px-2 py-3 flex flex-col items-center gap-1">
+                                            {item.noVerify ? (
+                                                <span className="px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-500 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed" title="Dokumen bersifat privat & tidak perlu dibaca Admin">
+                                                    Privat / Unreadable
+                                                </span>
+                                            ) : item.isManual ? (
+                                                <span className="px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-500 font-semibold text-[10px]">MANUAL</span>
+                                            ) : (isINS && item.type === 'PO/SPK') ? (
+                                                <span className="px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-400 font-semibold text-[10px] flex items-center gap-1 cursor-not-allowed italic" title="Dokumen PO/SPK terkunci untuk Inspektur">
+                                                    🔒 Terkunci
+                                                </span>
+                                            ) : hasFile ? (
+                                                docs.map(d => {
+                                                    if (isINS && (item.type === 'PO/SPK' || isPoLockedForIns(d, isINS))) {
+                                                        return (
+                                                            <span key={d.id} className="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 text-gray-400 font-semibold text-[10px] inline-flex items-center gap-1 cursor-not-allowed italic" title="Dokumen PO/SPK terkunci untuk Inspektur">
+                                                                🔒 Terkunci
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <button key={d.id} type="button" onClick={() => setPreviewDoc(d)}
+                                                            className="px-2 py-1 rounded bg-green-50 hover:bg-green-100 border border-green-300 text-green-700 font-bold text-[10px] transition-colors inline-flex items-center gap-1 shadow-xs cursor-pointer truncate max-w-[85px]"
+                                                            title={`Klik untuk pratinjau: ${d.name}`}>
+                                                            <Eye size={10} className="text-green-700 flex-shrink-0" />
+                                                            <span className="truncate">{d.name.split('.').pop().toUpperCase() || 'PDF'}</span>
+                                                        </button>
+                                                    );
+                                                })
+                                            ) : (
+                                                <button type="button"
+                                                    onClick={() => triggerUpload(2, item.type)}
+                                                    className="px-2 py-1 rounded bg-red-50 border border-red-300 text-red-600 font-semibold text-[10px] hover:bg-red-100 flex items-center gap-1">
+                                                    <span>x</span> KOSONG
+                                                </button>
+                                            )}
+                                            {hasFile && !item.noVerify && canManageStageDocs(2) && !isINS && (
+                                                <button type="button" onClick={() => triggerUpload(2, item.type)}
+                                                    className="text-[10px] text-blue-500 hover:underline">+ ganti</button>
+                                            )}
+                                        </div>
+
+                                        {/* STATUS VERIFIKASI */}
+                                        <div className="px-2 py-3 flex items-center justify-center gap-1 flex-wrap">
+                                            {item.noVerify ? (
+                                                <span className="text-[10px] text-gray-400 italic">-</span>
+                                            ) : (
+                                                <>
+                                                    <button type="button" onClick={() => setStatus(status === 'ok' ? '' : 'ok')}
+                                                        className={`px-2 py-1 rounded border text-[10px] font-bold transition-all ${
+                                                            status === 'ok'
+                                                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs scale-105'
+                                                                : 'border-gray-300 text-gray-600 bg-white hover:bg-emerald-50 hover:border-emerald-400 hover:text-emerald-700'
+                                                        }`} title="Mark OK / Verified">
+                                                        OK
+                                                    </button>
+                                                    <button type="button" onClick={() => setStatus(status === 'tidak' ? '' : 'tidak')}
+                                                        className={`px-2 py-1 rounded border text-[10px] font-bold transition-all ${
+                                                            status === 'tidak'
+                                                                ? 'bg-red-600 text-white border-red-600 shadow-xs scale-105'
+                                                                : 'border-gray-300 text-gray-600 bg-white hover:bg-red-50 hover:border-red-400 hover:text-red-700'
+                                                        }`} title="Mark TIDAK / Rejected">
+                                                        TIDAK
+                                                    </button>
+                                                    {item.hasNa && (
+                                                        <button type="button" onClick={() => setStatus(status === 'na' ? '' : 'na')}
+                                                            className={`px-2 py-1 rounded border text-[10px] font-bold transition-all ${
+                                                                status === 'na'
+                                                                    ? 'bg-gray-600 text-white border-gray-600 shadow-xs scale-105'
+                                                                    : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-100 hover:border-gray-400'
+                                                            }`} title="Not Applicable">
+                                                            N/A
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+
+                        {/* Action row */}
+                        <div className="flex gap-2 mt-1 flex-wrap">
+                            <button type="button" onClick={handleRejectStage} disabled={processing}
+                                className="px-3 py-2 rounded text-sm bg-red-600 text-white font-semibold hover:bg-red-700">
+                                Kembalikan ke Marketing
+                            </button>
+                            {!stage2DocOk && !stage2Bypass && job.peer_review_status !== 'requested' && !isMGR && (
+                                <button type="button" onClick={handleAskApproval}
+                                    className="px-3 py-2 rounded text-sm bg-orange-500 text-white font-semibold hover:bg-orange-600">
+                                    Minta Persetujuan MGR
+                                </button>
+                            )}
+                            <button type="button" onClick={handleMoveStage} disabled={processing || !stage2CanMove}
+                                className="flex-1 px-4 py-2 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40">
+                                {processing ? '...' : 'Verifikasi Selesai — Lanjut Penjadwalan →'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── STAGE 3 ─────────────────────────────────── */}
+                {s === 3 && (
+                    <div className="space-y-4">
+                        {/* Row 1: Jam Mulai + Disnaker */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Jam Mulai *</label>
+                                <input type="time" value={data.jam_mulai} onChange={e => setData('jam_mulai', e.target.value)}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:ring-1 focus:ring-indigo-400" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Disnaker Tujuan *</label>
+                                <select
+                                    value={data.disnaker_tujuan}
+                                    onChange={e => setData('disnaker_tujuan', e.target.value)}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 bg-white focus:ring-1 focus:ring-indigo-400"
+                                    required
+                                >
+                                    <option value="">-- Pilih Disnaker Provinsi --</option>
+                                    {data.disnaker_tujuan &&
+                                        !INDONESIA_PROVINCES.includes(data.disnaker_tujuan) &&
+                                        !INDONESIA_PROVINCES.map(p => `Disnaker Prov. ${p}`).includes(data.disnaker_tujuan) && (
+                                        <option value={data.disnaker_tujuan}>{data.disnaker_tujuan}</option>
+                                    )}
+                                    {INDONESIA_PROVINCES.map(prov => {
+                                        const val = `Disnaker Prov. ${prov}`;
+                                        return <option key={prov} value={val}>{val}</option>;
+                                    })}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* ── Schedule Builder ── */}
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 space-y-3">
+                            {/* Header: title + add/remove day controls */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-indigo-900">Jadwal Pelaksanaan</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[11px] text-indigo-700">Hari:</span>
+                                    <button type="button"
+                                        onClick={() => scheduleDays.length > 1 && setScheduleDays(prev => prev.slice(0, -1))}
+                                        disabled={scheduleDays.length <= 1}
+                                        className="w-6 h-6 rounded border border-indigo-300 bg-white text-indigo-700 font-bold text-sm leading-none flex items-center justify-center hover:bg-indigo-100 disabled:opacity-40">−</button>
+                                    <span className="text-sm font-bold text-indigo-900 w-5 text-center">{scheduleDays.length}</span>
+                                    <button type="button"
+                                        onClick={() => setScheduleDays(prev => [...prev, { date: '', inspector_ids: [] }])}
+                                        className="w-6 h-6 rounded border border-indigo-300 bg-white text-indigo-700 font-bold text-sm leading-none flex items-center justify-center hover:bg-indigo-100">+</button>
+                                </div>
+                            </div>
+
+                            {/* Day rows */}
+                            {scheduleDays.map((day, dayIdx) => {
+                                const allInspectors = [
+                                    ...(recommendations.recommended || []),
+                                    ...(recommendations.eliminated  || []),
+                                ].filter(item => !isS3Excluded(item?.user?.role));
+                                return (
+                                    <div key={dayIdx} className="bg-white border border-indigo-200 rounded-lg p-3">
+                                        {/* Day header: label + date picker + remove */}
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded shrink-0">
+                                                Hari {dayIdx + 1}
+                                            </span>
+                                            <input
+                                                type="date"
+                                                value={day.date}
+                                                onChange={e => {
+                                                    const updated = scheduleDays.map((d, i) =>
+                                                        i === dayIdx ? { ...d, date: e.target.value } : d
+                                                    );
+                                                    setScheduleDays(updated);
+                                                }}
+                                                className="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-400"
+                                            />
+                                            {scheduleDays.length > 1 && (
+                                                <button type="button"
+                                                    onClick={() => setScheduleDays(prev => prev.filter((_, i) => i !== dayIdx))}
+                                                    className="text-red-400 hover:text-red-600 text-base leading-none px-1 shrink-0" title="Hapus hari ini">x</button>
+                                            )}
+                                        </div>
+
+                                        {/* Inspector chips */}
+                                        <p className="text-[10px] text-gray-500 mb-1.5">Inspektur pada Hari {dayIdx + 1}:</p>
+                                        {allInspectors.length === 0 ? (
+                                            <p className="text-[11px] text-gray-400 italic">Memuat data inspektur...</p>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {allInspectors.map(item => {
+                                                    const uid = item.user.id;
+                                                    const isSelected = day.inspector_ids.includes(uid);
+                                                    const isOverloaded = item.is_overloaded || (item.statuses && item.statuses.includes('Overload')) || (item.bonuses || []).some(b => b.includes('Overload'));
+                                                    return (
+                                                        <button
+                                                            type="button"
+                                                            key={uid}
+                                                            onClick={() => {
+                                                                const updated = scheduleDays.map((d, i) => {
+                                                                    if (i !== dayIdx) return d;
+                                                                    const ids = d.inspector_ids.includes(uid)
+                                                                        ? d.inspector_ids.filter(id => id !== uid)
+                                                                        : [...d.inspector_ids, uid];
+                                                                    return { ...d, inspector_ids: ids };
+                                                                });
+                                                                setScheduleDays(updated);
+                                                            }}
+                                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                                                                isSelected
+                                                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                                    : isOverloaded
+                                                                        ? 'bg-gray-50 text-gray-400 border-gray-200 hover:border-red-300 hover:text-red-500'
+                                                                        : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                                                            }`}
+                                                        >
+                                                            {isSelected && <span>✓</span>}
+                                                            {item.user.name}
+                                                            {isOverloaded && !isSelected && <span className="text-red-400 text-[9px] font-bold">!</span>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {!day.date && (
+                                            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                                Pilih tanggal untuk hari ini
+                                            </p>
+                                        )}
+                                        {day.inspector_ids.length === 0 && (
+                                            <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                                Pilih minimal 1 inspektur untuk hari ini
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Smart Recommendation — quick-fill to all days */}
+                        <SmartRecommendation
+                            job={job}
+                            selectedInspectorIds={allSelectedInspectorIds}
+                            onSelectInspector={(insUser) => {
+                                const uid = insUser.id;
+                                const isInAll = scheduleDays.every(d => d.inspector_ids.includes(uid));
+                                setScheduleDays(scheduleDays.map(d => ({
+                                    ...d,
+                                    inspector_ids: isInAll
+                                        ? d.inspector_ids.filter(id => id !== uid)
+                                        : d.inspector_ids.includes(uid)
+                                            ? d.inspector_ids
+                                            : [...d.inspector_ids, uid],
+                                })));
+                            }}
+                        />
+
+                        {/* Penanggung Jawab Laporan / Penyusun LHPP */}
+                        <div className="bg-white border rounded-lg p-3">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Penanggung Jawab Laporan / Penyusun LHPP
+                            </label>
+                            <select
+                                value={data.report_writer_id || ''}
+                                onChange={e => setData('report_writer_id', e.target.value)}
+                                className="w-full text-sm border border-gray-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-blue-400"
+                            >
+                                <option value="">-- Pilih Penanggung Jawab Laporan (Opsional) --</option>
+                                {[
+                                    ...(recommendations.recommended || []),
+                                    ...(recommendations.eliminated || [])
+                                ].filter(item => !isS3Excluded(item?.user?.role)).map(item => (
+                                    <option key={item.user.id} value={item.user.id}>
+                                        {item.user.name} ({item.user.role})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Alat Uji */}
+                        {masterData.alat_uji.length > 0 && (
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Alat Uji yang Digunakan</label>
+                                <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto border rounded p-2">
+                                    {masterData.alat_uji.map(a => (
+                                        <label key={a.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                            <input type="checkbox" checked={data.alat_ids.includes(a.id)}
+                                                onChange={() => {
+                                                    const ids = data.alat_ids.includes(a.id) ? data.alat_ids.filter(x => x !== a.id) : [...data.alat_ids, a.id];
+                                                    setData('alat_ids', ids);
+                                                }} className="rounded" />
+                                            {a.nama}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Download Surat Tugas (DISABLED - STILL ERROR)
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between shadow-sm mb-2">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                    Doc
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-blue-950">Surat Tugas Riksa Uji</p>
+                                    <p className="text-[11px] text-blue-700 font-medium">
+                                        {job.no_surat_tugas ? `No: ${job.no_surat_tugas}` : 'Auto-generated otomatis dari Sistem'}
+                                    </p>
+                                </div>
+                            </div>
+                            <a
+                                href={`/jobs/${job.id}/download-surat-tugas`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow-sm transition flex items-center gap-1 cursor-pointer"
+                            >
+                                Download Surat Tugas (.docx)
+                            </a>
+                        </div>
+                        */}
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing || isMoving} onReject={handleRejectStage} onMove={handleMoveStage}
+                            disabled={!s3ScheduleValid || !data.disnaker_tujuan}
+                            disabledMsg={!data.disnaker_tujuan ? 'Pilih Disnaker Tujuan' : !s3ScheduleValid ? 'Lengkapi jadwal dan inspektur tiap hari' : ''} />
+                    </div>
+                )}
+
+                {/* ── STAGE 4 ─────────────────────────────────── */}
+                {s === 4 && (
+                    <div className="space-y-4">
+                        {/* Download Surat Tugas (DISABLED - STILL ERROR)
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between shadow-sm">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                    Doc
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-blue-950">Surat Tugas Riksa Uji</p>
+                                    <p className="text-[11px] text-blue-700 font-medium">
+                                        {job.no_surat_tugas ? `No: ${job.no_surat_tugas}` : 'Siap Di-download & Auto-generate'}
+                                    </p>
+                                </div>
+                            </div>
+                            <a
+                                href={`/jobs/${job.id}/download-surat-tugas`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow-sm transition flex items-center gap-1 cursor-pointer"
+                            >
+                                Download Surat Tugas (.docx)
+                            </a>
+                        </div>
+                        */}
+                        {/* Unit Count */}
+                        <div className="bg-gray-50 border rounded-lg p-3">
+                            <p className="text-xs font-semibold text-gray-700 mb-2">Jumlah Alat yang Benar-benar Diperiksa</p>
+                            <div className="flex items-center gap-3">
+                                <input type="number" min="0" value={s4.actual_units}
+                                    onChange={e => setS4({ ...s4, actual_units: e.target.value })}
+                                    className="w-24 text-sm border rounded px-2 py-1.5" />
+                                <span className="text-xs text-gray-500">dari {job.units} unit dalam Job</span>
+                                {s4UnitMismatch && (
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold">TIDAK COCOK</span>
+                                )}
+                            </div>
+                            {s4UnitMismatch && (
+                                <div className="mt-2">
+                                    <label className="block text-xs text-gray-600 mb-1">Alasan / Catatan *</label>
+                                    <textarea rows={2} value={s4.unit_count_notes}
+                                        onChange={e => setS4({ ...s4, unit_count_notes: e.target.value })}
+                                        className="w-full text-sm border rounded px-2 py-1.5"
+                                        placeholder="Jelaskan mengapa jumlah berbeda…" />
+                                </div>
+                            )}
+                            <button type="button" onClick={handleSaveS4} disabled={isSavingStage}
+                                className="mt-2 px-3.5 py-1.5 text-xs bg-gray-800 hover:bg-gray-900 text-white rounded font-medium disabled:opacity-50 transition shadow-sm">
+                                {isSavingStage ? 'Menyimpan...' : 'Simpan Data Lapangan'}
+                            </button>
+                        </div>
+                        {/* Photo Uploads */}
+                        <div>
+                            <p className="text-xs font-semibold text-gray-700 mb-2">Foto Dokumentasi Wajib</p>
+                            <div className="space-y-2">
+                                {STAGE4_PHOTO_TYPES.map(type => {
+                                    const existing = getDocs(4, type);
+                                    return (
+                                        <div key={type} className="border border-dashed rounded-lg p-3">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-xs font-medium text-gray-700">{type}</span>
+                                                {existing.length > 0 && <span className="text-xs text-green-600 font-bold">Terupload</span>}
+                                            </div>
+                                            {existing.length > 0
+                                                ? <div className="flex flex-wrap gap-1 mb-2">{existing.map(d => <DocChip key={d.id} doc={d} canManage={canManageStageDocs(d.stage)} onDelete={deleteDoc} isINS={isINS} onPreview={setPreviewDoc} />)}</div>
+                                                : null
+                                            }
+                                            <input type="text" placeholder="Catatan foto (opsional)"
+                                                value={photoNotes[type] || ''}
+                                                onChange={e => setPhotoNotes({ ...photoNotes, [type]: e.target.value })}
+                                                className="w-full text-xs border border-gray-200 rounded px-2 py-1 mb-1" />
+                                            <button type="button" onClick={() => uploadPhoto(type)}
+                                                className="text-xs px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100">
+                                                Upload Foto
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        {/* Stage 4 Navigation Buttons */}
+                        {s4UnitMismatch ? (
+                            <div className="border border-amber-200 rounded-lg p-3.5 bg-amber-50/80 space-y-3">
+                                <p className="text-xs font-semibold text-amber-900">
+                                    Perhatian: Jumlah alat yang diperiksa ({s4.actual_units}) tidak sesuai dengan jumlah unit awal ({job.units}).
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleMoveToStage5}
+                                        disabled={processing || isMoving}
+                                        className="w-full px-4 py-2.5 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs flex items-center justify-center gap-1"
+                                    >
+                                        Lanjut ke Stage 5 (Penyusunan LHPP) →
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleRouteTo13}
+                                        disabled={processing}
+                                        className="w-full px-4 py-2 rounded text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-xs flex items-center justify-center gap-1"
+                                    >
+                                        Perbarui Unit di Stage 4b (Aktualisasi Unit MKT) →
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <MoveRow stage={s} processing={processing} onReject={handleRejectStage} onMove={handleMoveStage} />
+                        )}
+                    </div>
+                )}
+
+                {/* ── STAGE 13 (Aktualisasi Unit — 4b MKT) ──────── */}
+                {s === 13 && (
+                    <div className="space-y-4">
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-amber-900 mb-1">
+                                Stage 4b: Aktualisasi Unit (Marketing)
+                            </h4>
+                            <p className="text-xs text-amber-800">
+                                Hasil pemeriksaan lapangan: <strong>{job.actual_units ?? job.units} Unit</strong> (Unit awal: {job.units} Unit).
+                                {job.unit_count_notes && <span className="block mt-1 italic font-medium">Catatan: "{job.unit_count_notes}"</span>}
+                            </p>
+                        </div>
+
+                        <div className="bg-white border rounded-lg p-3 space-y-3">
+                            <h5 className="text-xs font-semibold text-gray-700">Penyesuaian Detail Job</h5>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <label className="block text-gray-600 mb-1">Jumlah Unit Baru</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={editForm.data.units}
+                                        onChange={e => editForm.setData('units', e.target.value)}
+                                        className="w-full border rounded px-2 py-1.5 text-sm"
+                                    />
+                                </div>
+                                {canSeeNilai && (
+                                    <div>
+                                        <label className="block text-gray-600 mb-1">Nilai Kontrak / Invoice (Rp)</label>
+                                        {canEditNilai ? (
+                                            <>
+                                                {showTgl15Warning && (
+                                                    <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1.5 mb-1">
+                                                        Perhatian: Sudah lewat tanggal 15 bulan ini. Perubahan data keuangan berisiko terhadap pelaporan pajak.
+                                                        {/* TODO: [LOCKED-AFTER-TGL-15] Aktifkan lock jika rule sudah disepakati */}
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="number"
+                                                    value={editForm.data.nilai}
+                                                    onChange={e => editForm.setData('nilai', e.target.value)}
+                                                    className="w-full border rounded px-2 py-1.5 text-sm"
+                                                />
+                                            </>
+                                        ) : (
+                                            <p className="text-sm font-medium text-gray-700">{fmtCurrency(editForm.data.nilai)}</p>
+                                        )}
+                                        {editForm.data.nilai > 0 && (() => {
+                                            const total = parseFloat(editForm.data.nilai || 0);
+                                            const dpp = Math.round(total / 1.11);
+                                            const ppn = total - dpp;
+                                            return (
+                                                <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mt-1 flex justify-between">
+                                                    <span>DPP: <strong>Rp {dpp.toLocaleString('id-ID')}</strong></span>
+                                                    <span>PPN (11%): <strong>Rp {ppn.toLocaleString('id-ID')}</strong></span>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleUpdateJob}
+                                disabled={editForm.processing}
+                                className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded"
+                            >
+                                Simpan Penyesuaian Job
+                            </button>
+                        </div>
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+
+                        <div className="flex gap-2 mt-4">
+                            <button
+                                type="button"
+                                onClick={handleRejectStage}
+                                disabled={processing}
+                                className="px-4 py-2 rounded text-sm font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                            >
+                                Tolak / Kembalikan
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleMoveToStage5}
+                                disabled={processing || isMoving}
+                                className="flex-1 px-4 py-2 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm"
+                            >
+                                {processing || isMoving ? '...' : 'Lanjut ke Stage 5 (LHPP) →'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── STAGE 5 (Penyusunan LHPP — INS) ────────── */}
+                {s === 5 && (
+                    <div className="space-y-4">
+                        <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 space-y-1">
+                            <div className="font-semibold flex items-center gap-1.5">
+                                <span>Penyusunan Dokumen LHPP (Tim Ahli / Inspektur)</span>
+                            </div>
+                            <p className="text-blue-700">
+                                Personil / Tim Ahli dapat mengisi link Google Drive / OneDrive / Cloud Storage folder atau dokumen LHPP di bawah ini.
+                            </p>
+                        </div>
+
+                        {/* Multi-Unit Link Drive / Cloud Storage for LHPP */}
+                        <div className="bg-white border-2 border-indigo-200 rounded-lg p-3.5 shadow-sm space-y-3">
+                            <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-800">
+                                        Link Dokumen / Folder LHPP per Unit ({lhppLinks.length} Unit) *
+                                    </label>
+                                    <p className="text-[11px] text-gray-500">
+                                        Masukkan link cloud untuk tiap unit. Anda dapat menamai label dan memberikan catatan per unit.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    {hasValidLhppLink(lhppLinks) && (
+                                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                            Link Terisi
+                                        </span>
+                                    )}
+                                    {canManage && (
+                                        <button
+                                            type="button"
+                                            onClick={handleAddLhppLink}
+                                            className="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded transition"
+                                        >
+                                            + Tambah Unit
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Units List */}
+                            <div className="space-y-2.5">
+                                {lhppLinks.map((item, idx) => (
+                                    <div key={item.id || idx} className="bg-gray-50/70 border border-gray-200 rounded-lg p-2.5 space-y-2 transition-all hover:border-indigo-300">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 flex-shrink-0">
+                                                Unit {item.unit_no || idx + 1}
+                                            </span>
+                                            <input
+                                                type="text"
+                                                value={item.label || ''}
+                                                onChange={e => handleUpdateLhppLink(idx, 'label', e.target.value)}
+                                                placeholder={`Nama / Label Unit ${idx + 1} (misal: Boiler Utama)`}
+                                                className="flex-1 min-w-0 text-xs font-semibold text-gray-800 border border-gray-300 rounded px-2.5 py-1 bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                                                disabled={!canManage}
+                                            />
+                                            {canManage && lhppLinks.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveLhppLink(idx)}
+                                                    className="text-xs font-semibold text-red-500 hover:text-red-700 px-2 py-0.5 rounded border border-red-200 bg-white hover:bg-red-50 flex-shrink-0"
+                                                    title="Hapus baris unit ini"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="url"
+                                                value={item.url || ''}
+                                                onChange={e => handleUpdateLhppLink(idx, 'url', e.target.value)}
+                                                placeholder="https://drive.google.com/... (Link Google Drive / Cloud)"
+                                                className="flex-1 min-w-0 text-xs border border-gray-300 rounded px-2.5 py-1.5 bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 font-mono text-[11px]"
+                                                disabled={!canManage}
+                                            />
+                                            {item.url && item.url.trim() && (
+                                                <a
+                                                    href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition flex-shrink-0"
+                                                >
+                                                    ↗ Buka
+                                                </a>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={item.notes || ''}
+                                                onChange={e => handleUpdateLhppLink(idx, 'notes', e.target.value)}
+                                                placeholder="Catatan per unit (opsional, misal: Kapasitas 10 Ton, SN: 12345, rev 1)..."
+                                                className="w-full text-[11px] text-gray-700 border border-gray-200 rounded px-2.5 py-1 bg-white/80 focus:ring-1 focus:ring-indigo-400"
+                                                disabled={!canManage}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {canManage && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-gray-100">
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveLhppLinks}
+                                        disabled={isSavingLink || isSavingStage}
+                                        className="px-3.5 py-1.5 rounded text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition"
+                                    >
+                                        {isSavingLink || isSavingStage ? 'Menyimpan...' : 'Simpan Semua Link LHPP'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddLhppLink}
+                                        className="px-3.5 py-1.5 rounded text-xs font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition"
+                                    >
+                                        + Tambah Baris Unit Lainnya
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* If there are previously uploaded LHPP files, display them */}
+                        {(job.documents || []).some(d => d.stage === 5 && d.type === 'LHPP') && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+                                <p className="text-[11px] font-medium text-gray-600 mb-1.5">File LHPP yang sudah diunggah:</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {(job.documents || []).filter(d => d.stage === 5 && d.type === 'LHPP').map(doc => (
+                                        <DocChip key={doc.id} doc={doc} canManage={canManageStageDocs(5)} onDelete={deleteDoc} jobId={job.id} isINS={isINS} onPreview={setPreviewDoc} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        
+                        <div className="mt-4 flex flex-col gap-2">
+                            <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={handleRejectStage}
+                                    disabled={processing || isMoving}
+                                    className="px-3.5 py-2 rounded text-xs sm:text-sm font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition whitespace-nowrap"
+                                >
+                                    Tolak / Kembalikan
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleMoveStage}
+                                    disabled={processing || isMoving}
+                                    className="flex-1 px-4 py-2 rounded text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 shadow-sm flex items-center justify-center gap-1.5 transition"
+                                >
+                                    {processing || isMoving ? '...' : 'Kirim ke Tim Ahli (Minta Approval) →'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleBypassStage5}
+                                    disabled={processing || isMoving}
+                                    className="px-3.5 py-2 rounded text-xs sm:text-sm font-bold text-amber-900 bg-amber-400 hover:bg-amber-500 disabled:opacity-40 shadow-sm flex items-center justify-center gap-1.5 transition border border-amber-500 whitespace-nowrap"
+                                    title="Bypass langsung ke Stage 7 (Verifikasi ke Dinas)"
+                                >
+                                    {processing || isMoving ? '...' : 'Bypass Langsung'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── STAGE 6 (Review Laporan Teknis — Tim Ahli / MGR) ───── */}
+                {s === 6 && (
+                    <div className="space-y-3">
+                        <p className="text-xs text-gray-500">Sebagai Tim Ahli / Kadiv Teknis, tinjau laporan teknis pekerjaan ini.</p>
+
+                        {/* Multi-Unit LHPP Links preview for Manager */}
+                        {(() => {
+                            const links = parseLhppLinks(job.link_lhpp, job.actual_units ?? job.units);
+                            const hasLinks = hasValidLhppLink(links);
+                            if (!hasLinks && !job.link_lhpp) return null;
+                            return (
+                                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 space-y-2.5">
+                                    <div className="text-xs font-bold text-indigo-900 flex items-center justify-between">
+                                        <span className="flex items-center gap-1.5">
+                                            <span>Dokumen / Folder LHPP dari Tim Ahli ({links.length} Unit):</span>
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {links.map((item, idx) => (
+                                            <div key={item.id || idx} className="bg-white border border-indigo-100 rounded-lg p-2.5 text-xs shadow-sm space-y-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                        <span className="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold text-[10px] flex-shrink-0">
+                                                            Unit {item.unit_no || idx + 1}
+                                                        </span>
+                                                        <span className="font-bold text-gray-800 truncate">
+                                                            {item.label || `Unit ${idx + 1}`}
+                                                        </span>
+                                                    </div>
+                                                    {item.url ? (
+                                                        <a
+                                                            href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition flex-shrink-0 shadow-sm"
+                                                        >
+                                                            ↗ Buka Link
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-[11px] text-gray-400 italic flex-shrink-0">Belum diisi link</span>
+                                                    )}
+                                                </div>
+                                                {item.url && (
+                                                    <div className="text-[11px] text-gray-500 font-mono truncate" title={item.url}>
+                                                        {item.url}
+                                                    </div>
+                                                )}
+                                                {item.notes && (
+                                                    <div className="text-[11px] text-amber-800 bg-amber-50 rounded px-2 py-0.5 border border-amber-200/60 mt-1">
+                                                        <span className="font-semibold">Catatan Unit:</span> {item.notes}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {job.s5_review_decision && (
+                            <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
+                                Keputusan sebelumnya: <strong>{STAGE5_DECISIONS.find(d => d.value === job.s5_review_decision)?.label}</strong>
+                                {job.s5_review_notes && <span> — {job.s5_review_notes}</span>}
+                            </div>
+                        )}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Keputusan Review *</label>
+                            <select value={s5.s5_review_decision} onChange={e => setS5({ ...s5, s5_review_decision: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5">
+                                <option value="">-- Pilih Keputusan --</option>
+                                {STAGE5_DECISIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Catatan MGR</label>
+                            <textarea rows={3} value={s5.s5_review_notes} onChange={e => setS5({ ...s5, s5_review_notes: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                placeholder="Catatan kondisi, syarat, atau alasan penolakan…" />
+                        </div>
+                        <button type="button" onClick={handleSaveS5}
+                            disabled={isSavingStage}
+                            className="w-full py-2 rounded text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition">
+                            {isSavingStage ? 'Menyimpan...' : 'Simpan Keputusan Review'}
+                        </button>
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <div className="flex gap-2">
+                            <button type="button" onClick={handleRejectStage}
+                                className="px-4 py-2 rounded text-sm bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+                                Tolak / Kembalikan
+                            </button>
+                            <button type="button" onClick={handleMoveStage} disabled={processing || !s5.s5_review_decision || s5.s5_review_decision === 'rejected'}
+                                className="flex-1 py-2 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40">
+                                {processing ? '...' : 'Lanjut ke Stage 7 Penyerahan →'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── STAGE 7 (Penyerahan ke Dinas — Admin) ──── */}
+                {s === 7 && (
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Penyerahan ke Disnaker *</label>
+                            <input type="date" value={s7.tgl_submit_disnaker}
+                                onChange={e => setS7({ tgl_submit_disnaker: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5" />
+                        </div>
+                        <button type="button" onClick={handleSaveS7}
+                            disabled={isSavingStage}
+                            className="px-4 py-2 rounded text-sm font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 transition">
+                            {isSavingStage ? 'Menyimpan...' : 'Simpan Tanggal Penyerahan'}
+                        </button>
+                        <UploadSlot type="Bukti Penyerahan ke Disnaker" stageId={7} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isINS={isINS} />
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing} onReject={handleRejectStage} onMove={handleMoveStage} disabled={!s7.tgl_submit_disnaker} disabledMsg={!s7.tgl_submit_disnaker ? 'Isi tanggal penyerahan terlebih dahulu' : ''} />
+                    </div>
+                )}
+
+                {/* ── STAGE 8 (Proses Disnaker — Admin) ──────── */}
+                {s === 8 && (
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Status Disnaker (Progress)</label>
+                            <select value={s8.s8_progress_status} onChange={e => setS8({ ...s8, s8_progress_status: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 font-medium">
+                                <option value="">-- Pilih Status Disnaker --</option>
+                                {STAGE8_DISNAKER_STATUSES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                            </select>
+                        </div>
+                        {s8.s8_progress_status === 'stuck' && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-1">
+                                <label className="block text-xs font-bold text-red-800">
+                                    Keterangan Kendala di Disnaker
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={s8.s8_delay_reason || ''}
+                                    onChange={e => setS8({ ...s8, s8_delay_reason: e.target.value })}
+                                    placeholder="Jelaskan alasan terkendala (misal: Menunggu tanda tangan Kadis, pejabat dinas luar, dll)..."
+                                    className="w-full text-xs border border-red-300 rounded px-2.5 py-1.5 bg-white text-gray-800 focus:ring-1 focus:ring-red-400"
+                                />
+                            </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Dokumen Diserahkan ke Disnaker</label>
+                                <input type="date" value={s8.tgl_doc_submitted_disnaker}
+                                    onChange={e => setS8({ ...s8, tgl_doc_submitted_disnaker: e.target.value })}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Dokumen Diterima Kembali</label>
+                                <input type="date" value={s8.tgl_doc_received_disnaker}
+                                    onChange={e => setS8({ ...s8, tgl_doc_received_disnaker: e.target.value })}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5" />
+                            </div>
+                        </div>
+                        {/* SLA indicator */}
+                        {s8.tgl_doc_submitted_disnaker && (() => {
+                            const d = daysElapsed(s8.tgl_doc_submitted_disnaker);
+                            const tag = getSlaTag(d, 30);
+                            return (
+                                <div className={`rounded p-2 text-xs font-semibold ${tag?.cls}`}>
+                                    {d} hari dari penyerahan dokumen (SLA: 30 hari) — {tag?.label}
+                                </div>
+                            );
+                        })()}
+                        <button type="button" onClick={handleSaveS8}
+                            disabled={isSavingStage}
+                            className="px-4 py-2 rounded text-sm font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 transition">
+                            {isSavingStage ? 'Menyimpan...' : 'Simpan Data Disnaker'}
+                        </button>
+                        {(DOC_TYPES_BY_STAGE[8] || []).map(t => <UploadSlot key={t} type={t} stageId={8} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isINS={isINS} />)}
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing} onReject={handleRejectStage} onMove={handleMoveStage} />
+                    </div>
+                )}
+
+                {/* ── STAGE 9 (Pengurusan Suket — Admin) ──────── */}
+                {s === 9 && (
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Status Suket (Stage 9)</label>
+                            <select value={s9.s9_progress_status} onChange={e => setS9({ s9_progress_status: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5">
+                                <option value="">-- Pilih Status Suket --</option>
+                                {STAGE9_SUKET_STATUSES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                            </select>
+                        </div>
+                        <button type="button" onClick={handleSaveS9}
+                            disabled={isSavingStage}
+                            className="px-4 py-2 rounded text-sm font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 transition">
+                            {isSavingStage ? 'Menyimpan...' : 'Simpan Status'}
+                        </button>
+                        {(DOC_TYPES_BY_STAGE[9] || []).map(t => <UploadSlot key={t} type={t} stageId={9} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isINS={isINS} />)}
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <div className="flex gap-2 mt-2">
+                            <button type="button" onClick={handleRejectStage}
+                                className="px-3 py-2 rounded text-sm bg-red-50 text-red-700 border border-red-200">Tolak</button>
+                            <button type="button" onClick={handleMoveStage} disabled={processing}
+                                className="flex-1 py-2 rounded text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40">
+                                {processing ? '...' : 'Lanjut ke Stage 10 →'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── STAGE 10 (Pembuatan Invoice — Finance) ──────────── */}
+                {s === 10 && (() => {
+                    const hasInvoiceDoc10 = (job.documents || []).some(d => ['Invoice, Kwitansi & Faktur Pajak', 'Invoice (PDF)', 'Invoice', 'Faktur / Invoice', 'Faktur', 'Faktur Pajak', 'Kwitansi'].includes(d.type) || d.stage === 10);
+                    const s10CanMove = s10.invoice_no?.trim() && s10.total_invoice_amount && parseFloat(s10.total_invoice_amount) > 0 && s10.tgl_invoice_issued && hasInvoiceDoc10;
+                    const s10DisabledMsg = !s10.invoice_no?.trim() ? 'Isi Nomor Invoice terlebih dahulu' :
+                        (!s10.total_invoice_amount || parseFloat(s10.total_invoice_amount) <= 0) ? 'Isi Total Invoice (Nilai Tagihan) dengan benar' :
+                        !s10.tgl_invoice_issued ? 'Isi Tanggal Invoice Diterbitkan terlebih dahulu' :
+                        !hasInvoiceDoc10 ? 'Upload Dokumen "Invoice, Kwitansi & Faktur Pajak" terlebih dahulu' : '';
+
+                    return (
+                        <div className="space-y-3">
+                            {showTgl15Warning && (
+                                <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+                                    <strong>Peringatan Tanggal 15:</strong> Sudah melewati batas tanggal 15 bulan berjalan. Perubahan data nilai invoice dan faktur pajak berisiko terhadap pelaporan pajak.
+                                    {/* TODO: [LOCKED-AFTER-TGL-15] Aktifkan disable form jika lock disepakati */}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Nomor Invoice *</label>
+                                    <input type="text" value={s10.invoice_no}
+                                        placeholder="Contoh: INV/2026/001"
+                                        onChange={e => setS10({ ...s10, invoice_no: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Total Invoice (Rp) *</label>
+                                    <input type="number" value={s10.total_invoice_amount}
+                                        onChange={e => setS10({ ...s10, total_invoice_amount: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Invoice Diterbitkan *</label>
+                                    <input type="date" value={s10.tgl_invoice_issued}
+                                        onChange={e => setS10({ ...s10, tgl_invoice_issued: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Submit ke MKT</label>
+                                    <input type="date" value={s10.tgl_submit_mkt}
+                                        onChange={e => setS10({ ...s10, tgl_submit_mkt: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Nomor Faktur Pajak</label>
+                                    <input type="text" value={s10.no_faktur_pajak || ''}
+                                        placeholder="Contoh: 010.000-26.00000001"
+                                        onChange={e => setS10({ ...s10, no_faktur_pajak: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Faktur Pajak</label>
+                                    <input type="date" value={s10.tgl_faktur_pajak || ''}
+                                        onChange={e => setS10({ ...s10, tgl_faktur_pajak: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai} />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Status Progress</label>
+                                    <select value={s10.s10_progress_status} onChange={e => setS10({ ...s10, s10_progress_status: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+                                        disabled={!canEditNilai}>
+                                        <option value="">-- Pilih Status --</option>
+                                        {PROGRESS_STATUSES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            {canEditNilai && (
+                                <button type="button" onClick={handleSaveS10}
+                                    disabled={isSavingStage}
+                                    className="px-4 py-2 rounded text-sm font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 transition">
+                                    {isSavingStage ? 'Menyimpan...' : 'Simpan Data Invoice & Faktur'}
+                                </button>
+                            )}
+                            {(DOC_TYPES_BY_STAGE[10] || []).map(t => <UploadSlot key={t} type={t} stageId={10} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isINS={isINS} />)}
+                            <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                            <MoveRow stage={s} processing={processing || isMoving} onReject={handleRejectStage} onMove={handleMoveStage} disabled={!s10CanMove} disabledMsg={s10DisabledMsg} />
+                        </div>
+                    );
+                })()}
+
+                {/* ── STAGE 11 (Penagihan / Follow-up — Marketing) ──────── */}
+                {s === 11 && (
+                    <div className="space-y-3">
+                        <div className="bg-sky-50 border border-sky-200 rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-sky-900 mb-1">
+                                Stage 11 — Penagihan / Follow-up (Marketing)
+                            </h4>
+                            <p className="text-xs text-sky-700">
+                                Lakukan follow-up dan penagihan ke klien atas invoice yang telah diterbitkan Finance.
+                            </p>
+                        </div>
+
+                        {job.invoice_no && (
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <span className="font-bold text-[#0A385C]">Invoice:</span> {job.invoice_no}
+                                    {canSeeNilai && job.total_invoice_amount > 0 && (
+                                        <span className="ml-2 font-semibold text-gray-800">• Rp {Number(job.total_invoice_amount).toLocaleString('id-ID')}</span>
+                                    )}
+                                    {job.tgl_invoice_issued && (
+                                        <span className="ml-2 text-gray-500">• Tgl: {fmt(job.tgl_invoice_issued)}</span>
+                                    )}
+                                    <span className="block text-[11px] text-gray-500">Revisi invoice ditangani Finance secara paralel tanpa menghambat alur kerja.</span>
+                                </div>
+                                {canEditNilai && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReviseInvoiceModal(true)}
+                                        disabled={!canReviseInvoiceMonth}
+                                        className={`text-xs font-bold px-2 py-1 rounded self-start sm:self-auto border transition-colors ${
+                                            canReviseInvoiceMonth
+                                                ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                                                : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        }`}
+                                        title={canReviseInvoiceMonth ? 'Revisi Invoice' : 'Batas waktu revisi invoice (bulan yang sama) telah berakhir'}
+                                    >
+                                        Revisi Invoice
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+                            <label className="block text-xs font-semibold text-gray-800">Tanggal Follow-up / Penyerahan Tagihan</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input
+                                    type="date"
+                                    value={s11.tgl_submit_mkt || ''}
+                                    onChange={e => setS11({ ...s11, tgl_submit_mkt: e.target.value })}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                />
+                                <input
+                                    type="text"
+                                    value={s11.notes || ''}
+                                    onChange={e => setS11({ ...s11, notes: e.target.value })}
+                                    placeholder="Catatan respon klien (Opsional)"
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleSaveS11}
+                                disabled={isSavingStage}
+                                className="px-3 py-1.5 rounded text-xs font-semibold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 transition"
+                            >
+                                {isSavingStage ? 'Menyimpan...' : 'Simpan Data Follow-up'}
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-gray-500 font-medium">Dokumen Pendukung Tagihan / Follow-up (Opsional):</p>
+                        {(DOC_TYPES_BY_STAGE[11] || []).map(t => (
+                            <UploadSlot key={t} type={t} stageId={11} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isOptional={true} isINS={isINS} />
+                        ))}
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing || isMoving} onReject={handleRejectStage} onMove={handleMoveStage} />
+                    </div>
+                )}
+
+                {/* ── STAGE 14 (Verifikasi Bayar & PPh: Lunas — 11b FIN) ── */}
+                {s === 14 && (
+                    <div className="space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-blue-900 mb-1">
+                                Stage 11b — Verifikasi Bayar & PPh: Lunas (Finance)
+                            </h4>
+                            <p className="text-xs text-blue-700">
+                                Verifikasi status pembayaran dan bukti potong PPh dari klien. Dokumen SUKET hanya dapat dikirim ke klien setelah status pembayaran diverifikasi LUNAS.
+                            </p>
+                        </div>
+
+                        {job.invoice_no && (
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700">
+                                <span className="font-bold text-[#0A385C]">Invoice:</span> {job.invoice_no}
+                                {canSeeNilai && job.total_invoice_amount > 0 && (
+                                    <span className="ml-2 font-semibold text-gray-800">• Tagihan: Rp {Number(job.total_invoice_amount).toLocaleString('id-ID')}</span>
+                                )}
+                            </div>
+                        )}
+                        
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Status Pembayaran 11b *</label>
+                            <select
+                                value={s14.s14_payment_status || 'pending'}
+                                onChange={e => setS14({ ...s14, s14_payment_status: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2.5 py-1.5 font-medium"
+                                disabled={user?.role !== 'finance' && !user?.isSuperadmin && user?.role !== 'superadmin'}
+                            >
+                                <option value="pending">Pending (Belum Lunas)</option>
+                                <option value="partial">Partial (Dibayar Sebagian)</option>
+                                <option value="paid">Paid (Lunas Sempurna)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Catatan Pembayaran & Potong PPh</label>
+                            <textarea
+                                rows={2}
+                                value={s14.s14_payment_notes || ''}
+                                onChange={e => setS14({ ...s14, s14_payment_notes: e.target.value })}
+                                className="w-full text-sm border border-gray-300 rounded px-2.5 py-1.5"
+                                placeholder="Contoh: Transfer BCA tgl 20 Aug, Bukti Potong PPh 23 terlampir 2%, lunas..."
+                                disabled={user?.role !== 'finance' && !user?.isSuperadmin && user?.role !== 'superadmin'}
+                            />
+                        </div>
+
+                        {(user?.role === 'finance' || user?.role === 'superadmin') && (
+                            <button
+                                type="button"
+                                onClick={handleSaveS14}
+                                disabled={isSavingStage}
+                                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold text-xs shadow-sm disabled:opacity-50 transition"
+                            >
+                                {isSavingStage ? 'Menyimpan...' : 'Simpan Status Pembayaran 11b'}
+                            </button>
+                        )}
+
+                        <p className="text-xs font-semibold text-gray-700 mt-3 mb-1">Dokumen Pendukung Pembayaran & PPh (Opsional):</p>
+                        {(DOC_TYPES_BY_STAGE[14] || []).map(t => (
+                            <UploadSlot key={t} type={t} stageId={14} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isOptional={true} isINS={isINS} />
+                        ))}
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        
+                        {(user?.role === 'finance' || user?.role === 'superadmin') ? (
+                            <MoveRow
+                                stage={s}
+                                processing={processing || isMoving}
+                                onReject={handleRejectStage}
+                                onMove={handleMoveStage}
+                                disabled={s14.s14_payment_status !== 'paid'}
+                                disabledMsg={s14.s14_payment_status !== 'paid' ? 'Pekerjaan hanya dapat dilanjutkan ke Pengiriman SUKET (11c) setelah status pembayaran Lunas (Paid).' : ''}
+                            />
+                        ) : (
+                            <div className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded p-3 text-center">
+                                Hanya <strong>Finance</strong> yang berwenang memverifikasi pembayaran dan meloloskan ke Pengiriman SUKET.
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ── STAGE 15 (Kirim SUKET ke Klien — 11c MKT) ──────── */}
+                {s === 15 && (
+                    <div className="space-y-3">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
+                                <span>✅</span> Stage 11c — Kirim SUKET ke Klien (Marketing)
+                            </h4>
+                            <p className="text-xs text-emerald-700">
+                                Pembayaran LUNAS telah diverifikasi oleh Finance. Silakan serahkan atau kirimkan dokumen resmi SUKET ke Klien.
+                            </p>
+                        </div>
+
+                        {/* No. Resi & Tgl Kirim */}
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+                            <label className="block text-xs font-semibold text-gray-800">Informasi Pengiriman / Penyerahan SUKET</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-[11px] text-gray-500 mb-1">No. Resi / Kurir (Opsional)</label>
+                                    <input
+                                        type="text"
+                                        value={s15.no_resi || ''}
+                                        onChange={e => setS15({ ...s15, no_resi: e.target.value })}
+                                        placeholder="Contoh: JNE-123456789, SiCepat-987..."
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] text-gray-500 mb-1">Tanggal Penyerahan (Opsional)</label>
+                                    <input
+                                        type="date"
+                                        value={s15.tgl_submit_mkt || ''}
+                                        onChange={e => setS15({ ...s15, tgl_submit_mkt: e.target.value })}
+                                        className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleSaveS15}
+                                disabled={isSavingStage}
+                                className="px-3 py-1.5 rounded text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap disabled:opacity-50 transition"
+                            >
+                                {isSavingStage ? 'Menyimpan...' : 'Simpan Informasi SUKET'}
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-gray-500 font-medium">Upload Tanda Terima / Bukti Pengiriman SUKET (Opsional):</p>
+                        {(DOC_TYPES_BY_STAGE[15] || []).map(t => (
+                            <UploadSlot key={t} type={t} stageId={15} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isOptional={true} isINS={isINS} />
+                        ))}
+
+                        <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                        <MoveRow stage={s} processing={processing || isMoving} onReject={handleRejectStage} onMove={handleMoveStage} />
+                    </div>
+                )}
+
+                {/* STAGE 12 (Final Financial Closing - FIN) */}
+                {s === 12 && (
+                    <div className="space-y-4">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+                            <h4 className="text-base font-bold text-emerald-900 mt-2">Stage 12 - Final Financial Closing (Closed)</h4>
+                            <p className="text-xs text-emerald-700 mt-1 max-w-md mx-auto">
+                                Seluruh proses sertifikasi, penagihan, verifikasi pelunasan pembayaran, dan penyerahan SUKET ke klien telah selesai dan terverifikasi.
+                            </p>
+                        </div>
+
+                        <p className="text-xs font-semibold text-gray-700 mt-3 mb-1">Dokumen Rekap &amp; Closing Final (Opsional):</p>
+                        {(DOC_TYPES_BY_STAGE[12] || []).map(t => (
+                            <UploadSlot key={t} type={t} stageId={12} docs={job.documents} triggerUpload={triggerUpload} uploadFileDirectly={uploadFileDirectly} canManageStageDocs={canManageStageDocs} deleteDoc={deleteDoc} isOptional={true} isINS={isINS} />
+                        ))}
+
+                        {(user?.role === 'finance' || user?.role === 'superadmin' || permissions === 'superadmin') && (
+                            <div className="bg-teal-50 border border-teal-300 rounded-lg p-3.5 space-y-2 mt-4">
+                                <div className="flex items-center gap-2 text-xs font-bold text-teal-900">
+                                    Selesaikan dan Arsipkan Pekerjaan
+                                </div>
+                                <p className="text-[11px] text-teal-800">
+                                    Setelah semua dokumen closing selesai, klik tombol di bawah untuk mengarsipkan pekerjaan ini ke status Selesai. Job akan disembunyikan dari Kanban dan hanya bisa dipulihkan oleh Superadmin.
+                                </p>
+                                <NoteField value={data.notes} onChange={e => setData('notes', e.target.value)} />
+                                <button
+                                    type="button"
+                                    disabled={processing || isMoving}
+                                    onClick={handleArchiveStage16}
+                                    className="px-3.5 py-2 rounded text-xs font-bold bg-teal-700 hover:bg-teal-800 text-white shadow-xs transition flex items-center gap-1.5"
+                                >
+                                    {processing || isMoving ? '...' : 'Selesaikan dan Arsipkan Pekerjaan'}
+                                </button>
+                            </div>
+                        )}
+
+                        {(user?.role === 'superadmin' || permissions === 'superadmin') && (
+                            <div className="bg-amber-50 border border-amber-300 rounded-lg p-3.5 space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                                    Fitur Khusus Superadmin: Buka Kembali Pekerjaan
+                                </div>
+                                <p className="text-[11px] text-amber-800">
+                                    Jika terdapat revisi pembayaran, perbaikan data, atau pembatalan penutupan, Superadmin dapat membuka kembali pekerjaan ini ke stage sebelumnya.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleReopenJob}
+                                    className="px-3.5 py-2 rounded text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition flex items-center gap-1.5"
+                                >
+                                    Buka Kembali Pekerjaan (Re-open Job)
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* STAGE 16 (Selesai - Archived) */}
+                {s === 16 && (
+                    <div className="space-y-4">
+                        <div className="bg-emerald-50 border-2 border-emerald-400 rounded-xl p-5 text-center">
+                            <div className="text-3xl mb-2">&#x2705;</div>
+                            <h4 className="text-lg font-extrabold text-emerald-900">Pekerjaan Selesai dan Diarsipkan</h4>
+                            <p className="text-xs text-emerald-700 mt-1 max-w-sm mx-auto">
+                                Job ini telah diselesaikan oleh Finance dan diarsipkan. Tidak muncul di Kanban board regular.
+                            </p>
+                        </div>
+
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 space-y-1">
+                            <p><span className="font-semibold text-gray-700">Klien:</span> {job.klien}</p>
+                            <p><span className="font-semibold text-gray-700">Invoice:</span> {job.invoice_no || '-'}</p>
+                            <p><span className="font-semibold text-gray-700">Nilai Invoice:</span> Rp {job.total_invoice_amount ? Number(job.total_invoice_amount).toLocaleString('id-ID') : '-'}</p>
+                            <p><span className="font-semibold text-gray-700">Status Bayar:</span> {(job.payment_status === 'paid' || job.paid) ? 'Lunas' : 'Belum Lunas'}</p>
+                        </div>
+
+                        {(user?.role === 'superadmin' || permissions === 'superadmin') && (
+                            <div className="bg-amber-50 border border-amber-300 rounded-lg p-3.5 space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                                    Pulihkan Pekerjaan (Superadmin)
+                                </div>
+                                <p className="text-[11px] text-amber-800">
+                                    Jika pekerjaan ini perlu ditangani kembali (revisi, klaim, atau keperluan darurat), Superadmin dapat memulihkan job ini ke stage yang relevan.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleReopenJob}
+                                    className="px-3.5 py-2 rounded text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition flex items-center gap-1.5"
+                                >
+                                    Pulihkan Job dari Arsip Selesai
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+// ══ END PART B ══
+
+// ══ BEGIN PART C ══
+
+    // ── Completed Stage Summary ────────────────────────────────────────────────
+    const renderCompletedStageSummary = (s) => {
+        const logs = (job.historyLogs || job.history_logs || []);
+        const stageLog = logs.find(l => l.from_stage === s || l.to_stage === s);
+        const stageNotes = stageLog?.notes;
+
+        if (s === 1) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Ringkasan Order Masuk:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        <div><span className="text-gray-400">No. PO / SPK:</span> <span className="font-semibold text-gray-800">{isINS ? '[Terkunci]' : (job.no_po || '-')}</span></div>
+                        <div><span className="text-gray-400">{isINS ? 'Tgl Registrasi:' : 'Tgl PO:'}</span> <span className="font-semibold text-gray-800">{isINS ? fmt(job.created_at) : (job.tgl_po ? fmt(job.tgl_po, { day: 'numeric', month: 'short', year: 'numeric' }) : '-')}</span></div>
+                        <div><span className="text-gray-400">Klien:</span> <span className="font-semibold text-gray-800">{job.klien || '-'}</span></div>
+                        <div><span className="text-gray-400">Pesawat / Alat:</span> <span className="font-semibold text-gray-800">{job.pesawat || '-'}</span></div>
+                        <div><span className="text-gray-400">Lokasi:</span> <span className="font-semibold text-gray-800">{job.lokasi || '-'}</span></div>
+                        <div><span className="text-gray-400">Jumlah Unit:</span> <span className="font-semibold text-gray-800">{job.units || 1} Unit</span></div>
+                        {canSeeNilai && (
+                            <div className="col-span-2"><span className="text-gray-400">Nilai Kontrak:</span> <span className="font-semibold text-gray-800">{job.nilai ? `Rp ${Number(job.nilai).toLocaleString('id-ID')}` : '-'}</span></div>
+                        )}
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 3) {
+            const schedDays = parseJsonArray(job.schedule_days);
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Penjadwalan:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        <div><span className="text-gray-400">Jam Mulai:</span> <span className="font-semibold text-gray-800">{job.jam_mulai || '-'}</span></div>
+                        <div><span className="text-gray-400">Total Hari:</span> <span className="font-semibold text-gray-800">{job.durasi_hari ? `${job.durasi_hari} Hari` : '-'}</span></div>
+                        <div className="col-span-2"><span className="text-gray-400">Disnaker Tujuan:</span> <span className="font-semibold text-gray-800">{job.disnaker_tujuan || '-'}</span></div>
+                    </div>
+                    {schedDays.length > 0 ? (
+                        <div className="space-y-1.5">
+                            {schedDays.map((day, idx) => {
+                                const dayInspectors = (job.inspectors || []).filter(ins =>
+                                    (day.inspector_ids || []).map(String).includes(String(ins.id))
+                                );
+                                return (
+                                    <div key={idx} className="flex gap-2 items-start text-xs bg-white border border-gray-200 rounded px-2.5 py-1.5">
+                                        <span className="font-bold text-indigo-700 shrink-0">Hari {idx + 1} ({fmt(day.date)}):</span>
+                                        <span className="text-gray-700">
+                                            {dayInspectors.length > 0
+                                                ? dayInspectors.map(i => i.name).join(', ')
+                                                : (day.inspector_ids?.length > 0 ? `${day.inspector_ids.length} inspektur` : '-')}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        /* Backward compat: old flat format */
+                        <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600 space-y-1">
+                            <div><span className="text-gray-400">Tgl Pelaksanaan:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_pelaksanaan) || '-'}</span></div>
+                            <div><span className="text-gray-400">Personel Tim RU Bertugas:</span> <span className="font-semibold text-gray-800">{job.inspectors?.length > 0 ? job.inspectors.map(i => i.name).join(', ') : '-'}</span></div>
+                        </div>
+                    )}
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 4) {
+            const s4Checklist = parseJsonObject(job.s4_checklist);
+            const checkedCount = Object.values(s4Checklist).filter(Boolean).length;
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Pelaksanaan RU:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        <div><span className="text-gray-400">Tgl Pelaksanaan:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_pelaksanaan) || '-'}</span></div>
+                        <div><span className="text-gray-400">Tim Riksa Uji (Tim RU):</span> <span className="font-semibold text-gray-800">{job.inspectors?.length > 0 ? job.inspectors.map(i => i.name).join(', ') : '-'}</span></div>
+                        <div><span className="text-gray-400">Report Writer:</span> <span className="font-semibold text-gray-800">{job.report_writer ? job.report_writer.name : '-'}</span></div>
+                        <div><span className="text-gray-400">Checklist Lapangan:</span> <span className="font-semibold text-emerald-700">{checkedCount > 0 ? `${checkedCount} Item Terverifikasi` : '-'}</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Inspeksi: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 13) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Aktualisasi Unit:</p>
+                    <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600">
+                        <div><span className="text-gray-400">Status Update Unit:</span> <span className="font-semibold text-gray-800">Selesai diperbarui</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 5) {
+            const links = parseLhppLinks(job.link_lhpp, job.actual_units ?? job.units);
+            const hasLinks = hasValidLhppLink(links);
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Penyusunan LHPP:</p>
+                    <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600 space-y-2">
+                        <div><span className="text-gray-400">Status LHPP:</span> <span className="font-semibold text-emerald-700">Dokumen Selesai Disusun</span></div>
+                        {hasLinks && (
+                            <div className="space-y-1.5 pt-1 border-t border-gray-200/60">
+                                <span className="text-gray-500 font-semibold block">Daftar Link LHPP per Unit:</span>
+                                <div className="space-y-1.5">
+                                    {links.filter(item => item.url && item.url.trim()).map((item, idx) => (
+                                        <div key={item.id || idx} className="bg-white p-2 rounded border border-gray-200 shadow-2xs space-y-0.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                    <span className="px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]">
+                                                        Unit {item.unit_no || idx + 1}
+                                                    </span>
+                                                    <span className="font-semibold text-gray-800 truncate">
+                                                        {item.label || `Unit ${idx + 1}`}
+                                                    </span>
+                                                </div>
+                                                <a
+                                                    href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1 font-semibold text-[11px] text-indigo-600 hover:text-indigo-800 hover:underline flex-shrink-0"
+                                                >
+                                                    Buka ↗
+                                                </a>
+                                            </div>
+                                            {item.notes && (
+                                                <p className="text-[11px] text-gray-500 italic pl-1">
+                                                    Catatan: {item.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Penyusunan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 6) {
+            const decisionObj = STAGE5_DECISIONS.find(d => d.value === job.s5_review_decision);
+            const decisionLabel = decisionObj ? decisionObj.label : job.s5_review_decision;
+            const badgeCls = job.s5_review_decision === 'approved' 
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                : job.s5_review_decision === 'conditional' 
+                    ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                    : 'bg-red-100 text-red-800 border-red-300';
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Hasil Review Manager:</p>
+                    <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 space-y-1.5">
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-400">Keputusan Review:</span>
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${badgeCls}`}>
+                                {decisionLabel || 'Approved'}
+                            </span>
+                        </div>
+                        {job.s5_review_notes && (
+                            <div>
+                                <span className="text-gray-400">Catatan Reviewer:</span>{' '}
+                                <span className="font-medium text-gray-800">{job.s5_review_notes}</span>
+                            </div>
+                        )}
+                    </div>
+                    {stageNotes && !job.s5_review_notes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 7) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Penyerahan ke Dinas:</p>
+                    <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600">
+                        <div><span className="text-gray-400">Tgl Penyerahan ke Disnaker:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_submit_disnaker) || '-'}</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Penyerahan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 8) {
+            const statusObj = STAGE8_DISNAKER_STATUSES.find(p => p.value === job.s8_progress_status);
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Proses Disnaker:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        <div><span className="text-gray-400">Status Progress:</span> <span className="font-semibold text-gray-800">{statusObj ? statusObj.label : (job.s8_progress_status || '-')}</span></div>
+                        <div><span className="text-gray-400">Tgl Diserahkan:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_doc_submitted_disnaker) || '-'}</span></div>
+                        <div><span className="text-gray-400">Tgl Diterima Kembali:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_doc_received_disnaker) || '-'}</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 9) {
+            const s9StatusObj = STAGE9_SUKET_STATUSES.find(p => p.value === job.s9_progress_status)
+                || PROGRESS_STATUSES.find(p => p.value === job.s9_progress_status);
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Informasi Suket:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        <div><span className="text-gray-400">Status Progress:</span> <span className="font-semibold text-gray-800">{s9StatusObj ? s9StatusObj.label : (job.s9_progress_status || '-')}</span></div>
+                        <div><span className="text-gray-400">No Suket:</span> <span className="font-semibold text-gray-800">{job.s9_no_suket || '-'}</span></div>
+                        <div><span className="text-gray-400">Masa Berlaku:</span> <span className="font-semibold text-gray-800">{fmt(job.s9_suket_berlaku_sampai) || '-'}</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 10) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Detail Invoice & Faktur:</p>
+                    <div className="grid grid-cols-2 gap-2 text-gray-600 bg-gray-50/70 p-2.5 rounded border border-gray-100">
+                        {canSeeNilai && (
+                            <div><span className="text-gray-400">Total Invoice:</span> <span className="font-semibold text-gray-800">{job.total_invoice_amount ? `Rp ${Number(job.total_invoice_amount).toLocaleString('id-ID')}` : '-'}</span></div>
+                        )}
+                        <div><span className="text-gray-400">Tgl Invoice Diterbitkan:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_invoice_issued) || '-'}</span></div>
+                        <div><span className="text-gray-400">Status Progress:</span> <span className="font-semibold text-gray-800">{job.s10_progress_status || '-'}</span></div>
+                        <div><span className="text-gray-400">Tgl Submit MKT:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_submit_mkt) || '-'}</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Invoice: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 11) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Penagihan / Follow-up (Marketing):</p>
+                    <div className="grid grid-cols-2 gap-2 bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600">
+                        <div><span className="text-gray-400">Tgl Follow-up / Submit:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_submit_mkt) || '-'}</span></div>
+                        <div className="col-span-2"><span className="text-gray-400">Status:</span> <span className="font-semibold text-blue-700">Invoice telah ditagihkan ke Klien</span></div>
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Penagihan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 14) {
+            const statusLabel = job.s14_payment_status === 'paid' ? 'Paid (Lunas Sempurna)' : job.s14_payment_status === 'partial' ? 'Partial (Dibayar Sebagian)' : 'Pending';
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Verifikasi Pembayaran & PPh (Finance):</p>
+                    <div className="bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600 space-y-1">
+                        <div><span className="text-gray-400">Status Pembayaran 11b:</span> <span className="font-bold text-gray-800">{statusLabel}</span></div>
+                        {job.s14_payment_notes && (
+                            <div><span className="text-gray-400">Catatan Pembayaran & PPh:</span> <span className="font-medium text-gray-800">{job.s14_payment_notes}</span></div>
+                        )}
+                    </div>
+                    {stageNotes && !job.s14_payment_notes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 15) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Pengiriman SUKET ke Klien (Marketing):</p>
+                    <div className="grid grid-cols-2 gap-2 bg-gray-50/70 p-2.5 rounded border border-gray-100 text-gray-600">
+                        <div className="col-span-2"><span className="text-gray-400">Status Pengiriman:</span> <span className="font-semibold text-emerald-700">SUKET telah diserahkan / dikirimkan ke Klien</span></div>
+                        {job.no_resi && (
+                            <div className="col-span-2"><span className="text-gray-400">No. Resi:</span> <span className="font-semibold text-blue-700 font-mono">{job.no_resi}</span></div>
+                        )}
+                        {job.tgl_submit_mkt && (
+                            <div><span className="text-gray-400">Tgl Penyerahan:</span> <span className="font-semibold text-gray-800">{fmt(job.tgl_submit_mkt)}</span></div>
+                        )}
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Pengiriman: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 12) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">Final Financial Closing (Finance):</p>
+                    <div className="bg-emerald-50/70 p-2.5 rounded border border-emerald-100 text-emerald-800 text-xs font-semibold">
+                        Pekerjaan Selesai dan Ditutup Penuh.
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-amber-800">Catatan Closing: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (s === 16) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <p className="font-bold text-gray-700">✅ Selesai & Diarsipkan:</p>
+                    <div className="bg-emerald-50/70 p-2.5 rounded border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                        Pekerjaan telah diselesaikan dan diarsipkan oleh Finance.
+                    </div>
+                    {stageNotes && (
+                        <div className="text-gray-600 bg-teal-50/60 border border-teal-200/60 rounded p-2 text-xs">
+                            <span className="font-semibold text-teal-800">Catatan Pengarsipan: </span> {stageNotes}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        if (stageNotes) {
+            return (
+                <div className="mt-3 space-y-2 border-t border-gray-100 pt-2 text-xs">
+                    <div className="text-gray-600 bg-amber-50/60 border border-amber-200/60 rounded p-2 text-xs">
+                        <span className="font-semibold text-amber-800">Catatan Stage: </span> {stageNotes}
+                    </div>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+    // ── Timeline Tab ─────────────────────────────────────────────────────────
+    const renderTimeline = () => (
+        <div className="space-y-5 py-1">
+            {/* Top Toolbar: Status Title, SLA, Quick-Jump Dropdown & Expand/Collapse */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 sm:p-3.5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 className="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                            Status Pekerjaan: Stage {currentStageInfo?.displayId || job.stage} ({currentStageInfo?.name})
+                        </h3>
+                        {slaTag && (
+                            <div className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold mt-1 ${slaTag.cls}`}>
+                                ⏱ {daysInStage} hari di stage ini {currentStageInfo?.sla ? `(SLA: ${currentStageInfo.sla} hari)` : ''} — {slaTag.label}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Quick Jump Dropdown */}
+                    <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-2xs">
+                        <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Lompat ke:</span>
+                        <select
+                            className="text-xs font-bold text-[#0A385C] bg-transparent border-0 p-0 focus:ring-0 cursor-pointer"
+                            value={job.stage}
+                            onChange={(e) => {
+                                const targetId = parseInt(e.target.value);
+                                if (targetId) scrollToStage(targetId, true);
+                            }}
+                        >
+                            {STAGES.map(s => {
+                                const isCurr = s.id === job.stage;
+                                const cIdx = STAGES.findIndex(x => x.id === job.stage);
+                                const sIdx = STAGES.findIndex(x => x.id === s.id);
+                                const statusNote = isCurr ? ' (Aktif)' : (sIdx < cIdx ? ' (✓)' : '');
+                                return (
+                                    <option key={s.id} value={s.id}>
+                                        Stage {s.displayId || s.id}: {s.name}{statusNote}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Sub Controls: Expand / Collapse All & Scroll to Active Button */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+                    <button
+                        type="button"
+                        onClick={() => scrollToStage(job.stage, true)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2.5 py-1 rounded transition-colors"
+                        title="Scroll langsung ke stage yang sedang aktif"
+                    >
+                        <span>🎯 Scroll ke Stage Aktif ({currentStageInfo?.displayId || job.stage})</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={expandAllStages}
+                            className="text-[11px] font-semibold text-slate-600 hover:text-blue-600 hover:bg-white px-2 py-0.5 rounded border border-slate-200 transition-colors"
+                        >
+                            Buka Semua
+                        </button>
+                        <button
+                            type="button"
+                            onClick={collapseAllStages}
+                            className="text-[11px] font-semibold text-slate-600 hover:text-blue-600 hover:bg-white px-2 py-0.5 rounded border border-slate-200 transition-colors"
+                        >
+                            Tutup Semua
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="relative border-l-2 border-gray-200 ml-4 pl-6 space-y-5">
+                {STAGES.map(stage => {
+                    const currentStageIdx = STAGES.findIndex(s => s.id === job.stage);
+                    const stageIdx = STAGES.findIndex(s => s.id === stage.id);
+                    const isPast = currentStageIdx > stageIdx;
+                    const isCurrent = currentStageIdx === stageIdx;
+                    const isFuture = currentStageIdx < stageIdx;
+                    const isExpanded = !!expandedStages[stage.id];
+                    
+                    let iconBg = 'bg-gray-100 border-gray-300 text-gray-500';
+                    if (isPast) iconBg = 'bg-emerald-500 border-emerald-600 text-white shadow-2xs';
+                    if (isCurrent) iconBg = 'bg-gradient-to-tr from-[#0A385C] to-[#00A8E8] border-2 border-white text-white ring-4 ring-[#00A8E8]/30 shadow-md scale-110 font-extrabold';
+
+                    const stageDocs = (job.documents || []).filter(d => d.stage === stage.id);
+                    
+                    return (
+                        <div 
+                            key={stage.id} 
+                            ref={el => stageRefs.current[stage.id] = el}
+                            className={`relative transition-opacity duration-200 ${isFuture && !isExpanded ? 'opacity-60' : ''}`}
+                        >
+                            {/* Connector Node */}
+                            <div className={`absolute -left-[35px] top-3.5 w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-transform ${iconBg}`}>
+                                {isPast ? '✓' : (stage.displayId || stage.id)}
+                            </div>
+                            
+                            {/* Stage Card */}
+                            <div className={`bg-white border rounded-xl shadow-xs transition-all overflow-hidden ${
+                                isCurrent 
+                                    ? 'border-[#00A8E8] ring-2 ring-[#00A8E8]/30 shadow-md' 
+                                    : isPast 
+                                        ? 'border-slate-200 hover:border-slate-300' 
+                                        : 'border-slate-200'
+                            }`}>
+                                {/* Dropdown / Accordion Header */}
+                                <div 
+                                    onClick={() => toggleStage(stage.id)}
+                                    className={`flex items-center justify-between p-3 sm:p-3.5 cursor-pointer select-none transition-colors ${
+                                        isCurrent 
+                                            ? 'bg-gradient-to-r from-sky-50/80 via-white to-sky-50/40 hover:bg-sky-50' 
+                                            : isPast
+                                                ? 'bg-slate-50/70 hover:bg-slate-100/80'
+                                                : 'bg-white hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-slate-500 transition-transform duration-200 ${
+                                            isExpanded ? 'rotate-180 text-blue-600' : ''
+                                        }`}>
+                                            <ChevronDown size={15} />
+                                        </div>
+                                        <h4 className={`font-extrabold text-xs sm:text-sm truncate ${isCurrent ? 'text-[#0A385C]' : 'text-slate-800'}`}>
+                                            Stage {stage.displayId || stage.id}: {stage.name}
+                                        </h4>
+                                        {isCurrent && (
+                                            <span className="hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+                                                Aktif
+                                            </span>
+                                        )}
+                                        {isPast && (
+                                            <span className="hidden sm:inline-flex text-[10px] font-semibold px-1.5 py-0.5 rounded text-emerald-700 bg-emerald-50 border border-emerald-200">
+                                                ✓ Selesai
+                                            </span>
+                                        )}
+                                        {stageDocs.length > 0 && !isExpanded && (
+                                            <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                                                📄 {stageDocs.length} dok
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                                            isCurrent ? 'bg-[#0A385C] text-[#00A8E8]' : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                            PIC: {stage.role.toUpperCase()}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {/* Collapsible Dropdown Content */}
+                                {isExpanded && (
+                                    <div className="p-4 border-t border-slate-100">
+                                        {isCurrent && (
+                                            <div className="pt-1">
+                                                {canManage ? (
+                                                    renderStageAction()
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {renderCompletedStageSummary(stage.id)}
+                                                        {stageDocs.length > 0 && (
+                                                            <div className="mt-3 space-y-1">
+                                                                <p className="text-xs text-gray-500 font-medium">Dokumen Tersimpan:</p>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {stageDocs.map(d => <DocChip key={d.id} doc={d} canManage={canManageStageDocs(d.stage)} onDelete={deleteDoc} isINS={isINS} onPreview={setPreviewDoc} />)}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {!isCurrent && stage.id === 2 && (
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-bold text-gray-700">Hasil Verifikasi Dokumen (Stage 2):</p>
+                                                <div className="border border-gray-200 rounded-lg overflow-hidden text-xs bg-gray-50/50 divide-y divide-gray-100">
+                                                    {STAGE2_VERIFY_CHECKLIST.map(item => {
+                                                        const docs = (job.documents || []).filter(d => (d.stage === 1 || d.stage === 2) && d.type === item.type);
+                                                        const hasFile = docs.length > 0;
+                                                        const savedData = parseJsonObject(job.s2_verify_data);
+                                                        const status = savedData[item.type] || s2Verify[item.type];
+                                                        return (
+                                                            <div key={item.type} className="flex items-center justify-between px-3 py-1.5 hover:bg-white transition-colors">
+                                                                <div className="flex items-center gap-2 min-w-0 pr-2">
+                                                                    <span className="font-mono text-gray-400 text-[10px] w-4">{item.no}</span>
+                                                                    <span className="font-medium text-gray-800 truncate">{item.label}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                                    {item.isManual ? (
+                                                                        <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">Manual</span>
+                                                                    ) : (isINS && item.type === 'PO/SPK') ? (
+                                                                        <span className="text-[10px] text-gray-400 font-semibold bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 inline-flex items-center gap-1 italic cursor-not-allowed" title="Dokumen PO/SPK terkunci untuk Inspektur">
+                                                                            🔒 Terkunci
+                                                                        </span>
+                                                                    ) : hasFile ? (
+                                                                        <div className="flex items-center gap-1 flex-wrap">
+                                                                            {docs.map(d => {
+                                                                                if (isINS && (item.type === 'PO/SPK' || isPoLockedForIns(d, isINS))) {
+                                                                                    return (
+                                                                                        <span key={d.id} className="text-[10px] text-gray-400 font-semibold bg-gray-100 px-1.5 py-0.5 rounded border border-gray-300 inline-flex items-center gap-1 italic cursor-not-allowed" title="Dokumen PO/SPK terkunci untuk Inspektur">
+                                                                                            🔒 Terkunci
+                                                                                        </span>
+                                                                                    );
+                                                                                }
+                                                                                return (
+                                                                                    <button
+                                                                                        key={d.id}
+                                                                                        type="button"
+                                                                                        onClick={() => setPreviewDoc(d)}
+                                                                                        className="text-[10px] text-emerald-800 font-semibold bg-emerald-50 hover:bg-emerald-100 hover:underline px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1 shadow-xs cursor-pointer"
+                                                                                        title={`Klik untuk pratinjau: ${d.name}`}
+                                                                                    >
+                                                                                        <Eye size={10} className="text-emerald-600 flex-shrink-0" />
+                                                                                        <span>{d.name ? (d.name.length > 15 ? d.name.slice(0, 12) + '...' : d.name) : 'Ada File'}</span>
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-[10px] text-red-500 font-medium bg-red-50 px-1.5 py-0.5 rounded border border-red-200">Kosong</span>
+                                                                    )}
+                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                                                        status === 'ok' ? 'bg-green-600 text-white' :
+                                                                        status === 'tidak' ? 'bg-red-600 text-white' :
+                                                                        status === 'na' ? 'bg-gray-500 text-white' :
+                                                                        'bg-gray-200 text-gray-600'
+                                                                    }`}>
+                                                                        {status === 'ok' ? 'OK' : status === 'tidak' ? 'Tidak' : status === 'na' ? 'N/A' : 'Belum Set'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!isCurrent && stageDocs.length > 0 && stage.id !== 2 && (
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-500 font-medium">Dokumen Tersimpan:</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {stageDocs.map(d => <DocChip key={d.id} doc={d} canManage={canManageStageDocs(d.stage)} onDelete={deleteDoc} isINS={isINS} onPreview={setPreviewDoc} />)}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!isCurrent && isPast && renderCompletedStageSummary(stage.id)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    // ── Documents Tab ────────────────────────────────────────────────────────
+    const renderDocuments = () => (
+        <div className="space-y-4">
+            {STAGES.map(stage => {
+                if (!canViewStageDocs(stage.id)) return null;
+                const rawDocs = getDocs(stage.id);
+                const docs = isINS
+                    ? rawDocs.filter(d => !isPoLockedForIns(d, isINS))
+                    : rawDocs;
+                if (docs.length === 0) return null;
+                return (
+                    <div key={stage.id} className="border rounded-lg p-4">
+                        <h4 className="font-bold text-sm text-gray-700 mb-3 pb-2 border-b">
+                            Stage {stage.displayId || stage.id}: {stage.name}
+                        </h4>
+                        <div className="grid grid-cols-1 gap-2">
+                            {docs.map(doc => (
+                                <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 hover:bg-gray-50 border rounded text-sm">
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewDoc(doc)}
+                                            className="font-medium text-blue-600 hover:underline flex items-center gap-2 text-left cursor-pointer"
+                                            title="Klik untuk pratinjau dokumen"
+                                        >
+                                            <span>{doc.name}</span>
+                                        </button>
+                                        <div className="text-xs text-gray-500 mt-1 ml-6">
+                                            {doc.type} • Uploaded by {doc.uploaded_by_user_id} • {fmt(doc.created_at)}
+                                        </div>
+                                    </div>
+                                    {canManageStageDocs(doc.stage) && (
+                                        <button onClick={() => deleteDoc(doc.id)} className="text-red-500 hover:text-red-700 font-medium px-2 py-1 sm:mt-0 mt-2 text-xs border border-red-200 rounded">
+                                            Hapus
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+            {(!job.documents || job.documents.length === 0) && (
+                <div className="text-center py-10 text-gray-400">Belum ada dokumen yang diunggah.</div>
+            )}
+        </div>
+    );
+
+    // ── History Tab ──────────────────────────────────────────────────────────
+    const renderHistory = () => {
+        const rawLogs = (job.historyLogs || job.history_logs || []).slice().sort((a, b) => {
+            const timeA = new Date(a.created_at || 0).getTime();
+            const timeB = new Date(b.created_at || 0).getTime();
+            if (timeB !== timeA) return timeB - timeA;
+            return (b.id || 0) - (a.id || 0);
+        });
+
+        // If user is INS, filter out PO revision logs and mask PO numbers/references in actions & notes
+        const logs = isINS
+            ? rawLogs.filter(log => !String(log.action || '').toLowerCase().includes('revisi po'))
+            : rawLogs;
+
+        const formatActionText = (action) => {
+            if (!action) return '';
+            let text = action;
+            if (isINS) {
+                text = text
+                    .replace(/PO\/SPK received/gi, 'Pekerjaan Terdaftar')
+                    .replace(/PO\/SPK/gi, 'Pekerjaan')
+                    .replace(/PO:\s*[^\s,)]+/gi, 'PO: [Terkunci]')
+                    .replace(/No\.?\s*PO\s*:[^\s,)]+/gi, 'No. PO: [Terkunci]');
+            }
+            // Replace internal stage numbers with exact Kanban display IDs (e.g. 13 -> 4b, 14 -> 11b, 15 -> 11c)
+            text = text.replace(/Moved from stage (\d+) to (\d+)/gi, (_, from, to) => {
+                const fromDisp = getStageDisplayId(parseInt(from));
+                const toDisp = getStageDisplayId(parseInt(to));
+                return `Pindah dari Tahap ${fromDisp} ke Tahap ${toDisp}`;
+            });
+            text = text.replace(/from Stage (\d+) ke Stage (\d+)/gi, (_, from, to) => {
+                const fromDisp = getStageDisplayId(parseInt(from));
+                const toDisp = getStageDisplayId(parseInt(to));
+                return `dari Tahap ${fromDisp} ke Tahap ${toDisp}`;
+            });
+            text = text.replace(/ke Stage (\d+)/gi, (_, st) => {
+                return `ke Tahap ${getStageDisplayId(parseInt(st))}`;
+            });
+            text = text.replace(/dari S(\d+) ke S(\d+)/gi, (_, from, to) => {
+                return `dari S${getStageDisplayId(parseInt(from))} ke S${getStageDisplayId(parseInt(to))}`;
+            });
+            text = text.replace(/ke S(\d+)/gi, (_, st) => {
+                return `ke S${getStageDisplayId(parseInt(st))}`;
+            });
+            text = text.replace(/Stage (\d+)/gi, (_, st) => {
+                return `Tahap ${getStageDisplayId(parseInt(st))}`;
+            });
+            text = text.replace(/Tahap (13|14|15)\b/gi, (_, st) => {
+                return `Tahap ${getStageDisplayId(parseInt(st))}`;
+            });
+            text = text.replace(/\bS(13|14|15)\b/g, (_, st) => {
+                return `S${getStageDisplayId(parseInt(st))}`;
+            });
+            return text;
+        };
+
+        const formatNotesForIns = (notes) => {
+            if (!isINS || !notes) return notes;
+            return notes
+                .replace(/PO\/SPK/gi, 'Pekerjaan')
+                .replace(/PO:\s*[^\s,)]+/gi, 'PO: [Terkunci]');
+        };
+
+        if (logs.length === 0) {
+            return (
+                <div className="text-center py-10 text-gray-400 text-sm">
+                    Belum ada riwayat aktivitas pada pekerjaan ini.
+                </div>
+            );
+        }
+
+        return (
+            <div className="timeline-container relative pl-6 space-y-4 border-l-2 border-slate-200 ml-2">
+                {logs.map(log => {
+                    const isMove = log.action?.includes('Moved from') || log.action?.includes('Pindah dari') || log.action?.includes('Dibuka Kembali') || log.action?.includes('Job created');
+                    const isReject = log.action?.includes('DITOLAK') || log.returned_from_stage;
+                    const isBypass = log.action?.includes('Bypass') || log.notes?.includes('BYPASS');
+                    const isDoc = log.action?.includes('Dokumen diunggah') || log.action?.includes('Catatan foto');
+
+                    const stageDisp = getStageDisplayId(log.stage);
+                    const stageObj = STAGES.find(s => s.id === Number(log.stage));
+                    const stageTheme = PIC_THEMES[stageObj?.role] || PIC_THEMES.admin;
+
+                    // Bullet color
+                    const bulletBg = isReject ? 'bg-red-500 ring-red-100' :
+                        isBypass ? 'bg-amber-500 ring-amber-100' :
+                        isMove ? 'bg-blue-600 ring-blue-100' :
+                        isDoc ? 'bg-emerald-600 ring-emerald-100' :
+                        'bg-slate-400 ring-slate-100';
+
+                    // Border accent color
+                    const cardBorder = isReject ? 'border-red-200 bg-red-50/40' :
+                        isBypass ? 'border-amber-200 bg-amber-50/30' :
+                        isMove ? 'border-blue-200/80 bg-blue-50/20' :
+                        'border-slate-200 bg-white';
+
+                    return (
+                        <div key={log.id} className="relative group">
+                            {/* Bullet icon dot */}
+                            <div className={`absolute -left-[31px] top-3.5 w-3.5 h-3.5 rounded-full ${bulletBg} ring-4 transition-all shadow-xs`} />
+
+                            <div className={`rounded-xl border p-3.5 shadow-2xs hover:shadow-xs transition-all ${cardBorder}`}>
+                                {/* Header: User + Role + WIB Timestamp */}
+                                <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5 pb-1.5 border-b border-gray-100/80">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-xs font-bold text-gray-900">
+                                            {log.user?.name || 'Sistem'}
+                                        </span>
+                                        {log.user?.role && (
+                                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 uppercase border border-slate-200">
+                                                {log.user.role === 'tim_ru' || log.user.role === 'inspektur' ? 'Tim RU' : log.user.role}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-[11px] font-mono text-gray-500">
+                                        {fmtDateTimeWib(log.created_at)}
+                                    </span>
+                                </div>
+
+                                {/* Body: Formatted action description */}
+                                <div className="text-xs font-semibold text-gray-800 leading-snug">
+                                    {formatActionText(log.action)}
+                                </div>
+
+                                {/* Notes Callout Box */}
+                                {log.notes && (
+                                    <div className="mt-2 text-xs bg-amber-50/90 border border-amber-200/90 rounded-lg p-2.5 text-amber-950 leading-relaxed">
+                                        <span className="font-bold text-amber-900 block text-[11px] mb-0.5">Catatan:</span>
+                                        "{formatNotesForIns(log.notes)}"
+                                    </div>
+                                )}
+
+                                {/* Returned From Warning Banner */}
+                                {log.returned_from_stage && (
+                                    <div className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-red-100 text-red-800 border border-red-300">
+                                        ⚠️ Dikembalikan dari Tahap {getStageDisplayId(log.returned_from_stage)}
+                                    </div>
+                                )}
+
+                                {/* Stage Badge exactly matching Kanban column number & role theme */}
+                                <div className="mt-2.5 flex items-center gap-2">
+                                    <span
+                                        className="min-w-[28px] h-6 px-1.5 inline-flex items-center justify-center text-xs font-black rounded-md shadow-2xs text-white"
+                                        style={{ backgroundColor: stageTheme.primary }}
+                                        title={`Stage ${stageDisp} (${stageObj?.name || 'Stage'})`}
+                                    >
+                                        {stageDisp}
+                                    </span>
+                                    <span className="text-xs font-bold text-gray-700">
+                                        Tahap {stageDisp} · {stageObj?.name || `Stage ${stageDisp}`}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    // ── Edit Info Tab ────────────────────────────────────────────────────────
+    const renderEditInfo = () => (
+        <div className="space-y-4">
+            {isEditing ? (
+                <form onSubmit={handleUpdateJob} className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-gray-700 mb-1">No. PO / SPK / Proposal *</label>
+                            <input
+                                type="text"
+                                value={editForm.data.no_po}
+                                onChange={e => editForm.setData('no_po', e.target.value)}
+                                className="w-full text-sm border rounded px-2 py-1.5"
+                                placeholder="PO/SPK/PROPOSAL/2026/0123"
+                                required
+                            />
+                        </div>
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Tanggal PO / SPK / Proposal</label>
+                            <input
+                                type="date"
+                                value={editForm.data.tgl_po || ''}
+                                onChange={e => editForm.setData('tgl_po', e.target.value)}
+                                className="w-full text-sm border rounded px-2 py-1.5"
+                            />
+                        </div>
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Klien</label>
+                            <input type="text" value={editForm.data.klien} onChange={e => editForm.setData('klien', e.target.value)} className="w-full text-sm border rounded px-2 py-1.5" />
+                        </div>
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Jenis Alat</label>
+                            <input type="text" value={editForm.data.pesawat} onChange={e => editForm.setData('pesawat', e.target.value)} className="w-full text-sm border rounded px-2 py-1.5" />
+                        </div>
+                        <div className="col-span-2">
+                            <IndonesiaLocationSelect
+                                value={editForm.data.lokasi}
+                                onChange={val => editForm.setData('lokasi', val)}
+                            />
+                        </div>
+                        <div className="col-span-2 sm:col-span-1">
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Jumlah Unit</label>
+                            <input type="number" min="1" value={editForm.data.units} onChange={e => editForm.setData('units', e.target.value)} className="w-full text-sm border rounded px-2 py-1.5" />
+                        </div>
+                        {canSeeNilai && (
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="block text-xs font-bold text-gray-700 mb-1">Nilai Kontrak (Total Sesudah PPN 11%)</label>
+                                {showTgl15Warning && (
+                                    <p className="text-[11px] text-red-600 mb-1 font-medium">
+                                        Perhatian: Sudah lewat tanggal 15 bulan ini (Closing Pajak). Perubahan data keuangan berisiko terhadap pelaporan pajak.
+                                    </p>
+                                )}
+                                <input type="number" value={editForm.data.nilai} onChange={e => editForm.setData('nilai', e.target.value)} className="w-full text-sm border rounded px-2 py-1.5" />
+                                {editForm.data.nilai && parseFloat(editForm.data.nilai) > 0 && (() => {
+                                    const total = parseFloat(editForm.data.nilai);
+                                    const dpp = Math.round(total / 1.11);
+                                    const ppn = total - dpp;
+                                    return (
+                                        <div className="mt-1.5 p-2 bg-amber-50/80 border border-amber-200 rounded text-[11px] space-y-0.5">
+                                            <div className="flex justify-between text-gray-600">
+                                                <span>DPP:</span>
+                                                <span className="font-semibold text-gray-800">Rp {Number(dpp).toLocaleString('id-ID')}</span>
+                                            </div>
+                                            <div className="flex justify-between text-amber-800">
+                                                <span>PPN (11%):</span>
+                                                <span className="font-semibold">Rp {Number(ppn).toLocaleString('id-ID')}</span>
+                                            </div>
+                                            <div className="flex justify-between text-amber-950 font-bold border-t border-amber-200/60 pt-0.5">
+                                                <span>Total:</span>
+                                                <span>Rp {Number(total).toLocaleString('id-ID')}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                        <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1.5 text-sm bg-gray-200 rounded">Batal</button>
+                        <button type="submit" disabled={editForm.processing} className="px-3 py-1.5 text-sm bg-blue-600 text-white font-bold rounded hover:bg-blue-700">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                <div className="bg-white p-4 rounded-lg border space-y-3">
+                    <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-gray-800 border-b w-full pb-2 mb-2">Informasi Pekerjaan</h4>
+                        {canManage && (
+                            <button onClick={() => setIsEditing(true)} className="text-xs font-medium text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 ml-2">
+                                Edit
+                            </button>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                        <div>
+                            <p className="text-xs text-gray-500">{isINS ? 'Kode Pekerjaan' : 'No. PO / SPK / Proposal'}</p>
+                            <p className="font-bold text-[#0A385C] text-sm break-all">{isINS ? job.kode : (job.no_po || '—')}</p>
+                            {(!isINS && job.tgl_po) && <p className="text-[11px] text-gray-400">Tgl: {fmt(job.tgl_po, { day: 'numeric', month: 'short', year: 'numeric' })}</p>}
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500">Marketing</p>
+                            <p className="font-medium">{job.owner_marketing}</p>
+                            <p className="text-[10px] font-mono text-gray-400 mt-1" title="ID Sistem Otomatis">ID: {job.kode}</p>
+                        </div>
+                        <div className="col-span-2"><p className="text-xs text-gray-500">Klien</p><p className="font-semibold text-base">{job.klien}</p></div>
+                        <div className="col-span-2"><p className="text-xs text-gray-500">PIC Klien</p><p className="font-medium">{job.pic_klien || '—'} {job.pic_klien_phone ? `(${job.pic_klien_phone})` : ''}</p></div>
+                        <div><p className="text-xs text-gray-500">Jenis Alat</p><p className="font-medium">{job.pesawat}</p></div>
+                        <div><p className="text-xs text-gray-500">Jumlah Unit</p><p className="font-bold">{job.units} Unit</p></div>
+                        <div className="col-span-2"><p className="text-xs text-gray-500">Lokasi</p><p>{job.lokasi}</p></div>
+                        {canSeeNilai && (
+                            <div className="col-span-2 bg-yellow-50 p-2 rounded border border-yellow-200 space-y-1">
+                                <div>
+                                    <p className="text-xs text-yellow-800 font-bold">
+                                        Nilai Kontrak <span className="font-normal opacity-80">(Sesudah PPN 11%)</span>
+                                    </p>
+                                    <p className="font-bold text-lg text-yellow-900">{fmtCurrency(job.nilai)}</p>
+                                </div>
+                                {job.nilai > 0 && (() => {
+                                    const total = parseFloat(job.nilai || 0);
+                                    const dpp = Math.round(total / 1.11);
+                                    const ppn = total - dpp;
+                                    return (
+                                        <div className="pt-1 border-t border-yellow-200/80 flex items-center justify-between text-xs text-yellow-800">
+                                            <span>DPP: <strong>Rp {dpp.toLocaleString('id-ID')}</strong></span>
+                                            <span>PPN 11%: <strong>Rp {ppn.toLocaleString('id-ID')}</strong></span>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    const handleDeleteJob = async () => {
+        const res = await showConfirm(
+            'Hapus Job',
+            `Apakah Anda yakin ingin menghapus Job ${job.no_po || job.kode} (${job.klien})? Tindakan ini tidak dapat dibatalkan!`,
+            'Ya, Hapus Job',
+            'Batal'
+        );
+        if (res.isConfirmed) {
+            router.delete(`/jobs/${job.id}`, {
+                onSuccess: () => {
+                    showSuccess('Berhasil', `Job ${job.no_po || job.kode} berhasil dihapus.`);
+                    onClose();
+                }
+            });
+        }
+    };
+
+    // ── Main Render ──────────────────────────────────────────────────────────
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-gray-900/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl flex flex-col h-[92vh] sm:h-[88vh] overflow-hidden">
+                
+                {/* Header — Fixed at top */}
+                <div className="px-4 sm:px-6 py-3 border-b flex items-center justify-between bg-gray-50 flex-shrink-0">
+                    <div className="min-w-0 flex-1 mr-3">
+                        <h2 className="text-base sm:text-xl font-black text-gray-900 tracking-tight truncate">{job.klien}</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span 
+                                className="font-bold bg-white px-2.5 py-0.5 rounded border border-slate-200 shadow-xs text-xs text-[#0A385C] truncate max-w-[240px]" 
+                                title={`ID Internal: ${job.kode}`}
+                            >
+                                {(!isINS && job.no_po) ? `PO: ${job.no_po}` : job.kode}
+                            </span>
+                            <span className="font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs">
+                                Stage {job.stage}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        {(auth?.user?.role === 'finance' || auth?.user?.role === 'superadmin' || auth?.permissions === 'superadmin') && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRevisePoModal(true)}
+                                    disabled={!canRevisePoMonth}
+                                    className={`px-2.5 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow-xs transition-colors ${
+                                        canRevisePoMonth
+                                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                                    }`}
+                                    title={canRevisePoMonth ? "Revisi Data PO/SPK (Finance/Superadmin)" : "Batas waktu revisi PO (bulan yang sama dengan pembuatan job) telah berakhir"}
+                                >
+                                    Revisi PO
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReviseInvoiceModal(true)}
+                                    disabled={!canReviseInvoiceMonth}
+                                    className={`px-2.5 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow-xs transition-colors ${
+                                        canReviseInvoiceMonth
+                                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                                    }`}
+                                    title={canReviseInvoiceMonth ? "Revisi / Terbitkan Data Invoice & Faktur Pajak secara Paralel (Finance/Superadmin)" : "Batas waktu revisi invoice (bulan yang sama) telah berakhir"}
+                                >
+                                    Revisi Invoice
+                                </button>
+                            </>
+                        )}
+                        {(auth?.user?.role === 'superadmin' || auth?.permissions === 'superadmin') && (
+                            <button
+                                onClick={handleDeleteJob}
+                                className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded text-xs font-bold flex items-center gap-1 shadow-xs transition-colors"
+                                title="Hapus Job Ini (Superadmin Special)"
+                            >
+                                <Trash2 size={13} /> Hapus Job
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0">
+                            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Tabs — Fixed immediately below header, clear text and spacing */}
+                <div className="flex px-2 sm:px-6 border-b bg-white flex-shrink-0 z-10 shadow-sm overflow-x-auto scrollbar-hide">
+                    {[
+                        { id: 'timeline',  label: 'Status' },
+                        { id: 'docs',      label: 'Dokumen' },
+                        { id: 'history',   label: 'Riwayat' },
+                        { id: 'info',      label: 'Info & Edit' },
+                    ].map(t => (
+                        <button key={t.id} onClick={() => setActiveTab(t.id)}
+                            className={`py-3 px-4 sm:py-3.5 sm:px-6 font-bold text-sm sm:text-base whitespace-nowrap border-b-2 transition-colors ${activeTab === t.id ? 'border-blue-600 text-blue-600 bg-blue-50/50' : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'}`}>
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Content Area — Scrollable body */}
+                <div ref={contentScrollRef} className="p-4 sm:p-6 overflow-y-auto bg-white flex-1 scroll-smooth">
+                    {activeTab === 'timeline' && renderTimeline()}
+                    {activeTab === 'docs'     && renderDocuments()}
+                    {activeTab === 'history'  && renderHistory()}
+                    {activeTab === 'info'     && renderEditInfo()}
+                </div>
+
+                {/* Hidden File Input for triggerUpload with full format acceptance */}
+                <input type="file" ref={fileInputRef} onChange={onFileChange} className="hidden" accept="*" />
+
+                {/* Global Loader Overlay */}
+                {(processing || isUploading || isMoving || isSavingLink || isSavingStage) && (
+                    <div 
+                        data-dnp-busy="true"
+                        className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl"
+                    >
+                        <div className="bg-white p-5 rounded-xl shadow-xl flex flex-col items-center gap-3 border border-slate-100 max-w-xs w-full text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
+                            <div className="w-full">
+                                {isUploading && uploadProgress > 0 && uploadProgress < 100 ? (
+                                    <>
+                                        <span className="font-semibold text-gray-800 text-sm block">
+                                            Mengunggah berkas: {uploadProgress}%
+                                        </span>
+                                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2 overflow-hidden">
+                                            <div 
+                                                className="bg-blue-600 h-1.5 rounded-full transition-all duration-150" 
+                                                style={{ width: `${uploadProgress}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className="text-[11px] text-gray-500 block mt-1">Mengirim data ke server...</span>
+                                    </>
+                                ) : isUploading && uploadProgress >= 100 ? (
+                                    <>
+                                        <span className="font-semibold text-gray-800 text-sm block">
+                                            Menyimpan data di server...
+                                        </span>
+                                        <span className="text-[11px] text-gray-500 block mt-0.5">Memproses berkas & menyinkronkan data</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="font-semibold text-gray-800 text-sm block">Memproses...</span>
+                                        <span className="text-[11px] text-gray-500 block mt-0.5">Mohon tunggu sementara data disinkronkan</span>
+                                    </>
+                                )}
+                            </div>
+                            {showStuckDismiss && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsUploading(false);
+                                        setIsMoving(false);
+                                        setUploadProgress(0);
+                                    }}
+                                    className="mt-2 text-xs text-red-600 hover:text-red-700 font-semibold underline cursor-pointer"
+                                >
+                                    Proses terlalu lama? Tutup loading
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Modal Revisi PO (Finance / Superadmin) ── */}
+                {showRevisePoModal && (
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-5 space-y-4 border border-slate-200">
+                            <div className="flex items-center justify-between border-b pb-3">
+                                <div>
+                                    <h3 className="text-base font-black text-[#0A385C]">Revisi Data PO / SPK</h3>
+                                    <p className="text-xs text-gray-500">Ubah detail PO tanpa mengubah alur tahapan/stage job.</p>
+                                </div>
+                                <button type="button" onClick={() => setShowRevisePoModal(false)} className="text-gray-400 hover:text-gray-600 text-lg font-bold">x</button>
+                            </div>
+                            <form onSubmit={handleRevisePo} className="space-y-3 text-xs">
+                                <div>
+                                    <label className="block font-bold text-gray-700 mb-1">Nomor PO / SPK / Proposal *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={revisePoForm.no_po}
+                                        onChange={e => setRevisePoForm(prev => ({ ...prev, no_po: e.target.value }))}
+                                        className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                        placeholder="PO/SPK/..."
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1">Tanggal PO</label>
+                                        <input
+                                            type="date"
+                                            value={revisePoForm.tgl_po || ''}
+                                            onChange={e => setRevisePoForm(prev => ({ ...prev, tgl_po: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1">Termin Pembayaran</label>
+                                        <select
+                                            value={revisePoForm.termin_pembayaran || 'FULL'}
+                                            onChange={e => setRevisePoForm(prev => ({ ...prev, termin_pembayaran: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                        >
+                                            <option value="FULL">FULL</option>
+                                            <option value="TERMIN">TERMIN</option>
+                                            <option value="CBD">CBD</option>
+                                            <option value="DP">DP</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-gray-700 mb-1">Nilai Kontrak (Sesudah PPN 11%) *</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        required
+                                        value={revisePoForm.nilai}
+                                        onChange={e => setRevisePoForm(prev => ({ ...prev, nilai: e.target.value }))}
+                                        className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                    />
+                                    {revisePoForm.nilai && parseFloat(revisePoForm.nilai) > 0 && (() => {
+                                        const total = parseFloat(revisePoForm.nilai || 0);
+                                        const dpp = Math.round(total / 1.11);
+                                        const ppn = total - dpp;
+                                        return (
+                                            <div className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-2 mt-1.5 flex justify-between">
+                                                <span>DPP (Sebelum PPN): <strong>Rp {dpp.toLocaleString('id-ID')}</strong></span>
+                                                <span>PPN (11%): <strong>Rp {ppn.toLocaleString('id-ID')}</strong></span>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-gray-700 mb-1">Alasan / Catatan Revisi</label>
+                                    <textarea
+                                        rows={2}
+                                        value={revisePoForm.revision_notes || ''}
+                                        onChange={e => setRevisePoForm(prev => ({ ...prev, revision_notes: e.target.value }))}
+                                        placeholder="Catatan alasan perubahan data PO..."
+                                        className="w-full border rounded px-2.5 py-1.5 text-xs"
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-2 pt-2 border-t">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRevisePoModal(false)}
+                                        className="px-3 py-1.5 rounded text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-1.5 rounded text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-xs"
+                                    >
+                                        Simpan Revisi PO
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Modal Revisi Invoice & Faktur (Finance / Superadmin) ── */}
+                {showReviseInvoiceModal && (
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-5 space-y-4 border border-slate-200">
+                            <div className="flex items-center justify-between border-b pb-3">
+                                <div>
+                                    <h3 className="text-base font-black text-[#0A385C]">Revisi Data Invoice & Faktur Pajak</h3>
+                                    <p className="text-xs text-gray-500">Perbarui nomor atau tanggal invoice tanpa membatalkan proses.</p>
+                                </div>
+                                <button type="button" onClick={() => setShowReviseInvoiceModal(false)} className="text-gray-400 hover:text-gray-600 text-lg font-bold">x</button>
+                            </div>
+                            <form onSubmit={handleReviseInvoice} className="space-y-3 text-xs">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <label className="block font-bold text-gray-700 mb-1">Nomor Invoice *</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={reviseInvoiceForm.invoice_no}
+                                            onChange={e => setReviseInvoiceForm(prev => ({ ...prev, invoice_no: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                            placeholder="INV/2026/..."
+                                        />
+                                    </div>
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <label className="block font-bold text-gray-700 mb-1">Total Tagihan (Rp) *</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            required
+                                            value={reviseInvoiceForm.total_invoice_amount}
+                                            onChange={e => setReviseInvoiceForm(prev => ({ ...prev, total_invoice_amount: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1">Tanggal Terbit Invoice</label>
+                                        <input
+                                            type="date"
+                                            value={reviseInvoiceForm.tgl_invoice_issued || ''}
+                                            onChange={e => setReviseInvoiceForm(prev => ({ ...prev, tgl_invoice_issued: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1">Nomor Faktur Pajak</label>
+                                        <input
+                                            type="text"
+                                            value={reviseInvoiceForm.no_faktur_pajak || ''}
+                                            onChange={e => setReviseInvoiceForm(prev => ({ ...prev, no_faktur_pajak: e.target.value }))}
+                                            className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                            placeholder="010.000-..."
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-gray-700 mb-1">Tanggal Faktur Pajak</label>
+                                    <input
+                                        type="date"
+                                        value={reviseInvoiceForm.tgl_faktur_pajak || ''}
+                                        onChange={e => setReviseInvoiceForm(prev => ({ ...prev, tgl_faktur_pajak: e.target.value }))}
+                                        className="w-full border rounded px-2.5 py-1.5 text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-gray-700 mb-1">Alasan / Catatan Revisi</label>
+                                    <textarea
+                                        rows={2}
+                                        value={reviseInvoiceForm.revision_notes || ''}
+                                        onChange={e => setReviseInvoiceForm(prev => ({ ...prev, revision_notes: e.target.value }))}
+                                        placeholder="Catatan alasan perubahan data invoice..."
+                                        className="w-full border rounded px-2.5 py-1.5 text-xs"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t pt-3 border-gray-100">
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1" htmlFor="revise-invoice-file">Unggah File Invoice Baru (PDF)</label>
+                                        <input
+                                            id="revise-invoice-file"
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={e => {
+                                                const f = e.target.files?.[0];
+                                                if (f) setReviseInvoiceForm(prev => ({ ...prev, invoice_file: f }));
+                                            }}
+                                            className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-bold text-gray-700 mb-1" htmlFor="revise-faktur-file">Unggah File Faktur Pajak Baru (PDF)</label>
+                                        <input
+                                            id="revise-faktur-file"
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={e => {
+                                                const f = e.target.files?.[0];
+                                                if (f) setReviseInvoiceForm(prev => ({ ...prev, faktur_file: f }));
+                                            }}
+                                            className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-2 pt-2 border-t">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReviseInvoiceModal(false)}
+                                        className="px-3 py-1.5 rounded text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-1.5 rounded text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs"
+                                    >
+                                        Simpan Revisi Invoice
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Modal Pratinjau Dokumen (Scrollable Preview Popup) ── */}
+                <DocumentPreviewModal
+                    doc={previewDoc}
+                    jobId={job.id}
+                    isOpen={!!previewDoc}
+                    onClose={() => setPreviewDoc(null)}
+                />
+            </div>
+        </div>
+    );
+}
+
+// ══ END PART C ══
