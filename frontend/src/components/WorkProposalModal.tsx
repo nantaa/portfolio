@@ -7,6 +7,29 @@ interface WorkProposalModalProps {
   onClose: () => void;
 }
 
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  marginBottom: "8px",
+  fontFamily: "var(--mono)",
+  fontSize: "11px",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: "var(--text)",
+  fontWeight: 600,
+};
+
+const fieldStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
+  background: "var(--s2)",
+  border: "1px solid var(--wire)",
+  borderRadius: "3px",
+  color: "var(--text)",
+  fontSize: "14px",
+  lineHeight: 1.5,
+  outline: "none",
+};
+
 export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
@@ -62,20 +85,69 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
       role="dialog"
       aria-modal="true"
       aria-labelledby="proposal-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        background: "rgba(0, 0, 0, 0.78)",
+        backdropFilter: "blur(8px)",
+      }}
       onClick={onClose}
     >
       <div
         ref={modalRef}
-        className="w-full max-w-xl bg-[var(--modal-bg)] border border-[var(--wire)] text-[var(--text)] rounded-[3px] p-6 sm:p-8 shadow-2xl"
+        style={{
+          width: "100%",
+          maxWidth: "600px",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          background: "var(--modal-bg)",
+          border: "1px solid var(--wire)",
+          color: "var(--text)",
+          borderRadius: "4px",
+          padding: "32px 36px",
+          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.35)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--wire)] pb-4 mb-5">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: "16px",
+            borderBottom: "1px solid var(--wire)",
+            paddingBottom: "18px",
+            marginBottom: "24px",
+          }}
+        >
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-[var(--accent)] font-bold">
+            <div
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: "11px",
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+                color: "var(--accent)",
+                fontWeight: 700,
+                marginBottom: "6px",
+              }}
+            >
               Work Proposal
             </div>
-            <h2 id="proposal-modal-title" className="font-serif text-2xl font-bold mt-1">
+            <h2
+              id="proposal-modal-title"
+              style={{
+                fontFamily: "var(--display)",
+                fontSize: "26px",
+                fontWeight: 700,
+                lineHeight: 1.2,
+              }}
+            >
               Propose a Project or Role
             </h2>
           </div>
@@ -83,68 +155,94 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
             type="button"
             onClick={onClose}
             aria-label="Close work proposal modal"
-            className="font-mono text-xs uppercase text-[var(--muted)] hover:text-[var(--text)] cursor-pointer"
+            style={{
+              background: "transparent",
+              border: "none",
+              fontFamily: "var(--mono)",
+              fontSize: "12px",
+              textTransform: "uppercase",
+              color: "var(--muted)",
+              cursor: "pointer",
+              padding: "4px 6px",
+            }}
           >
             Close [ESC]
           </button>
         </div>
 
         {submitted ? (
-          <div className="py-6 space-y-4">
-            <div className="p-4 border border-[var(--wire)] bg-[var(--s2)] rounded-[2px] text-sm">
+          <div style={{ padding: "16px 0", display: "flex", flexDirection: "column", gap: "18px" }}>
+            <div
+              style={{
+                padding: "16px 18px",
+                border: "1px solid var(--wire)",
+                background: "var(--s2)",
+                borderRadius: "3px",
+                fontSize: "14px",
+                lineHeight: 1.6,
+              }}
+            >
               Your email client has been opened with the structured proposal for <strong>rifai.aryo@gmail.com</strong>.
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSubmitted(false);
-                onClose();
-              }}
-              className="px-4 py-2 bg-[var(--accent)] text-white font-mono text-xs uppercase tracking-wider rounded-[2px] cursor-pointer"
-            >
-              Done
-            </button>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitted(false);
+                  onClose();
+                }}
+                style={{
+                  padding: "11px 24px",
+                  background: "var(--accent)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontFamily: "var(--mono)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 font-sans text-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: "16px" }}>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1">
-                  Your Name / Company
-                </label>
+                <label style={labelStyle}>Your Name / Company</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Jane Doe · Acme Corp"
-                  className="w-full px-3 py-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] text-[var(--text)] text-xs focus:outline-none focus:border-[var(--accent)]"
+                  style={fieldStyle}
                 />
               </div>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1">
-                  Work Email
-                </label>
+                <label style={labelStyle}>Work Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jane@acme.com"
-                  className="w-full px-3 py-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] text-[var(--text)] text-xs focus:outline-none focus:border-[var(--accent)]"
+                  style={fieldStyle}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: "16px" }}>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1">
-                  Engagement Type
-                </label>
+                <label style={labelStyle}>Engagement Type</label>
                 <select
                   value={engagementType}
                   onChange={(e) => setEngagementType(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] text-[var(--text)] text-xs focus:outline-none focus:border-[var(--accent)]"
+                  style={fieldStyle}
                 >
                   <option value="Full-Time Role">Full-Time Role</option>
                   <option value="Contract / Freelance">Contract / Freelance</option>
@@ -152,13 +250,11 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
                 </select>
               </div>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1">
-                  Target Timeline
-                </label>
+                <label style={labelStyle}>Target Timeline</label>
                 <select
                   value={timeline}
                   onChange={(e) => setTimeline(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] text-[var(--text)] text-xs focus:outline-none focus:border-[var(--accent)]"
+                  style={fieldStyle}
                 >
                   <option value="Immediate">Immediate</option>
                   <option value="Within 30 Days">Within 30 Days</option>
@@ -168,30 +264,61 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1">
-                Project Scope / Brief
-              </label>
+              <label style={labelStyle}>Project Scope / Brief</label>
               <textarea
                 required
                 rows={4}
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
                 placeholder="Describe your system goals, architecture needs, or team role..."
-                className="w-full px-3 py-2 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] text-[var(--text)] text-xs focus:outline-none focus:border-[var(--accent)]"
+                style={{ ...fieldStyle, resize: "vertical" }}
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginTop: "4px",
+                paddingTop: "20px",
+                borderTop: "1px solid var(--wire)",
+              }}
+            >
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-[var(--wire)] font-mono text-xs uppercase tracking-wider text-[var(--muted)] hover:text-[var(--text)] rounded-[2px] cursor-pointer"
+                style={{
+                  padding: "11px 22px",
+                  border: "1px solid var(--wire)",
+                  background: "transparent",
+                  fontFamily: "var(--mono)",
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "var(--muted)",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-[var(--accent)] hover:bg-[var(--accent2)] text-white font-mono text-xs uppercase tracking-wider font-semibold rounded-[2px] cursor-pointer"
+                style={{
+                  padding: "11px 24px",
+                  border: "none",
+                  background: "var(--accent)",
+                  color: "#ffffff",
+                  fontFamily: "var(--mono)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                }}
               >
                 Send Proposal →
               </button>
@@ -202,4 +329,3 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
     </div>
   );
 }
-

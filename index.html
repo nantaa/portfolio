@@ -2293,40 +2293,40 @@
 
   <!-- ══ WORK PROPOSAL MODAL ══ -->
   <div id="workProposalModal" role="dialog" aria-modal="true" aria-labelledby="proposalModalTitle"
-    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;"
+    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.78); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:20px;"
     onclick="closeProposal()">
-    <div style="background:var(--modal-bg); border:1px solid var(--wire); color:var(--text); max-width:560px; width:100%; padding:32px; border-radius:3px; position:relative;"
+    <div style="background:var(--modal-bg); border:1px solid var(--wire); color:var(--text); max-width:600px; width:100%; max-height:92vh; overflow-y:auto; padding:32px 36px; border-radius:4px; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.35);"
       onclick="event.stopPropagation()">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:0.5px solid var(--wire); padding-bottom:14px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; border-bottom:1px solid var(--wire); padding-bottom:18px; margin-bottom:24px;">
         <div>
-          <div style="font-family:var(--mono); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); font-weight:bold;">Work Proposal</div>
-          <h2 id="proposalModalTitle" style="font-family:var(--display); font-size:24px; font-weight:bold; margin-top:4px;">Propose a Project or Role</h2>
+          <div style="font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); font-weight:bold; margin-bottom:6px;">Work Proposal</div>
+          <h2 id="proposalModalTitle" style="font-family:var(--display); font-size:26px; font-weight:bold; line-height:1.2;">Propose a Project or Role</h2>
         </div>
-        <button type="button" onclick="closeProposal()" style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">Close [ESC]</button>
+        <button type="button" onclick="closeProposal()" style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:12px; cursor:pointer; text-transform:uppercase; padding:4px 6px;">Close [ESC]</button>
       </div>
-      <form onsubmit="submitProposal(event)" style="display:flex; flex-direction:column; gap:14px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <form onsubmit="submitProposal(event)" style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
           <div>
-            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Your Name / Company</label>
-            <input id="propName" type="text" required placeholder="Jane Doe · Acme Corp" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;" />
+            <label style="display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); font-weight:600; margin-bottom:8px;">Your Name / Company</label>
+            <input id="propName" type="text" required placeholder="Jane Doe · Acme Corp" style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px;" />
           </div>
           <div>
-            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Work Email</label>
-            <input id="propEmail" type="email" required placeholder="jane@acme.com" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;" />
+            <label style="display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); font-weight:600; margin-bottom:8px;">Work Email</label>
+            <input id="propEmail" type="email" required placeholder="jane@acme.com" style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px;" />
           </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
           <div>
-            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Engagement Type</label>
-            <select id="propType" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;">
+            <label style="display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); font-weight:600; margin-bottom:8px;">Engagement Type</label>
+            <select id="propType" style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px;">
               <option value="Full-Time Role">Full-Time Role</option>
               <option value="Contract / Freelance" selected>Contract / Freelance</option>
               <option value="Systems Architecture">Systems Architecture</option>
             </select>
           </div>
           <div>
-            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Target Timeline</label>
-            <select id="propTimeline" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;">
+            <label style="display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); font-weight:600; margin-bottom:8px;">Target Timeline</label>
+            <select id="propTimeline" style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px;">
               <option value="Immediate">Immediate</option>
               <option value="Within 30 Days">Within 30 Days</option>
               <option value="Flexible">Flexible</option>
@@ -2334,12 +2334,12 @@
           </div>
         </div>
         <div>
-          <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Project Scope / Brief</label>
-          <textarea id="propBrief" required rows="4" placeholder="Describe your system goals, architecture needs, or team role..." style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;"></textarea>
+          <label style="display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); font-weight:600; margin-bottom:8px;">Project Scope / Brief</label>
+          <textarea id="propBrief" required rows="4" placeholder="Describe your system goals, architecture needs, or team role..." style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px; resize:vertical;"></textarea>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
-          <button type="button" onclick="closeProposal()" style="padding:8px 16px; border:0.5px solid var(--wire); background:transparent; color:var(--muted); font-family:var(--mono); font-size:11px; text-transform:uppercase; cursor:pointer; border-radius:2px;">Cancel</button>
-          <button type="submit" style="padding:8px 18px; border:none; background:var(--accent); color:#fff; font-family:var(--mono); font-size:11px; font-weight:bold; text-transform:uppercase; cursor:pointer; border-radius:2px;">Send Proposal →</button>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:4px; padding-top:20px; border-top:1px solid var(--wire);">
+          <button type="button" onclick="closeProposal()" style="padding:11px 22px; border:1px solid var(--wire); background:transparent; color:var(--muted); font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer; border-radius:3px;">Cancel</button>
+          <button type="submit" style="padding:11px 24px; border:none; background:var(--accent); color:#fff; font-family:var(--mono); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; cursor:pointer; border-radius:3px;">Send Proposal →</button>
         </div>
       </form>
     </div>

@@ -35,11 +35,13 @@ test('Criterion 3: WorkProposalModal.tsx exists and Nav.tsx + index.html open pr
   const modal = fs.readFileSync(modalPath, 'utf-8');
   assert.ok(modal.includes('role="dialog"') && modal.includes('Escape'), 'WorkProposalModal must support dialog role and Escape close');
   assert.ok(modal.includes('mailto:rifai.aryo@gmail.com'), 'WorkProposalModal must include static-safe mailto fallback');
+  assert.ok(modal.includes('32px 36px') && modal.includes('12px 14px'), 'WorkProposalModal must enforce explicit padding to resist CSS reset');
 
   const nav = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Nav.tsx'), 'utf-8');
   assert.ok(nav.includes('WorkProposalModal') || nav.includes('isProposalOpen'), 'Nav.tsx must wire WorkProposalModal on Available for work click');
 
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
   assert.ok(indexHtml.includes('openProposal()') && indexHtml.includes('workProposalModal'), 'index.html must open workProposalModal on Available for work click');
+  assert.ok(indexHtml.includes('32px 36px') && indexHtml.includes('12px 14px'), 'index.html workProposalModal must enforce explicit padding');
 });
 
