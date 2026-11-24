@@ -29,11 +29,10 @@ test('Criterion 3: index.html caseModal uses semantic var(--modal-bg) and purges
   assert.ok(indexHtml.includes('var(--modal-bg)'), 'index.html caseModal must use var(--modal-bg)');
 });
 
-test('Criterion 4: index.html Contact includes interactive inquiry intent chips', () => {
+test('Criterion 4: index.html Contact renders clean direct channels without Copy Email or intent chips', () => {
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
-  assert.ok(indexHtml.includes('selectIntent('), 'index.html must implement selectIntent function');
-  assert.ok(indexHtml.includes('Fullstack Systems'), 'index.html must include Fullstack Systems intent');
-  assert.ok(indexHtml.includes('Systems Architecture'), 'index.html must include Systems Architecture intent');
+  assert.ok(indexHtml.includes('rifai.aryo@gmail.com'), 'index.html must display direct email');
+  assert.ok(!indexHtml.includes('One-Click Clipboard'), 'index.html Contact must not include One-Click Clipboard clutter');
 });
 
 test('Criterion 5: index.html About renders /images/aryo.png and Footer includes Back to top', () => {

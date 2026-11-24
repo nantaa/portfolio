@@ -1307,7 +1307,7 @@
         <button type="button" onclick="toggleTheme()" class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0.5px solid var(--wire); border-radius: 2px; color: var(--text); cursor: pointer;">
           <svg id="themeMoonIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
-        <div class="nav-cta">Available for work</div>
+        <button type="button" onclick="openProposal()" class="nav-cta" style="background:transparent; cursor:pointer;">Available for work</button>
       </div>
     </div>
   </nav>
@@ -1821,24 +1821,9 @@
         collaborations, and full-time roles.<br>
         Based in Bekasi — working globally.
       </p>
-      <div style="margin-top:24px; padding-top:20px; border-top:0.5px solid var(--wire);">
-        <span style="font-family:var(--mono); font-size:11px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.12em; display:block; margin-bottom:10px;">Select inquiry intent:</span>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button type="button" onclick="selectIntent(this, 'Fullstack Systems')" class="intent-chip active" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:2px; cursor:pointer;">Fullstack Systems</button>
-          <button type="button" onclick="selectIntent(this, 'Realtime 3D / WebGL')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Realtime 3D / WebGL</button>
-          <button type="button" onclick="selectIntent(this, 'Systems Architecture')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Systems Architecture</button>
-          <button type="button" onclick="selectIntent(this, 'Advisory / Full-Time')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Advisory / Full-Time</button>
-        </div>
-      </div>
     </div>
     <div class="contact-right">
-      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
-        <a id="contactMailLink" href="mailto:rifai.aryo@gmail.com?subject=Project%20Inquiry%3A%20Fullstack%20Systems" class="ci" style="text-decoration:none;"><span class="ci-lbl" style="color:var(--accent); font-weight:bold;">Email (Pre-configured)</span><span class="ci-val">rifai.aryo@gmail.com <span class="ci-arr">→</span></span></a>
-        <button type="button" onclick="copyEmail(this)" style="padding:10px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-family:var(--mono); font-size:11px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--accent2); font-weight:bold;">One-Click Clipboard:</span>
-          <span>Copy rifai.aryo@gmail.com</span>
-        </button>
-      </div>
+      <a href="mailto:rifai.aryo@gmail.com" class="ci" style="text-decoration:none;"><span class="ci-lbl">Email</span><span class="ci-val">rifai.aryo@gmail.com <span class="ci-arr">→</span></span></a>
       <a href="https://linkedin.com/in/rifai-aryo-ananta" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">LinkedIn</span><span class="ci-val">linkedin.com/in/rifai-aryo-ananta <span class="ci-arr">→</span></span></a>
       <a href="https://github.com/nantaa" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">GitHub</span><span class="ci-val">github.com/nantaa <span class="ci-arr">→</span></span></a>
       <a href="https://instagram.com/rfrynny" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">Instagram</span><span class="ci-val">@rfrynny <span class="ci-arr">→</span></span></a>
@@ -2007,7 +1992,7 @@
       if (liveBtn) {
         if (id === 1) {
           liveBtn.style.display = 'inline-flex';
-          liveBtn.href = 'projects/moriku/index.html?v=20261125';
+          liveBtn.href = 'projects/moriku/index.html?v=20261125b';
           liveBtn.innerHTML = '⚡ Launch Live Moriku Runtime ↗';
         } else if (id === 2) {
           liveBtn.style.display = 'inline-flex';
@@ -2306,36 +2291,90 @@
     </div>
   </div>
 
-  <script>
-    function copyEmail(btn) {
-      try {
-        navigator.clipboard.writeText('rifai.aryo@gmail.com');
-        if (btn) {
-          var orig = btn.innerText;
-          btn.innerText = 'Copied! ✓';
-          setTimeout(function() { btn.innerText = orig; }, 2500);
-        }
-      } catch (e) {}
-    }
+  <!-- ══ WORK PROPOSAL MODAL ══ -->
+  <div id="workProposalModal" role="dialog" aria-modal="true" aria-labelledby="proposalModalTitle"
+    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;"
+    onclick="closeProposal()">
+    <div style="background:var(--modal-bg); border:1px solid var(--wire); color:var(--text); max-width:560px; width:100%; padding:32px; border-radius:3px; position:relative;"
+      onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:0.5px solid var(--wire); padding-bottom:14px; margin-bottom:20px;">
+        <div>
+          <div style="font-family:var(--mono); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); font-weight:bold;">Work Proposal</div>
+          <h2 id="proposalModalTitle" style="font-family:var(--display); font-size:24px; font-weight:bold; margin-top:4px;">Propose a Project or Role</h2>
+        </div>
+        <button type="button" onclick="closeProposal()" style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">Close [ESC]</button>
+      </div>
+      <form onsubmit="submitProposal(event)" style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Your Name / Company</label>
+            <input id="propName" type="text" required placeholder="Jane Doe · Acme Corp" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;" />
+          </div>
+          <div>
+            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Work Email</label>
+            <input id="propEmail" type="email" required placeholder="jane@acme.com" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;" />
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Engagement Type</label>
+            <select id="propType" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;">
+              <option value="Full-Time Role">Full-Time Role</option>
+              <option value="Contract / Freelance" selected>Contract / Freelance</option>
+              <option value="Systems Architecture">Systems Architecture</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Target Timeline</label>
+            <select id="propTimeline" style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;">
+              <option value="Immediate">Immediate</option>
+              <option value="Within 30 Days">Within 30 Days</option>
+              <option value="Flexible">Flexible</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="display:block; font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Project Scope / Brief</label>
+          <textarea id="propBrief" required rows="4" placeholder="Describe your system goals, architecture needs, or team role..." style="width:100%; padding:8px 10px; background:var(--s2); border:0.5px solid var(--wire); color:var(--text); font-size:13px; border-radius:2px;"></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+          <button type="button" onclick="closeProposal()" style="padding:8px 16px; border:0.5px solid var(--wire); background:transparent; color:var(--muted); font-family:var(--mono); font-size:11px; text-transform:uppercase; cursor:pointer; border-radius:2px;">Cancel</button>
+          <button type="submit" style="padding:8px 18px; border:none; background:var(--accent); color:#fff; font-family:var(--mono); font-size:11px; font-weight:bold; text-transform:uppercase; cursor:pointer; border-radius:2px;">Send Proposal →</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    function selectIntent(btn, intent) {
-      document.querySelectorAll('.intent-chip').forEach(function(chip) {
-        chip.style.background = 'var(--s2)';
-        chip.style.borderColor = 'var(--wire)';
-        chip.style.color = 'var(--muted)';
-      });
-      if (btn) {
-        btn.style.background = 'var(--accent)';
-        btn.style.borderColor = 'var(--accent)';
-        btn.style.color = '#fff';
-      }
-      var mailLink = document.getElementById('contactMailLink');
-      if (mailLink) {
-        var subject = encodeURIComponent('Project Inquiry: ' + intent);
-        var body = encodeURIComponent('Hi Aryo,\n\nI came across your portfolio and would like to discuss an opportunity regarding ' + intent + '.\n\nBest regards,\n');
-        mailLink.href = 'mailto:rifai.aryo@gmail.com?subject=' + subject + '&body=' + body;
+  <script>
+    function openProposal() {
+      var m = document.getElementById('workProposalModal');
+      if (m) {
+        m.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
       }
     }
+    function closeProposal() {
+      var m = document.getElementById('workProposalModal');
+      if (m) {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    function submitProposal(e) {
+      e.preventDefault();
+      var n = document.getElementById('propName').value;
+      var em = document.getElementById('propEmail').value;
+      var tp = document.getElementById('propType').value;
+      var tl = document.getElementById('propTimeline').value;
+      var br = document.getElementById('propBrief').value;
+      var subject = encodeURIComponent('Work Proposal (' + tp + '): ' + n);
+      var body = encodeURIComponent('Name / Organization: ' + n + '\nReply Email: ' + em + '\nEngagement: ' + tp + '\nTimeline: ' + tl + '\n\nProject Brief:\n' + br + '\n');
+      window.location.href = 'mailto:rifai.aryo@gmail.com?subject=' + subject + '&body=' + body;
+      closeProposal();
+    }
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeProposal();
+    });
 
     // Moving 3D Architectural Wireframe Canvas (Hero Option 2)
     (function initHeroWireframe() {

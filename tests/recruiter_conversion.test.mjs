@@ -48,12 +48,12 @@ test('Criterion 4: Print stylesheet @media print formats resume for export in gl
   assert.ok(indexHtml.includes('@media print'), 'index.html must define @media print styles');
 });
 
-test('Criterion 5: One-click email copy functionality with visual confirmation exists across components', () => {
+test('Criterion 5: Direct email contact link exists across Contact and index.html', () => {
   const contact = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Contact.tsx'), 'utf-8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
 
-  assert.ok(contact.includes('copyEmail') || contact.includes('copied'), 'Contact.tsx must provide copy email functionality');
-  assert.ok(indexHtml.includes('copyEmail'), 'index.html must provide copyEmail function');
+  assert.ok(contact.includes('mailto:'), 'Contact.tsx must provide direct mailto link');
+  assert.ok(indexHtml.includes('mailto:rifai.aryo@gmail.com'), 'index.html must provide direct mailto link');
 });
 
 test('Criterion 6: Hero section displays candidate availability badge in Navbar and index.html', () => {

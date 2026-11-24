@@ -144,7 +144,7 @@ export default function CaseStudyModal({
   if (!project || !mounted || typeof document === "undefined") return null;
 
   const getDirectUrl = (p: Project) => {
-    if (p.id === 1) return "/projects/moriku/index.html?v=20261125";
+    if (p.id === 1) return "/projects/moriku/index.html?v=20261125b";
     if (p.id === 2) return "/raja_ampat_snorkel_day.html";
     if (p.id === 3) return "/projects/tata/index.html?v=20261125";
     return p.link || null;
@@ -157,7 +157,7 @@ export default function CaseStudyModal({
     if (p.id === 1) {
       return (
         <iframe
-          src="/projects/moriku/index.html?v=20261125"
+          src="/projects/moriku/index.html?v=20261125b"
           title="Moriku - DNP Compliance Engine"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-950 pointer-events-auto"
           loading="eager"

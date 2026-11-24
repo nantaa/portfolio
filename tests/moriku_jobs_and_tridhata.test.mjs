@@ -13,8 +13,8 @@ test('Criterion 1: Moriku index.html seeds interactive jobs across all 16 Kanban
   const rootMoriku = fs.readFileSync(path.join(rootDir, 'projects', 'moriku', 'index.html'), 'utf-8');
 
   for (let s = 1; s <= 16; s++) {
-    assert.ok(publicMoriku.includes(`"stage":"${s}"`), `public moriku must have job at stage ${s}`);
-    assert.ok(rootMoriku.includes(`"stage":"${s}"`), `root moriku must have job at stage ${s}`);
+    assert.ok(publicMoriku.includes(`"stage":${s},`), `public moriku must have job at integer stage ${s}`);
+    assert.ok(rootMoriku.includes(`"stage":${s},`), `root moriku must have job at integer stage ${s}`);
   }
 });
 

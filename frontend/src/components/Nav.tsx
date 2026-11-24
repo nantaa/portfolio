@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useSyncExternalStore } from "react";
+import WorkProposalModal from "@/components/WorkProposalModal";
 
 function subscribe(callback: () => void) {
   if (typeof window === "undefined") return () => { };
@@ -28,6 +29,7 @@ function getServerSnapshot(): "dark" | "light" {
 export default function Nav() {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("work");
 
   // Scroll-spy: Track active section for clear spatial wayfinding
@@ -207,7 +209,13 @@ export default function Nav() {
               )}
             </button>
 
-            <div className="nav-cta hidden sm:block">Available for work</div>
+            <button
+              type="button"
+              onClick={() => setIsProposalOpen(true)}
+              className="nav-cta hidden sm:block cursor-pointer bg-transparent"
+            >
+              Available for work
+            </button>
           </div>
         </div>
       </nav>
@@ -251,10 +259,24 @@ export default function Nav() {
             <span className="text-[var(--accent2)]">{activeSection === "contact" ? "●" : "→"}</span>
           </a>
           <div className="pt-2 flex justify-end items-center text-[10px] text-[var(--muted)]">
-            <span className="text-[var(--accent2)]">Available for work</span>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsProposalOpen(true);
+              }}
+              className="text-[var(--accent2)] font-bold uppercase tracking-wider cursor-pointer"
+            >
+              Available for work →
+            </button>
           </div>
         </div>
       )}
+
+      <WorkProposalModal
+        isOpen={isProposalOpen}
+        onClose={() => setIsProposalOpen(false)}
+      />
     </>
   );
 }
