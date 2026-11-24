@@ -266,23 +266,24 @@
 
     /* main hero layout */
     .hero-body {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+      min-height: calc(100vh - 180px);
     }
 
     /* editorial headline block */
     .hero-left {
-      padding: 64px 52px 48px;
+      padding: 56px 52px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       gap: 36px;
-      border-bottom: 0.5px solid var(--wire);
     }
 
     .hero-name {
       font-family: var(--display);
-      font-size: clamp(60px, 8.2vw, 128px);
+      font-size: clamp(56px, 7vw, 112px);
       font-weight: 700;
       line-height: 0.92;
       letter-spacing: -0.03em;
@@ -369,14 +370,16 @@
       background: var(--accent);
     }
 
-    /* bottom — architectural ledger */
+    /* right — live 3D wireframe canvas */
     .hero-right {
       position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       width: 100%;
-      background: var(--s1);
+      height: 100%;
+      min-height: 440px;
+      background: transparent;
       overflow: hidden;
       user-select: none;
     }

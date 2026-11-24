@@ -155,12 +155,16 @@ test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing
   assert.ok(css.includes('.hero-right') && css.includes('flex-direction: column'), '.hero-right must be styled as a full-height flex column frame');
 });
 
-test('Hero section renders clean editorial options without HeroTelemetryHUD canvas', () => {
+test('Hero section integrates HeroWireframeCanvas with moving 3D geometry', () => {
+  const canvasPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroWireframeCanvas.tsx');
   const heroPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
+
+  assert.ok(fs.existsSync(canvasPath), 'HeroWireframeCanvas.tsx component must exist');
+  const canvasContent = fs.readFileSync(canvasPath, 'utf-8');
   const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
-  assert.ok(!heroContent.includes('HeroTelemetryHUD'), 'Hero.tsx must not embed HeroTelemetryHUD');
-  assert.ok(heroContent.includes('Option A') && heroContent.includes('Option B') && heroContent.includes('Option C'), 'Hero.tsx must render all 3 review options');
+  assert.ok(canvasContent.includes('requestAnimationFrame') && canvasContent.includes('three'), 'HeroWireframeCanvas must animate 3D Three.js geometry');
+  assert.ok(heroContent.includes('HeroWireframeCanvas'), 'Hero.tsx must embed HeroWireframeCanvas');
 });
 
 test('Global styles purge intrusive text selection dragging across the portfolio', () => {
