@@ -81,6 +81,25 @@ const CORE_PROJECTS: Project[] = [
   },
   {
     id: 5,
+    title: "Tridhata PPIC ERP",
+    category: "Enterprise PPIC",
+    subtitle: "Laravel 11 · Filament v3 · PHP 8.2 · Spatie RBAC & ActivityLog",
+    outcome_metric: "11 Filament Resources · Bogor & Nganjuk PPIC",
+    image_url: null,
+    link: null,
+    year: "2025",
+    sort_order: 4,
+    is_featured: false,
+    case_study: {
+      problem: "Multi-site manufacturing across Bogor and Nganjuk lacked unified Bill of Materials tracking, stock opname verification, and low-stock alerts.",
+      thinking: "Architected a modular Laravel 11 + Filament v3 admin panel with Spatie RBAC permissions, append-only activity logs, and StockMovementType enums.",
+      execution: "Laravel 11, Filament v3.2, PHP 8.2, ProductionScheduleResource, BomResource, StockOpnameVerificationPage, and LowStockAlertWidget.",
+      result: "Unified multi-facility PPIC planning, verified stock opname ledgers, and automated low-stock threshold alerts.",
+    },
+  },
+  /* Commented out Delta IT Helpdesk per user request
+  {
+    id: 5,
     title: "Delta IT Helpdesk",
     category: "Enterprise Support",
     subtitle: "Next.js 16 · Laravel 11 · Meta WhatsApp Cloud API · Soketi WebSockets",
@@ -97,6 +116,7 @@ const CORE_PROJECTS: Project[] = [
       result: "Sub-2h SLA compliance reached 94%, zero missed alerts, and realtime bidirectional field communication.",
     },
   },
+  */
   {
     id: 6,
     title: "Geopetak Web",
