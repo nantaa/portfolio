@@ -12,7 +12,7 @@ export default function About() {
         <div className="about-left">
           <div className="about-ph">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="images/aryo.png" alt="Aryo Rifai" />
+            <img src="/images/aryo.png" alt="Rifa'i Aryo Ananta" />
           </div>
           <div className="about-left-tag">Bekasi, Indonesia — 2026</div>
         </div>

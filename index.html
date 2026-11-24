@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aryo — Portfolio</title>
   <meta name="description" content="Solving problems across software, design, and infrastructure.">
+  <meta name="theme-color" content="#800020">
+  <link rel="canonical" href="https://antporto.co.id">
+  <link rel="manifest" href="manifest.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://antporto.co.id">
   <meta property="og:site_name" content="Aryo Ananta — Systems Portfolio">
@@ -18,7 +21,37 @@
   <meta name="twitter:image" content="https://antporto.co.id/logo-svg.svg">
   <link rel="icon" type="image/svg+xml" href="logo-svg.svg">
   <link rel="alternate icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="logo-svg.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://antporto.co.id/#person",
+        "name": "Rifa'i Aryo Ananta",
+        "jobTitle": "Systems Architect & Software Engineer",
+        "url": "https://antporto.co.id",
+        "image": "https://antporto.co.id/logo-svg.svg",
+        "sameAs": [
+          "https://github.com/nantaa",
+          "https://linkedin.com/in/rifai-aryo-ananta",
+          "https://instagram.com/rfrynny",
+          "https://codepen.io/Rifai-Aryo-Ananta"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://antporto.co.id/#website",
+        "url": "https://antporto.co.id",
+        "name": "Aryo Ananta — Systems Portfolio",
+        "publisher": {
+          "@id": "https://antporto.co.id/#person"
+        }
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -1209,6 +1242,17 @@
       fill: none;
       stroke-width: 1px;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto !important;
+      }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 
@@ -1218,14 +1262,14 @@
 
   <!-- NAV -->
   <nav>
-    <a href="#" class="nav-logo">
+    <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="nav-logo">
       <img src="logo-svg.svg" alt="Aryo Logo" class="nav-logo-icon" width="26" height="26">
       <span>Aryo<em>.</em></span>
     </a>
     <div class="nav-right">
       <ul class="nav-links">
         <li><a href="#work">Work</a></li>
-        <li><a href="#disciplines">Skills</a></li>
+        <li><a href="#disciplines">Disciplines</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>

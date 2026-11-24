@@ -70,10 +70,20 @@ export default function Nav() {
     window.dispatchEvent(new CustomEvent("open-resume-modal"));
   };
 
+  const scrollToTop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <>
       <nav>
-        <a href="#" className="nav-logo flex items-center gap-2.5 group cursor-pointer" style={{ textDecoration: "none" }}>
+        <a
+          href="#"
+          onClick={scrollToTop}
+          className="nav-logo flex items-center gap-2.5 group cursor-pointer"
+          style={{ textDecoration: "none" }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo-svg.svg"
@@ -101,7 +111,7 @@ export default function Nav() {
                 className={`transition-colors flex items-center gap-1.5 ${activeSection === "disciplines" ? "text-[var(--text)] font-semibold" : "text-[var(--muted)] hover:text-[var(--text)]"}`}
               >
                 {activeSection === "disciplines" && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] inline-block"></span>}
-                <span>Skills</span>
+                <span>Disciplines</span>
               </a>
             </li>
             <li>

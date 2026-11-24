@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Syne, Syne_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -19,8 +19,16 @@ const syneMono = Syne_Mono({
   variable: "--mono",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#800020",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://antporto.co.id"),
+  alternates: {
+    canonical: "/",
+  },
+  manifest: "/manifest.webmanifest",
   title: "Aryo \u2014 Portfolio",
   description: "Solving problems across software, design, and infrastructure.",
   authors: [{ name: "Rifa'i Aryo Ananta", url: "https://antporto.co.id" }],
@@ -59,6 +67,35 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://antporto.co.id/#person",
+      name: "Rifa'i Aryo Ananta",
+      jobTitle: "Systems Architect & Software Engineer",
+      url: "https://antporto.co.id",
+      image: "https://antporto.co.id/logo-svg.svg",
+      sameAs: [
+        "https://github.com/nantaa",
+        "https://linkedin.com/in/rifai-aryo-ananta",
+        "https://instagram.com/rfrynny",
+        "https://codepen.io/Rifai-Aryo-Ananta",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://antporto.co.id/#website",
+      url: "https://antporto.co.id",
+      name: "Aryo Ananta — Systems Portfolio",
+      publisher: {
+        "@id": "https://antporto.co.id/#person",
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -75,6 +112,11 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/logo-svg.svg" />
         <link rel="alternate icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
