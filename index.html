@@ -317,25 +317,25 @@
 
     /* main hero layout */
     .hero-body {
-      display: grid;
-      grid-template-columns: 4fr 5fr;
-      min-height: calc(100vh - 140px);
-    }
-
-    /* left */
-    .hero-left {
-      padding: 52px 52px 52px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border-right: 0.5px solid var(--wire);
+    }
+
+    /* editorial headline block */
+    .hero-left {
+      padding: 64px 52px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      border-bottom: 0.5px solid var(--wire);
     }
 
     .hero-name {
       font-family: var(--display);
-      font-size: clamp(60px, 6.5vw, 100px);
+      font-size: clamp(60px, 8.2vw, 128px);
       font-weight: 700;
-      line-height: 0.9;
+      line-height: 0.92;
       letter-spacing: -0.03em;
       color: var(--text);
     }
@@ -420,13 +420,12 @@
       background: var(--accent);
     }
 
-    /* right — uneven image mosaic */
+    /* bottom architectural ledger */
     .hero-right {
-      display: grid;
-      grid-template-columns: 3fr 2fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 0.5px;
-      background: var(--wire);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      background: var(--s1);
     }
 
     .hero-img-cell {
@@ -1342,62 +1341,58 @@
         </div>
       </div>
 
-      <!-- Executive Systems Architecture Specimen -->
+      <!-- Executive Systems Architecture Ledger -->
       <div class="hero-right hero-architectural-frame" id="heroRightFrame"
-        style="position:relative; display:flex; flex-direction:column; justify-content:space-between; padding:48px 40px; border-left:0.5px solid var(--wire); user-select:none; overflow:hidden; background:var(--s1);">
-        <!-- Top metadata coordinate stamp -->
-        <div>
-          <div
-            style="display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; padding-bottom:16px; border-bottom:0.5px solid var(--wire);">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span
-                style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+        style="position:relative; width:100%; user-select:none; overflow:hidden; background:var(--s1);">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
+          <!-- Column 1: Domain Identity & Stack -->
+          <div style="padding:32px 52px; border-right:0.5px solid var(--wire); display:flex; flex-direction:column; justify-content:space-between; gap:16px;">
+            <div style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
               <span style="color:var(--text); font-weight:bold;">SYSTEMS ARCHITECT &amp; LEAD ENGINEER</span>
             </div>
-            <span style="color:var(--accent); font-weight:bold;">PRODUCTION VERIFIED</span>
-          </div>
-        </div>
-
-        <!-- Center Editorial Focal -->
-        <div style="margin:auto 0; padding:24px 0;">
-          <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent); margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px;">
-            <span>[01] ENTERPRISE SYSTEMS &amp; ERP</span>
-            <span>·</span>
-            <span>[02] CREATIVE MOTION &amp; 3D WEBGL</span>
-            <span>·</span>
-            <span>[03] ALGORITHMIC OPTIMIZATION</span>
-            <span>·</span>
-            <span>[04] CLOUD &amp; DEVOPS</span>
-          </div>
-          <div style="font-family:var(--display); font-size:26px; line-height:1.25; color:var(--text); font-weight:400; margin-bottom:12px; letter-spacing:-0.01em;">
-            Mission-critical web systems, statutory compliance engines, and automated cloud infrastructure.
-          </div>
-          <div style="color:var(--muted); font-size:13px; line-height:1.6; max-width:540px;">
-            Designing resilient software with formal state machines, strict ACID transaction guarantees, and sub-second deterministic pipelines.
-          </div>
-
-          <!-- 3 Clean Benchmark Badges -->
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:24px; padding-top:20px; border-top:0.5px solid var(--wire);">
-            <div style="padding:12px; background:var(--s2); border:0.5px solid var(--wire); border-radius:2px;">
-              <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">350+</div>
-              <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;">Passing Tests</div>
-            </div>
-            <div style="padding:12px; background:var(--s2); border:0.5px solid var(--wire); border-radius:2px;">
-              <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">&lt;2h SLA</div>
-              <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;">Event Latency</div>
-            </div>
-            <div style="padding:12px; background:var(--s2); border:0.5px solid var(--wire); border-radius:2px;">
-              <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">0-Downtime</div>
-              <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px;">Atomic Releases</div>
+            <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); display:flex; flex-wrap:wrap; gap:6px;">
+              <span>[01] ENTERPRISE SYSTEMS &amp; ERP</span>
+              <span>·</span>
+              <span>[02] CREATIVE MOTION &amp; 3D WEBGL</span>
+              <span>·</span>
+              <span>[03] ALGORITHMIC OPTIMIZATION</span>
+              <span>·</span>
+              <span>[04] CLOUD &amp; DEVOPS</span>
             </div>
           </div>
-        </div>
 
-        <!-- Bottom Quality Verification Bar -->
-        <div
-          style="padding-top:14px; border-top:0.5px solid var(--wire); display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:9px; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase;">
-          <span style="color:var(--text); font-weight:bold;">● Dual Architecture Verification</span>
-          <span>Next.js 15 &amp; Static Mirror Parity</span>
+          <!-- Column 2: Engineering Focus -->
+          <div style="padding:32px 36px; border-right:0.5px solid var(--wire); display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
+            <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted);">
+              Core Architecture Focus
+            </div>
+            <div style="color:var(--text); font-size:13.5px; line-height:1.6;">
+              Formal state machines, strict ACID transaction guarantees, and sub-second deterministic pipelines.
+            </div>
+          </div>
+
+          <!-- Column 3: Verified Production Benchmarks -->
+          <div style="padding:32px 52px; display:flex; flex-direction:column; justify-content:space-between; gap:16px;">
+            <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted);">
+              <span>Production Verified</span>
+              <span style="color:var(--accent); font-weight:bold;">2026</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+              <div>
+                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">350+</div>
+                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Passing Tests</div>
+              </div>
+              <div>
+                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">&lt;2h SLA</div>
+                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Event Latency</div>
+              </div>
+              <div>
+                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">0-Downtime</div>
+                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Atomic Releases</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1427,15 +1422,25 @@
   </div>
 
   <!-- ══ WORK GRID ══ -->
-  <div class="sec-hd" id="work">
-    <span class="sec-lbl">Selected work</span>
-    <span class="sec-ct">08 projects</span>
+  <div class="sec-hd" id="work" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="sec-lbl">Selected work</span>
+      <span class="sec-ct" id="workCountLabel">08 / 08 projects</span>
+    </div>
+    <div role="tablist" aria-label="Project categories" style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--mono); font-size:11px;">
+      <button type="button" role="tab" aria-selected="true" onclick="filterProjects('all', this)" class="work-tab active" style="padding:4px 10px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; text-transform:uppercase; border-radius:2px;">All (08)</button>
+      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('enterprise', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Enterprise (02)</button>
+      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('webgl', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">3D WebGL (02)</button>
+      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('algorithms', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Algorithms (01)</button>
+      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('ai', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">AI &amp; GIS (02)</button>
+      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('design', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Design (01)</button>
+    </div>
   </div>
 
   <div class="work-grid">
 
     <!-- 01 Moriku -->
-    <div class="wc">
+    <div class="wc" data-category="enterprise">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="4" y="4" width="40" height="40" rx="2" />
@@ -1460,7 +1465,7 @@
     </div>
 
     <!-- 02 Indonesian 3D Material Studies -->
-    <div class="wc">
+    <div class="wc" data-category="webgl">
       <div class="wph" style="position:relative; overflow:hidden;">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <path
@@ -1488,7 +1493,7 @@
     </div>
 
     <!-- 03 TATA$ -->
-    <div class="wc">
+    <div class="wc" data-category="webgl">
       <div class="wph" style="position:relative; overflow:hidden;">
         <div
           style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--sans); font-size:clamp(3.5rem, 10vw, 6.5rem); font-weight:900; color:rgba(186,102,23,0.22); text-shadow:0 0 60px rgba(186,102,23,0.35); pointer-events:none; z-index:1;">
@@ -1515,7 +1520,7 @@
     </div>
 
     <!-- 04 Academic Thesis Docket -->
-    <div class="wc">
+    <div class="wc" data-category="algorithms">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="4" y="8" width="40" height="30" rx="2" />
@@ -1540,7 +1545,7 @@
     </div>
 
     <!-- 05 Delta IT Helpdesk -->
-    <div class="wc">
+    <div class="wc" data-category="enterprise">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="6" y="8" width="36" height="28" rx="3" />
@@ -1564,7 +1569,7 @@
     </div>
 
     <!-- 06 Geopetak Aerial AI -->
-    <div class="wc">
+    <div class="wc" data-category="ai">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <circle cx="24" cy="24" r="18" />
@@ -1588,7 +1593,7 @@
     </div>
 
     <!-- 07 Expense Tracker -->
-    <div class="wc">
+    <div class="wc" data-category="ai">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <rect x="8" y="6" width="32" height="36" rx="2" />
@@ -1612,7 +1617,7 @@
     </div>
 
     <!-- 08 Makna Works -->
-    <div class="wc">
+    <div class="wc" data-category="design">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
           <circle cx="24" cy="24" r="16" />
@@ -1756,22 +1761,8 @@
 
   <section class="about">
     <div class="about-left">
-      <div class="about-ph"
-        style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0E0E0E; text-align:center;">
-        <div
-          style="position:relative; width:90px; height:90px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
-          <div style="position:absolute; inset:0; border:1px solid rgba(122,21,37,0.3); border-radius:50%;"></div>
-          <div
-            style="width:48px; height:48px; background:rgba(122,21,37,0.1); border:1px solid var(--accent); display:flex; align-items:center; justify-content:center; border-radius:2px;">
-            <span style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">RA</span>
-          </div>
-        </div>
-        <span
-          style="font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.2em; color:var(--text); font-weight:bold;">Rifa'i
-          Aryo Ananta</span>
-        <span
-          style="font-family:var(--mono); font-size:9px; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-top:2px;">Multidisciplinary
-          Technologist</span>
+      <div class="about-ph">
+        <img src="/images/aryo.png" alt="Rifa'i Aryo Ananta" style="width:100%; height:100%; object-fit:cover;" />
       </div>
       <div class="about-left-tag">Bekasi, Indonesia — 2026</div>
     </div>
@@ -1857,10 +1848,19 @@
         collaborations, and full-time roles.<br>
         Based in Bekasi — working globally.
       </p>
+      <div style="margin-top:24px; padding-top:20px; border-top:0.5px solid var(--wire);">
+        <span style="font-family:var(--mono); font-size:11px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.12em; display:block; margin-bottom:10px;">Select inquiry intent:</span>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button type="button" onclick="selectIntent(this, 'Fullstack Systems')" class="intent-chip active" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:2px; cursor:pointer;">Fullstack Systems</button>
+          <button type="button" onclick="selectIntent(this, 'Realtime 3D / WebGL')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Realtime 3D / WebGL</button>
+          <button type="button" onclick="selectIntent(this, 'Systems Architecture')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Systems Architecture</button>
+          <button type="button" onclick="selectIntent(this, 'Advisory / Full-Time')" class="intent-chip" style="padding:6px 12px; font-family:var(--mono); font-size:11px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); border-radius:2px; cursor:pointer;">Advisory / Full-Time</button>
+        </div>
+      </div>
     </div>
     <div class="contact-right">
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
-        <a href="mailto:rifai.aryo@gmail.com" class="ci" style="text-decoration:none;"><span class="ci-lbl" style="color:var(--accent); font-weight:bold;">Email (Direct)</span><span class="ci-val">rifai.aryo@gmail.com <span class="ci-arr">→</span></span></a>
+        <a id="contactMailLink" href="mailto:rifai.aryo@gmail.com?subject=Project%20Inquiry%3A%20Fullstack%20Systems" class="ci" style="text-decoration:none;"><span class="ci-lbl" style="color:var(--accent); font-weight:bold;">Email (Pre-configured)</span><span class="ci-val">rifai.aryo@gmail.com <span class="ci-arr">→</span></span></a>
         <button type="button" onclick="copyEmail(this)" style="padding:10px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-family:var(--mono); font-size:11px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
           <span style="color:var(--accent2); font-weight:bold;">One-Click Clipboard:</span>
           <span>Copy rifai.aryo@gmail.com</span>
@@ -1878,6 +1878,9 @@
     <span class="f-id">Aryo Ananta — Systems Architect — Bekasi 2026</span>
     <div class="f-dot"></div>
     <span class="f-copy">Portfolio Aryo © 2026</span>
+    <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="Scroll back to top of page" style="margin-left:auto; background:transparent; border:none; font-family:var(--mono); font-size:11px; color:var(--muted); cursor:pointer; display:flex; align-items:center; gap:4px;">
+      <span>Back to top</span> <span>↑</span>
+    </button>
   </footer>
 
   <script>
@@ -2123,13 +2126,13 @@
     style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px;"
     onclick="closeCase()">
     <div
-      style="background:#0D0D0D; border:1px solid rgba(255,255,255,0.15); max-width:920px; width:100%; max-height:92vh; overflow-y:auto; padding:38px; border-radius:3px; position:relative;"
+      style="background:var(--modal-bg); border:1px solid var(--wire); max-width:920px; width:100%; max-height:92vh; overflow-y:auto; padding:38px; border-radius:3px; position:relative;"
       onclick="event.stopPropagation()">
       <div
-        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:24px;">
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--wire); padding-bottom:14px; margin-bottom:24px;">
         <div
           style="font-family:var(--mono); font-size:12px; letter-spacing:0.15em; color:var(--accent2); text-transform:uppercase; font-weight:bold;">
-          CASE DOSSIER / <span id="cmCat" style="color:var(--muted);"></span>
+          PROJECT OVERVIEW / <span id="cmCat" style="color:var(--muted);"></span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <button id="cmPrevBtn" onclick="prevCase()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:4px 10px; font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;">
@@ -2203,7 +2206,7 @@
     style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px;"
     onclick="closeResume()">
     <div
-      style="background:#0D0D0D; border:1px solid rgba(255,255,255,0.1); max-width:800px; width:100%; max-height:92vh; overflow-y:auto; padding:36px; border-radius:3px; position:relative;"
+      style="background:var(--modal-bg); border:1px solid var(--wire); max-width:800px; width:100%; max-height:92vh; overflow-y:auto; padding:36px; border-radius:3px; position:relative;"
       onclick="event.stopPropagation()">
       <div
         style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px; margin-bottom:24px;">
@@ -2328,6 +2331,54 @@
           setTimeout(function() { btn.innerText = orig; }, 2500);
         }
       } catch (e) {}
+    }
+
+    function filterProjects(category, btn) {
+      var cards = document.querySelectorAll('.work-grid .wc');
+      var visible = 0;
+      cards.forEach(function(card) {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+          card.style.display = '';
+          visible++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      var label = document.getElementById('workCountLabel');
+      if (label) {
+        label.textContent = String(visible).padStart(2, '0') + ' / 08 projects';
+      }
+      document.querySelectorAll('.work-tab').forEach(function(tab) {
+        tab.setAttribute('aria-selected', 'false');
+        tab.style.background = 'var(--s2)';
+        tab.style.borderColor = 'var(--wire)';
+        tab.style.color = 'var(--muted)';
+      });
+      if (btn) {
+        btn.setAttribute('aria-selected', 'true');
+        btn.style.background = 'var(--accent)';
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.color = '#fff';
+      }
+    }
+
+    function selectIntent(btn, intent) {
+      document.querySelectorAll('.intent-chip').forEach(function(chip) {
+        chip.style.background = 'var(--s2)';
+        chip.style.borderColor = 'var(--wire)';
+        chip.style.color = 'var(--muted)';
+      });
+      if (btn) {
+        btn.style.background = 'var(--accent)';
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.color = '#fff';
+      }
+      var mailLink = document.getElementById('contactMailLink');
+      if (mailLink) {
+        var subject = encodeURIComponent('Project Inquiry: ' + intent);
+        var body = encodeURIComponent('Hi Aryo,\n\nI came across your portfolio and would like to discuss an opportunity regarding ' + intent + '.\n\nBest regards,\n');
+        mailLink.href = 'mailto:rifai.aryo@gmail.com?subject=' + subject + '&body=' + body;
+      }
     }
   </script>
 
