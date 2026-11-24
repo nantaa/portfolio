@@ -16,11 +16,22 @@ const INQUIRY_INTENTS = [
 
 export default function Contact({ settings = {} }: ContactProps) {
   const [selectedIntent, setSelectedIntent] = useState<string>("Fullstack Systems");
+  const [copied, setCopied] = useState(false);
   const email = settings["contact_email"] ?? "rifai.aryo@gmail.com";
   const linkedin = settings["contact_linkedin"] ?? "linkedin.com/in/rifai-aryo-ananta";
   const github = settings["contact_github"] ?? "github.com/nantaa";
   const instagram = settings["contact_instagram"] ?? "@rfrynny";
   const codepen = settings["contact_codepen"] ?? "https://codepen.io/Rifai-Aryo-Ananta";
+
+  const copyEmail = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {}
+  };
 
   const mailtoSubject = encodeURIComponent(`Project Inquiry: ${selectedIntent}`);
   const mailtoBody = encodeURIComponent(
@@ -70,10 +81,20 @@ export default function Contact({ settings = {} }: ContactProps) {
           </div>
         </div>
         <div className="contact-right">
-          <a href={dynamicMailto} className="ci group bg-[var(--s1)] hover:bg-[var(--s2)] transition-colors">
-            <span className="ci-lbl text-[var(--accent)] font-bold">Email (Pre-configured)</span>
-            <span className="ci-val">{email} <span className="ci-arr">→</span></span>
-          </a>
+          <div className="flex flex-col gap-2">
+            <a href={dynamicMailto} className="ci group bg-[var(--s1)] hover:bg-[var(--s2)] transition-colors">
+              <span className="ci-lbl text-[var(--accent)] font-bold">Email (Pre-configured)</span>
+              <span className="ci-val">{email} <span className="ci-arr">→</span></span>
+            </a>
+            <button
+              type="button"
+              onClick={copyEmail}
+              className="py-2.5 px-4 text-left font-mono text-xs border border-[var(--wire)] bg-[var(--s2)] hover:border-[var(--accent)] transition-colors rounded-[2px] cursor-pointer flex items-center justify-between"
+            >
+              <span className="text-[var(--accent2)] font-bold">One-Click Clipboard:</span>
+              <span className="text-[var(--text)] font-semibold">{copied ? "Copied to Clipboard! ✓" : "Copy rifai.aryo@gmail.com"}</span>
+            </button>
+          </div>
           <a href={`https://${linkedin}`} target="_blank" rel="noopener noreferrer" className="ci">
             <span className="ci-lbl">LinkedIn</span>
             <span className="ci-val">{linkedin} <span className="ci-arr">→</span></span>

@@ -2464,6 +2464,32 @@
       }
     }
 
+    /* ─── PRINT OPTIMIZATIONS (RECRUITER & ATS EXPORT) ─── */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+      }
+      nav, footer, .hero, .work, .disciplines, .about, .contact, #main-content > section {
+        display: none !important;
+      }
+      [role="dialog"] {
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+      [role="dialog"] > div {
+        max-width: 100% !important;
+        max-height: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+      }
+    }
+
 
 
 

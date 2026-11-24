@@ -102,6 +102,10 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
     };
   }, [isOpen, onClose]);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -109,31 +113,42 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="resume-modal-title"
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn select-text"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn select-text print:p-0 print:bg-white print:static print:z-auto"
       onClick={onClose}
     >
       <div
         ref={modalContainerRef}
         tabIndex={-1}
-        className="relative w-full max-w-[800px] max-h-[92vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-6 sm:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none"
+        className="relative w-full max-w-[800px] max-h-[92vh] overflow-y-auto bg-[var(--modal-bg)] border border-[var(--card-border)] p-6 sm:p-10 text-[var(--text)] shadow-2xl rounded-[3px] transition-colors outline-none print:max-w-none print:max-h-none print:overflow-visible print:border-none print:shadow-none print:p-4 print:bg-white print:text-black"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}
-        <div className="flex items-center justify-between pb-4 mb-6 border-b border-[var(--wire)]">
+        <div className="flex items-center justify-between pb-4 mb-6 border-b border-[var(--wire)] print:hidden">
           <div className="flex items-center gap-3 font-mono text-[11px] tracking-widest text-[var(--accent2-text)] uppercase font-bold">
             <span>Verified Credentials</span>
             <span className="opacity-30">/</span>
             <span className="text-[var(--muted)] font-normal">Curriculum Vitae</span>
           </div>
 
-          <button
-            onClick={onClose}
-            className="group flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
-            aria-label="Close credentials modal"
-          >
-            <span>Close</span>
-            <span className="text-[var(--accent2-text)] font-bold group-hover:translate-x-0.5 transition-transform">[Esc]</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-[var(--accent2-text)] hover:text-[var(--text)] transition-colors cursor-pointer"
+              title="Print or Save as PDF"
+            >
+              <span>Print / Save PDF</span>
+              <span>↗</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="group flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
+              aria-label="Close credentials modal"
+            >
+              <span>Close</span>
+              <span className="text-[var(--accent2-text)] font-bold group-hover:translate-x-0.5 transition-transform">[Esc]</span>
+            </button>
+          </div>
         </div>
 
         {/* Bio Summary */}
@@ -142,7 +157,7 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             Rifa&apos;i Aryo Ananta
           </h2>
           <p className="font-mono text-[12px] text-[var(--muted)] mb-4 tracking-wide">
-            IT Lead · Fullstack Engineer · Creative Technologist · Systems Architect
+            Systems Architect · Lead Fullstack Engineer · Creative Technologist
           </p>
           <p className="text-[14px] leading-relaxed text-[var(--text)] opacity-90 font-sans">
             Operating across software architecture, creative frontend engineering, and reliable infrastructure.
@@ -160,10 +175,10 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
 
           <div className="space-y-4 font-sans text-[13px]">
             {/* DNP Monitor */}
-            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1 font-mono text-[11px]">
                 <strong className="text-[var(--text)] text-[13px] font-sans">DNP Monitor — Enterprise K3 Compliance Engine</strong>
-                <span className="text-[var(--accent2-text)] font-bold">Lead Fullstack Architect</span>
+                <span className="text-[var(--accent2-text)] font-bold">2023 — 2025 · Lead Systems Architect</span>
               </div>
               <p className="text-[var(--muted)] text-[12px] leading-relaxed mb-2">
                 Engineered end-to-end industrial safety certification tracking for PT Delta Nusantara Persada. Architected Disnaker 30-day SLA calculation engines, RBAC document preview systems, daily digest dispatchers, and zero-downtime atomic symlink deployment with 270+ passing automated tests.
@@ -172,10 +187,10 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             </div>
 
             {/* Delta Helpdesk */}
-            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1 font-mono text-[11px]">
                 <strong className="text-[var(--text)] text-[13px] font-sans">Delta IT Helpdesk &amp; Infrastructure Portal</strong>
-                <span className="text-[var(--accent2-text)] font-bold">Systems &amp; DevOps Engineer</span>
+                <span className="text-[var(--accent2-text)] font-bold">2022 — 2023 · Systems &amp; DevOps Engineer</span>
               </div>
               <p className="text-[var(--muted)] text-[12px] leading-relaxed mb-2">
                 Built group-wide ticketing and technical incident resolution infrastructure. Integrated official Meta WhatsApp Cloud API webhooks with Soketi/Pusher websockets to ensure sub-2h SLA response compliance for operational field technicians.
@@ -184,10 +199,10 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             </div>
 
             {/* Academic Thesis Docket */}
-            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1 font-mono text-[11px]">
                 <strong className="text-[var(--text)] text-[13px] font-sans">Academic Thesis &amp; Defense Optimization Docket</strong>
-                <span className="text-[var(--accent2-text)] font-bold">Systems Architect</span>
+                <span className="text-[var(--accent2-text)] font-bold">2021 — 2022 · Systems Architect</span>
               </div>
               <p className="text-[var(--muted)] text-[12px] leading-relaxed mb-2">
                 Designed mathematical optimization center for UPI CS cohort governance: Gale-Shapley bipartite stable advisor matching, Hungarian minimum-cost defense schedule assignment, and Markov chain stage transition analytics.
@@ -196,16 +211,37 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             </div>
 
             {/* Creative Engineering */}
-            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1 font-mono text-[11px]">
                 <strong className="text-[var(--text)] text-[13px] font-sans">Vaultr &amp; TATA$ — Creative Motion &amp; 3D WebGL Showcases</strong>
-                <span className="text-[var(--accent2-text)] font-bold">Creative Frontend Engineer</span>
+                <span className="text-[var(--accent2-text)] font-bold">2024 — Present · Creative Technologist</span>
               </div>
               <p className="text-[var(--muted)] text-[12px] leading-relaxed mb-2">
                 Developed Awwwards-caliber interactive web platforms featuring continuous scroll-scrubbed GSAP ScrollTrigger timelines, 4-layer parallax, and real-time Three.js GLTF WebGL staging with dynamic RoomEnvironment lighting.
               </p>
               <span className="font-mono text-[10px] text-[var(--muted)] opacity-80">Stack: Vue 3 · Three.js · GSAP ScrollTrigger · Lenis Smooth Scroll</span>
             </div>
+          </div>
+        </div>
+
+        {/* Academic Credentials & Education */}
+        <div className="mb-8">
+          <div className="border-b border-[var(--wire)] pb-2 mb-3">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-[var(--accent2-text)] uppercase font-bold">
+              ACADEMIC CREDENTIALS &amp; EDUCATION
+            </span>
+          </div>
+          <div className="p-3.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] font-sans text-[13px] print:bg-white print:border-gray-300">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1 font-mono text-[11px]">
+              <strong className="text-[var(--text)] text-[13px] font-sans">Universitas Pendidikan Indonesia (UPI)</strong>
+              <span className="text-[var(--accent2-text)] font-bold">2019 — 2023</span>
+            </div>
+            <div className="text-[var(--text)] text-[12px] font-medium mb-1">
+              Bachelor of Science in Computer Science (S.Kom)
+            </div>
+            <p className="text-[var(--muted)] text-[12px] leading-relaxed">
+              Focus: Systems Architecture, Distributed State Modeling, and Mathematical Optimization. Published and deployed Gale-Shapley bipartite stable matching thesis system across departmental faculty cohorts.
+            </p>
           </div>
         </div>
 
@@ -217,33 +253,48 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-[11px]">
-            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <span className="text-[var(--text)] block font-bold mb-1">Architecture</span>
               <span className="text-[var(--muted)] text-[10px]">Clean Architecture, Modular &le; 250 LOC, State Machines</span>
             </div>
-            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <span className="text-[var(--text)] block font-bold mb-1">Backend &amp; DB</span>
               <span className="text-[var(--muted)] text-[10px]">Laravel, Next.js, Node, PostgreSQL, MySQL, Redis</span>
             </div>
-            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <span className="text-[var(--text)] block font-bold mb-1">Frontend &amp; 3D</span>
               <span className="text-[var(--muted)] text-[10px]">React 19, Vue 3, Three.js, GSAP, WebGL, Tailwind</span>
             </div>
-            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px]">
+            <div className="p-2.5 bg-[var(--s2)] border border-[var(--wire)] rounded-[2px] print:bg-white print:border-gray-300">
               <span className="text-[var(--text)] block font-bold mb-1">DevOps &amp; Quality</span>
-              <span className="text-[var(--muted)] text-[10px]">Docker, Atomic CI/CD, TDD, Playwright, Vitest</span>
+              <span className="text-[var(--muted)] text-[10px]">Docker, Atomic CI/CD, TDD, Node Test Runner, Vitest</span>
             </div>
           </div>
         </div>
 
         {/* Direct Action Footer */}
-        <div className="pt-6 border-t border-[var(--wire)] flex flex-wrap items-center justify-between gap-4 font-mono text-[11px]">
-          <div className="flex items-center gap-3">
+        <div className="pt-6 border-t border-[var(--wire)] flex flex-wrap items-center justify-between gap-4 font-mono text-[11px] print:hidden">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="px-4 py-2 bg-[var(--accent)] hover:opacity-90 text-white transition-opacity rounded-[2px] shadow-sm cursor-pointer font-bold"
+            >
+              Print / Save PDF ↗
+            </button>
             <a
               href="mailto:rifai.aryo@gmail.com"
-              className="px-4 py-2 bg-[#7a1525] hover:bg-[#9b1e30] text-white transition-colors rounded-[2px] shadow-sm cursor-pointer"
+              className="px-4 py-2 bg-[var(--s2)] hover:bg-[var(--s3)] text-[var(--text)] border border-[var(--wire)] transition-colors rounded-[2px] cursor-pointer"
             >
               Direct Email
+            </a>
+            <a
+              href="https://linkedin.com/in/rifai-aryo-ananta"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-[var(--s2)] hover:bg-[var(--s3)] text-[var(--text)] border border-[var(--wire)] transition-colors rounded-[2px] cursor-pointer"
+            >
+              LinkedIn
             </a>
             <a
               href="https://github.com/nantaa"
@@ -251,7 +302,7 @@ export default function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
               rel="noopener noreferrer"
               className="px-4 py-2 bg-[var(--s2)] hover:bg-[var(--s3)] text-[var(--text)] border border-[var(--wire)] transition-colors rounded-[2px] cursor-pointer"
             >
-              GitHub Profile
+              GitHub
             </a>
           </div>
 

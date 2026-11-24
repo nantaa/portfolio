@@ -1253,6 +1253,30 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+      }
+      nav, footer, .hero, .work-grid, .disc-table, .about, .contact, #cur {
+        display: none !important;
+      }
+      #resumeModal {
+        display: block !important;
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      #resumeModal > div {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+    }
   </style>
 </head>
 
@@ -1290,6 +1314,7 @@
       <div class="hero-strip-left">
         <span class="hero-eyebrow">Portfolio — 2026</span>
         <span class="hero-location">Jakarta, Indonesia</span>
+        <span class="hero-availability" style="font-family:var(--mono); font-size:10px; font-weight:bold; text-transform:uppercase; color:var(--accent); background:var(--wire); padding:2px 8px; border-radius:2px; margin-left:8px;">Available for Full-time &amp; Contract · Remote</span>
       </div>
       <div class="hero-strip-right">
         Solving problems across<br>
@@ -1310,9 +1335,10 @@
             Bridging fullstack architecture, real-time 3D WebGL graphics,<br>
             and mission-critical cloud infrastructure.
           </div>
-          <div class="hero-cta-row">
+          <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; gap:10px;">
             <a href="#work" class="hero-btn filled">View work</a>
-            <div class="hero-btn" onclick="openResume()" style="cursor: pointer;">Download CV / Résumé</div>
+            <div class="hero-btn" onclick="openResume()" style="cursor: pointer;">CV / Résumé Credentials</div>
+            <div class="hero-btn" onclick="copyEmail(this)" style="cursor: pointer; background: var(--s2); font-family: var(--mono); font-size: 12px;">Copy Email</div>
           </div>
           <div class="scroll-hint">Scroll to explore</div>
         </div>
@@ -1872,16 +1898,17 @@
       </p>
     </div>
     <div class="contact-right">
-      <div class="ci"><span class="ci-lbl">Email</span><span class="ci-val">rifaiaryoananta@email.com <span
-            class="ci-arr">→</span></span></div>
-      <div class="ci"><span class="ci-lbl">LinkedIn</span><span class="ci-val">linkedin.com/in/rifai-aryo-ananta <span
-            class="ci-arr">→</span></span></div>
-      <div class="ci"><span class="ci-lbl">GitHub</span><span class="ci-val">github.com/nantaa <span
-            class="ci-arr">→</span></span></div>
-      <div class="ci"><span class="ci-lbl">Instagram</span><span class="ci-val">@rfrynny <span
-            class="ci-arr">→</span></span></div>
-      <div class="ci"><span class="ci-lbl">Codepen</span><span class="ci-val">https://codepen.io/Rifai-Aryo-Ananta <span
-            class="ci-arr">→</span></span></div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+        <a href="mailto:rifai.aryo@gmail.com" class="ci" style="text-decoration:none;"><span class="ci-lbl" style="color:var(--accent); font-weight:bold;">Email (Direct)</span><span class="ci-val">rifai.aryo@gmail.com <span class="ci-arr">→</span></span></a>
+        <button type="button" onclick="copyEmail(this)" style="padding:10px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-family:var(--mono); font-size:11px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--accent2); font-weight:bold;">One-Click Clipboard:</span>
+          <span>Copy rifai.aryo@gmail.com</span>
+        </button>
+      </div>
+      <a href="https://linkedin.com/in/rifai-aryo-ananta" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">LinkedIn</span><span class="ci-val">linkedin.com/in/rifai-aryo-ananta <span class="ci-arr">→</span></span></a>
+      <a href="https://github.com/nantaa" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">GitHub</span><span class="ci-val">github.com/nantaa <span class="ci-arr">→</span></span></a>
+      <a href="https://instagram.com/rfrynny" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">Instagram</span><span class="ci-val">@rfrynny <span class="ci-arr">→</span></span></a>
+      <a href="https://codepen.io/Rifai-Aryo-Ananta" target="_blank" rel="noopener noreferrer" class="ci" style="text-decoration:none;"><span class="ci-lbl">Codepen</span><span class="ci-val">https://codepen.io/Rifai-Aryo-Ananta <span class="ci-arr">→</span></span></a>
     </div>
   </section>
 
@@ -2223,10 +2250,16 @@
           style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase;">
           VERIFIED CREDENTIALS / CURRICULUM VITAE
         </div>
-        <button onclick="closeResume()"
-          style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">
-          CLOSE <span style="color:var(--accent); font-weight:bold;">[ESC]</span>
-        </button>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <button onclick="window.print()"
+            style="background:transparent; border:none; color:var(--accent); font-family:var(--mono); font-size:11px; font-weight:bold; cursor:pointer;">
+            PRINT / SAVE PDF ↗
+          </button>
+          <button onclick="closeResume()"
+            style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase;">
+            CLOSE <span style="color:var(--accent); font-weight:bold;">[ESC]</span>
+          </button>
+        </div>
       </div>
 
       <div style="margin-bottom:28px;">
@@ -2235,7 +2268,7 @@
           Rifa'i Aryo Ananta
         </h2>
         <div style="font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:12px;">
-          IT Lead · Fullstack Engineer · Creative Technologist · Systems Architect
+          Systems Architect · Lead Fullstack Engineer · Creative Technologist
         </div>
         <p style="font-size:13px; line-height:1.6; color:var(--text); opacity:0.9;">
           Operating across software architecture, creative frontend engineering, and reliable infrastructure. Proven
@@ -2253,7 +2286,7 @@
           <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
               <strong style="color:var(--text);">DNP Monitor — Enterprise K3 Compliance Engine</strong>
-              <span style="color:var(--accent);">Lead Fullstack</span>
+              <span style="color:var(--accent); font-weight:bold;">2023 — 2025 · Lead Systems Architect</span>
             </div>
             <p style="color:var(--muted); font-size:12px;">End-to-end industrial certification platform. Disnaker SLA
               calculation engines, RBAC preview system, daily digest emailers, atomic symlink deployment with 270+
@@ -2263,7 +2296,7 @@
           <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
               <strong style="color:var(--text);">Delta IT Helpdesk &amp; Infrastructure Portal</strong>
-              <span style="color:var(--accent);">DevOps &amp; Support</span>
+              <span style="color:var(--accent); font-weight:bold;">2022 — 2023 · Systems &amp; DevOps Engineer</span>
             </div>
             <p style="color:var(--muted); font-size:12px;">Group-wide incident resolution. Integrated Meta WhatsApp
               Cloud API webhooks with Soketi/Pusher websockets ensuring sub-2h SLA compliance for technicians.</p>
@@ -2272,7 +2305,7 @@
           <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
               <strong style="color:var(--text);">Academic Thesis &amp; Defense Optimization Docket</strong>
-              <span style="color:var(--accent);">Systems Architect</span>
+              <span style="color:var(--accent); font-weight:bold;">2021 — 2022 · Systems Architect</span>
             </div>
             <p style="color:var(--muted); font-size:12px;">Gale-Shapley stable advisor matching, Hungarian minimum-cost
               defense schedule assignment, and Markov chain stage transition analytics with 88 passing tests.</p>
@@ -2281,7 +2314,7 @@
           <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
               <strong style="color:var(--text);">Ulun Danu &amp; Tata$ — 3D WebGL &amp; Procedural Shaders</strong>
-              <span style="color:var(--accent);">3D Graphics &amp; Shaders</span>
+              <span style="color:var(--accent); font-weight:bold;">2024 — Present · Creative Technologist</span>
             </div>
             <p style="color:var(--muted); font-size:12px;">Procedural Balinese Meru architectural study with GLSL water
               reflections, low-resource GPU pausing, and real-time Three.js GLTF WebGL staging.</p>
@@ -2289,12 +2322,30 @@
         </div>
       </div>
 
+      <!-- Academic Credentials & Education -->
+      <div style="margin-bottom:24px;">
+        <div style="font-family:var(--mono); font-size:9px; letter-spacing:0.2em; color:var(--accent); text-transform:uppercase; font-weight:bold; margin-bottom:12px;">
+          ACADEMIC CREDENTIALS &amp; EDUCATION
+        </div>
+        <div style="padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); font-size:12px; line-height:1.5;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-family:var(--mono);">
+            <strong style="color:var(--text);">Universitas Pendidikan Indonesia (UPI)</strong>
+            <span style="color:var(--accent); font-weight:bold;">2019 — 2023</span>
+          </div>
+          <div style="color:var(--text); font-weight:500; margin-bottom:4px;">Bachelor of Science in Computer Science (S.Kom)</div>
+          <p style="color:var(--muted); font-size:12px; margin:0;">Focus: Systems Architecture, Distributed State Modeling, and Mathematical Optimization.</p>
+        </div>
+      </div>
+
       <div
         style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); font-family:var(--mono); font-size:11px;">
-        <div style="display:flex; gap:10px;">
-          <a href="mailto:rifaiaryoananta@email.com"
-            style="background:var(--accent); color:#FFF; padding:6px 14px; text-decoration:none; display:inline-block;">Direct
-            Email</a>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button onclick="window.print()"
+            style="background:var(--accent); color:#FFF; padding:6px 14px; border:none; cursor:pointer; font-weight:bold;">Print / Save PDF ↗</button>
+          <a href="mailto:rifai.aryo@gmail.com"
+            style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:6px 14px; text-decoration:none; display:inline-block;">Direct Email</a>
+          <a href="https://linkedin.com/in/rifai-aryo-ananta" target="_blank" rel="noopener noreferrer"
+            style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:6px 14px; text-decoration:none; display:inline-block;">LinkedIn</a>
           <a href="https://github.com/nantaa" target="_blank"
             style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:6px 14px; text-decoration:none; display:inline-block;">GitHub</a>
         </div>
@@ -2305,6 +2356,19 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function copyEmail(btn) {
+      try {
+        navigator.clipboard.writeText('rifai.aryo@gmail.com');
+        if (btn) {
+          var orig = btn.innerText;
+          btn.innerText = 'Copied! ✓';
+          setTimeout(function() { btn.innerText = orig; }, 2500);
+        }
+      } catch (e) {}
+    }
+  </script>
 
 </body>
 
