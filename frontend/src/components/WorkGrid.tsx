@@ -159,24 +159,8 @@ interface WorkGridProps {
   projects?: Project[];
 }
 
-type FilterCategory = "all" | "systems" | "3d" | "ai" | "design";
-
-interface FilterTab {
-  key: FilterCategory;
-  label: string;
-}
-
-const FILTER_TABS: FilterTab[] = [
-  { key: "all", label: "All" },
-  { key: "systems", label: "Enterprise & Systems" },
-  { key: "3d", label: "3D & WebGL" },
-  { key: "ai", label: "AI & Spatial" },
-  { key: "design", label: "Design Systems" },
-];
-
 export default function WorkGrid({ projects }: WorkGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>("all");
 
   const apiItems =
     projects && projects.length > 0
@@ -186,24 +170,6 @@ export default function WorkGrid({ projects }: WorkGridProps) {
   const items = apiItems ?? ALL_PROJECTS;
   const totalCount = items.length;
   const countLabel = String(totalCount).padStart(2, "0");
-
-  const filteredProjects = items.filter((p) => {
-    if (selectedCategory === "all") return true;
-    if (selectedCategory === "systems") return [1, 4, 5].includes(p.id);
-    if (selectedCategory === "3d") return [2, 3].includes(p.id);
-    if (selectedCategory === "ai") return [6, 7].includes(p.id);
-    if (selectedCategory === "design") return [8].includes(p.id);
-    return true;
-  });
-
-  const getCategoryCount = (key: FilterCategory): number => {
-    if (key === "all") return items.length;
-    if (key === "systems") return items.filter((p) => [1, 4, 5].includes(p.id)).length;
-    if (key === "3d") return items.filter((p) => [2, 3].includes(p.id)).length;
-    if (key === "ai") return items.filter((p) => [6, 7].includes(p.id)).length;
-    if (key === "design") return items.filter((p) => [8].includes(p.id)).length;
-    return 0;
-  };
 
   // URL Deep-linking and Browser Back Button Support (?project=id)
   useEffect(() => {
@@ -383,41 +349,13 @@ export default function WorkGrid({ projects }: WorkGridProps) {
 
   return (
     <>
-      <div className="sec-hd flex flex-col md:flex-row md:items-center md:justify-between gap-4" id="work">
-        <div className="flex items-center gap-3">
-          <span className="sec-lbl">Selected work</span>
-          <span className="sec-ct">
-            {String(filteredProjects.length).padStart(2, "0")} / {countLabel} projects
-          </span>
-        </div>
-
-        {/* Dynamic Category Filter Tabs with Live Item Counts */}
-        <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs" role="tablist" aria-label="Project categories">
-          {FILTER_TABS.map((tab) => {
-            const count = getCategoryCount(tab.key);
-            const isActive = selectedCategory === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setSelectedCategory(tab.key)}
-                className={`px-2.5 py-1 rounded-[2px] transition-all cursor-pointer border flex items-center gap-1.5 text-[11px] uppercase tracking-wider ${
-                  isActive
-                    ? "bg-[var(--accent)] text-white border-[var(--accent)] font-semibold shadow-sm"
-                    : "bg-[var(--s2)] text-[var(--muted)] border-[var(--card-border)] hover:border-[var(--accent)] hover:text-[var(--text)]"
-                }`}
-              >
-                <span>{tab.label} ({count})</span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="sec-hd" id="work">
+        <span className="sec-lbl">Selected work</span>
+        <span className="sec-ct">{countLabel} projects</span>
       </div>
 
       <div className="work-grid work-grid--8">
-        {filteredProjects.map((project, i) => {
+        {items.map((project, i) => {
           return (
             <div
               key={project.id}

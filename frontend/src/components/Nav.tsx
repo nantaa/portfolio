@@ -83,10 +83,6 @@ export default function Nav() {
     window.dispatchEvent(new CustomEvent("portfolio-theme-change", { detail: nextTheme }));
   };
 
-  const openResume = () => {
-    window.dispatchEvent(new CustomEvent("open-resume-modal"));
-  };
-
   const scrollToTop = (e: React.MouseEvent) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -151,16 +147,6 @@ export default function Nav() {
             </li>
           </ul>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <button
-              type="button"
-              onClick={openResume}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono font-bold tracking-wider text-[var(--accent2)] hover:text-white bg-[var(--wire)] hover:bg-[var(--accent)] border border-[var(--wire)] rounded-[2px] transition-all cursor-pointer"
-              title="Open verified credentials & CV"
-            >
-              <span>CV</span>
-              <span className="text-[10px]">↗</span>
-            </button>
-
             <button
               onClick={toggleTheme}
               className="theme-toggle"
@@ -264,17 +250,7 @@ export default function Nav() {
             <span>[04] Contact &amp; Connect</span>
             <span className="text-[var(--accent2)]">{activeSection === "contact" ? "●" : "→"}</span>
           </a>
-          <div className="pt-2 flex justify-between items-center text-[10px] text-[var(--muted)]">
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                openResume();
-              }}
-              className="flex items-center gap-1.5 text-[var(--accent2)] font-mono font-bold uppercase tracking-wider"
-            >
-              <span>View Résumé / CV ↗</span>
-            </button>
+          <div className="pt-2 flex justify-end items-center text-[10px] text-[var(--muted)]">
             <span className="text-[var(--accent2)]">Available for work</span>
           </div>
         </div>

@@ -32,16 +32,13 @@ test('index.html contains full 8-project roster and zero legacy 04 count', () =>
   assert.ok(content.includes('88 Tests') || content.includes('88 automated tests') || content.includes('88 Passing Tests'), 'Must include Thesis Docket outcome metric');
 });
 
-test('index.html nav uses adaptive background, theme toggle, and exposes CV quick trigger', () => {
+test('index.html nav uses adaptive background and theme toggle', () => {
   const indexPath = path.join(rootDir, 'index.html');
   const content = fs.readFileSync(indexPath, 'utf-8');
 
   // Nav styling must not be hardcoded to dark background
   assert.ok(!content.includes('background: rgba(10, 10, 10, 0.9);') && !content.includes('background:rgba(10,10,10,0.9);'), 'index.html nav must not hardcode dark background in light mode');
   assert.ok(content.includes('--nav-bg') || content.includes('rgba(247, 244, 238') || content.includes('rgba(247,244,238'), 'index.html nav must use light warm linen background');
-
-  // Must expose CV quick trigger in nav
-  assert.ok(content.includes('openResume') && (content.includes('nav-right') || content.includes('nav-links') || content.includes('nav-cta') || content.includes('CV')), 'index.html nav must expose CV trigger');
 
   // Must support theme toggle or active theme mechanism
   assert.ok(content.includes('theme-toggle') || content.includes('toggleTheme') || content.includes('data-theme'), 'index.html must support theme switching or data-theme management');
@@ -58,15 +55,14 @@ test('index.html caseModal implements Prev and Next project pagination', () => {
   );
 });
 
-test('WorkGrid.tsx implements category filtering tabs with dynamic item counts', () => {
+test('WorkGrid.tsx renders all 8 projects in an all-in-one grid without tag selector tabs', () => {
   const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
   assert.ok(fs.existsSync(workGridPath), 'WorkGrid.tsx must exist');
   const content = fs.readFileSync(workGridPath, 'utf-8');
 
-  // Must have category filter tabs
-  assert.ok(content.includes('selectedCategory') || content.includes('activeFilter') || content.includes('filterCategory'), 'WorkGrid.tsx must manage active filter state');
-  assert.ok(content.includes('All (') || content.includes('`All (${') || content.includes('totalCount'), 'WorkGrid.tsx must display All filter with count');
-  assert.ok(content.includes('filter') || content.includes('filteredProjects') || content.includes('FILTER_TABS'), 'WorkGrid.tsx must compute filtered projects');
+  assert.ok(!content.includes('FILTER_TABS'), 'WorkGrid.tsx must not render category tag selector tabs');
+  assert.ok(!content.includes('role="tablist"'), 'WorkGrid.tsx must not render tablist');
+  assert.ok(content.includes('items.map'), 'WorkGrid.tsx must render all projects in one grid');
 });
 
 test('globals.css and index.html enforce darkened --muted contrast (> 5.5:1) and global :focus-visible', () => {

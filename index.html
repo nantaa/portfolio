@@ -1297,7 +1297,6 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button type="button" onclick="openResume()" class="nav-cv-btn" style="cursor: pointer; background: var(--wire); border: 0.5px solid var(--wire); color: var(--accent2); font-family: var(--mono); font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 2px;">CV ↗</button>
         <button type="button" onclick="toggleTheme()" class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0.5px solid var(--wire); border-radius: 2px; color: var(--text); cursor: pointer;">
           <svg id="themeMoonIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
@@ -1335,7 +1334,7 @@
           </div>
           <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; gap:10px;">
             <a href="#work" class="hero-btn filled">View work</a>
-            <div class="hero-btn" onclick="openResume()" style="cursor: pointer;">Curriculum Vitae</div>
+            <a href="docs/CV%20Aryo%20Update.pdf" download="CV Aryo Update.pdf" class="hero-btn" style="text-decoration: none;">Curriculum Vitae ↓</a>
           </div>
           <div class="scroll-hint">Scroll to explore</div>
         </div>
@@ -1422,19 +1421,9 @@
   </div>
 
   <!-- ══ WORK GRID ══ -->
-  <div class="sec-hd" id="work" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px;">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span class="sec-lbl">Selected work</span>
-      <span class="sec-ct" id="workCountLabel">08 / 08 projects</span>
-    </div>
-    <div role="tablist" aria-label="Project categories" style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--mono); font-size:11px;">
-      <button type="button" role="tab" aria-selected="true" onclick="filterProjects('all', this)" class="work-tab active" style="padding:4px 10px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; text-transform:uppercase; border-radius:2px;">All (08)</button>
-      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('enterprise', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Enterprise (02)</button>
-      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('webgl', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">3D WebGL (02)</button>
-      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('algorithms', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Algorithms (01)</button>
-      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('ai', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">AI &amp; GIS (02)</button>
-      <button type="button" role="tab" aria-selected="false" onclick="filterProjects('design', this)" class="work-tab" style="padding:4px 10px; border:1px solid var(--wire); background:var(--s2); color:var(--muted); cursor:pointer; text-transform:uppercase; border-radius:2px;">Design (01)</button>
-    </div>
+  <div class="sec-hd" id="work">
+    <span class="sec-lbl">Selected work</span>
+    <span class="sec-ct">08 projects</span>
   </div>
 
   <div class="work-grid">
@@ -2331,35 +2320,6 @@
           setTimeout(function() { btn.innerText = orig; }, 2500);
         }
       } catch (e) {}
-    }
-
-    function filterProjects(category, btn) {
-      var cards = document.querySelectorAll('.work-grid .wc');
-      var visible = 0;
-      cards.forEach(function(card) {
-        if (category === 'all' || card.getAttribute('data-category') === category) {
-          card.style.display = '';
-          visible++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-      var label = document.getElementById('workCountLabel');
-      if (label) {
-        label.textContent = String(visible).padStart(2, '0') + ' / 08 projects';
-      }
-      document.querySelectorAll('.work-tab').forEach(function(tab) {
-        tab.setAttribute('aria-selected', 'false');
-        tab.style.background = 'var(--s2)';
-        tab.style.borderColor = 'var(--wire)';
-        tab.style.color = 'var(--muted)';
-      });
-      if (btn) {
-        btn.setAttribute('aria-selected', 'true');
-        btn.style.background = 'var(--accent)';
-        btn.style.borderColor = 'var(--accent)';
-        btn.style.color = '#fff';
-      }
     }
 
     function selectIntent(btn, intent) {

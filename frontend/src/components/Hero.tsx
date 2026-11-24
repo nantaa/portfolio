@@ -41,13 +41,13 @@ export default function Hero() {
               </div>
               <div className="hero-cta-row flex flex-wrap gap-2.5">
                 <a href="#work" className="hero-btn filled">View work</a>
-                <button
-                  type="button"
-                  onClick={() => setIsResumeOpen(true)}
+                <a
+                  href="/docs/CV-Aryo-Update.pdf"
+                  download="CV Aryo Update.pdf"
                   className="hero-btn cursor-pointer font-mono text-[12px]"
                 >
-                  Curriculum Vitae
-                </button>
+                  Curriculum Vitae ↓
+                </a>
               </div>
               <div className="scroll-hint">Scroll to explore</div>
             </div>

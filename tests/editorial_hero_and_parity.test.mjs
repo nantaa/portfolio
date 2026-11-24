@@ -16,10 +16,10 @@ test('Criterion 1: Hero eliminates 50/50 4fr 5fr split in favor of full-width ar
   assert.ok(!indexHtml.includes('grid-template-columns: 4fr 5fr'), 'index.html must remove 4fr 5fr split on .hero-body');
 });
 
-test('Criterion 2: index.html #work includes interactive category filter tabs', () => {
+test('Criterion 2: index.html #work renders all-in-one project grid without tag selector tabs', () => {
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
-  assert.ok(indexHtml.includes('role="tablist"'), 'index.html must define category tablist');
-  assert.ok(indexHtml.includes('filterProjects('), 'index.html must implement filterProjects function');
+  assert.ok(!indexHtml.includes('role="tablist"'), 'index.html must not render category tablist');
+  assert.ok(!indexHtml.includes('filterProjects('), 'index.html must not render filterProjects tag selector');
 });
 
 test('Criterion 3: index.html caseModal uses semantic var(--modal-bg) and purges CASE DOSSIER /', () => {
