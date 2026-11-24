@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
 // Commented out Delta IT Helpdesk preview per user request
 // import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
-import TridhataLaravelPreview from "@/components/previews/TridhataLaravelPreview";
 import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
 import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
 import GeopetakPreview from "@/components/previews/GeopetakPreview";
@@ -144,9 +143,10 @@ export default function CaseStudyModal({
   if (!project || !mounted || typeof document === "undefined") return null;
 
   const getDirectUrl = (p: Project) => {
-    if (p.id === 1) return "/projects/moriku/index.html?v=20261125b";
+    if (p.id === 1) return "/projects/moriku/index.html?v=20261125c";
     if (p.id === 2) return "/raja_ampat_snorkel_day.html";
     if (p.id === 3) return "/projects/tata/index.html?v=20261125";
+    if (p.id === 5) return "/projects/maknaworks/index.html?v=20261125";
     return p.link || null;
   };
 
@@ -157,7 +157,7 @@ export default function CaseStudyModal({
     if (p.id === 1) {
       return (
         <iframe
-          src="/projects/moriku/index.html?v=20261125b"
+          src="/projects/moriku/index.html?v=20261125c"
           title="Moriku - DNP Compliance Engine"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-950 pointer-events-auto"
           loading="eager"
@@ -177,12 +177,22 @@ export default function CaseStudyModal({
         />
       );
     }
+    if (p.id === 5) {
+      return (
+        <iframe
+          src="/projects/maknaworks/index.html?v=20261125"
+          title="MaknaWorks ERP - PPIC Dashboard"
+          className="w-full h-full border-0 block flex-1 min-h-0 bg-white pointer-events-auto"
+          loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-forms"
+        />
+      );
+    }
     return (
       <div className="w-full flex-1 min-h-0 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[var(--s1)]">
         <div className="w-full max-w-4xl h-full max-h-[720px] flex flex-col">
           {p.id === 4 && <AcademicDocketPreview />}
-          {/* Commented out Delta IT Helpdesk preview per user request: {p.id === 5 && <HelpdeskPreview />} */}
-          {p.id === 5 && <TridhataLaravelPreview />}
+          {/* Commented out Delta IT Helpdesk preview per user request */}
           {p.id === 6 && <GeopetakPreview />}
           {p.id === 7 && <ExpenseTrackerPreview />}
           {p.id === 8 && (
