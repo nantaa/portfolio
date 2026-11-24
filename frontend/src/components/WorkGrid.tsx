@@ -421,9 +421,17 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           return (
             <div
               key={project.id}
+              role="article"
+              tabIndex={0}
+              aria-label={`Project card: ${project.title}`}
               className="wc wc-interactive group focus:outline-none focus-visible:outline-none cursor-pointer"
               onClick={() => {
                 handleOpenProject(project);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleOpenProject(project);
+                }
               }}
             >
               {project.image_url ? (

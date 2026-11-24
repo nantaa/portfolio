@@ -20,8 +20,12 @@ const syneMono = Syne_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://antporto.co.id"),
   title: "Aryo \u2014 Portfolio",
   description: "Solving problems across software, design, and infrastructure.",
+  authors: [{ name: "Rifa'i Aryo Ananta", url: "https://antporto.co.id" }],
+  creator: "Rifa'i Aryo Ananta",
+  publisher: "Rifa'i Aryo Ananta",
   icons: {
     icon: [
       { url: "/logo-svg.svg", type: "image/svg+xml" },
@@ -29,6 +33,29 @@ export const metadata: Metadata = {
     ],
     shortcut: "/logo-svg.svg",
     apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://antporto.co.id",
+    siteName: "Aryo Ananta — Systems Portfolio",
+    title: "Aryo \u2014 Portfolio",
+    description: "Solving problems across software, design, and infrastructure.",
+    images: [
+      {
+        url: "/logo-svg.svg",
+        width: 512,
+        height: 512,
+        alt: "Aryo Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Aryo \u2014 Portfolio",
+    description: "Solving problems across software, design, and infrastructure.",
+    creator: "@rfrynny",
+    images: ["/logo-svg.svg"],
   },
 };
 

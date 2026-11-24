@@ -14,7 +14,7 @@ export default function About() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="images/aryo.png" alt="Aryo Rifai" />
           </div>
-          <div className="about-left-tag">Bekasi, Indonesia — 2025</div>
+          <div className="about-left-tag">Bekasi, Indonesia — 2026</div>
         </div>
         <div className="about-right">
           <div className="a-label">Who I am</div>

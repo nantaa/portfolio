@@ -84,3 +84,4 @@ test('index.html .hero-right matrix maintains content and metric parity with Her
   assert.ok(indexContent.includes('Sub-2h SLA'), 'index.html must display Sub-2h SLA metric');
   assert.ok(indexContent.includes('350+ Passing Automated Tests'), 'index.html must display 350+ passing tests summary');
 });
+
