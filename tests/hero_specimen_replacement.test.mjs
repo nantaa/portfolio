@@ -7,17 +7,17 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 
-test('Hero.tsx purges HeroTelemetryHUD and HeroExecutiveSpecimen bottom bar', () => {
+test('Hero.tsx embeds HeroExecutiveSpecimen and purges HeroTelemetryHUD', () => {
   const heroPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
   const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
   assert.ok(
-    !heroContent.includes('HeroTelemetryHUD'),
-    'Hero.tsx must not embed the old HeroTelemetryHUD canvas'
+    heroContent.includes('HeroExecutiveSpecimen'),
+    'Hero.tsx must import and embed HeroExecutiveSpecimen'
   );
   assert.ok(
-    !heroContent.includes('HeroExecutiveSpecimen'),
-    'Hero.tsx must not embed the old HeroExecutiveSpecimen bottom bar'
+    !heroContent.includes('HeroTelemetryHUD'),
+    'Hero.tsx must not embed the old HeroTelemetryHUD canvas'
   );
 });
 
@@ -53,12 +53,14 @@ test('HeroExecutiveSpecimen.tsx uses semantic theme tokens and high-contrast typ
   assert.ok(content.includes('var(--muted)'), 'Must bind to semantic muted color variable');
 });
 
-test('index.html Hero renders clean editorial layouts without metric clutter', () => {
+test('index.html .hero-right matrix maintains content and metric parity with HeroExecutiveSpecimen', () => {
   const indexPath = path.join(rootDir, 'index.html');
   const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
-  assert.ok(indexContent.includes('PLAN A'), 'index.html must include PLAN A');
-  assert.ok(indexContent.includes('PLAN B'), 'index.html must include PLAN B');
-  assert.ok(indexContent.includes('PLAN C'), 'index.html must include PLAN C');
+  assert.ok(indexContent.includes('hero-right'), 'index.html must define .hero-right');
+  assert.ok(indexContent.includes('SYSTEMS ARCHITECT') || indexContent.includes('Systems Architecture'), 'index.html must display Systems Architecture');
+  assert.ok(indexContent.includes('350+'), 'index.html must display 350+ tests summary');
+  assert.ok(indexContent.includes('SLA'), 'index.html must display SLA metric');
+  assert.ok(indexContent.includes('Downtime'), 'index.html must display downtime metric');
 });
 
