@@ -545,25 +545,30 @@ export default function HeroTelemetryHUD() {
         <div className="relative flex-1 my-2 overflow-hidden min-h-[340px] flex flex-col justify-between cursor-crosshair">
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-          {/* Architecture Selector Tabs */}
-          <div className="z-10 flex gap-1.5 self-start bg-[var(--s2)] p-1 border border-[var(--wire)] rounded-[2px] backdrop-blur-md">
-            {ARCHITECTURES.map((a) => (
-              <button
-                key={a.key}
-                type="button"
-                onClick={() => {
-                  setActiveKey(a.key);
-                  setSelectedNodeId(null);
-                }}
-                className={`px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  activeKey === a.key
-                    ? "bg-[var(--accent)] text-white font-bold"
-                    : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
-                }`}
-              >
-                {a.code}
-              </button>
-            ))}
+          {/* Architecture Selector Tabs & Interactive Guidance */}
+          <div className="z-10 flex items-center justify-between gap-2">
+            <div className="flex gap-1.5 self-start bg-[var(--s2)] p-1 border border-[var(--wire)] rounded-[2px] backdrop-blur-md">
+              {ARCHITECTURES.map((a) => (
+                <button
+                  key={a.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveKey(a.key);
+                    setSelectedNodeId(null);
+                  }}
+                  className={`px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    activeKey === a.key
+                      ? "bg-[var(--accent)] text-white font-bold"
+                      : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--s3)]"
+                  }`}
+                >
+                  {a.code}
+                </button>
+              ))}
+            </div>
+            <span className="font-mono text-[7.5px] text-[var(--muted)] uppercase tracking-widest hidden sm:inline-block bg-[var(--s2)]/80 px-2 py-0.5 rounded-[1px] border border-[var(--wire)]">
+              DRAG NODES · CLICK ARCH TO SWITCH
+            </span>
           </div>
 
           {/* Live Architecture Descriptor Box */}

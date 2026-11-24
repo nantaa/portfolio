@@ -71,6 +71,18 @@ export default function CaseStudyModal({
         return;
       }
 
+      if (e.key === "ArrowLeft" && prevProject && onSelectProject) {
+        e.preventDefault();
+        onSelectProject(prevProject);
+        return;
+      }
+
+      if (e.key === "ArrowRight" && nextProject && onSelectProject) {
+        e.preventDefault();
+        onSelectProject(nextProject);
+        return;
+      }
+
       // Trap focus inside modal
       if (e.key === "Tab") {
         if (!modalContainerRef.current) return;
@@ -125,7 +137,7 @@ export default function CaseStudyModal({
         triggerElementRef.current.focus();
       }
     };
-  }, [project, onClose]);
+  }, [project, prevProject, nextProject, onSelectProject, onClose]);
 
   if (!project || !mounted || typeof document === "undefined") return null;
 

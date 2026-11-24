@@ -14,22 +14,54 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;700;800&family=Syne+Mono&display=swap"
     rel="stylesheet">
   <style>
-    :root {
+    :root, [data-theme="light"] {
       --bg: #F7F4EE;
       --s1: #FFFFFF;
       --s2: #EFECE4;
       --s3: #E5E0D5;
       --text: #161615;
-      --muted: #6E6A62;
+      --muted: #545049;
       --faint: #DDD8CD;
       --accent: #851726;
       --accent2: #A31F32;
       --accentd: #610E1A;
       --wire: rgba(22, 22, 21, 0.065);
       --wire-h: rgba(133, 23, 38, 0.25);
+      --nav-bg: rgba(247, 244, 238, 0.92);
+      --modal-bg: #FAF8F3;
+      --card-bg: #FFFFFF;
+      --card-border: rgba(22, 22, 21, 0.09);
       --display: 'Playfair Display', Georgia, serif;
       --sans: 'Syne', sans-serif;
       --mono: 'Syne Mono', monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0A0A0A;
+      --s1: #0F0F0F;
+      --s2: #141414;
+      --s3: #1C1C1C;
+      --text: #EEEBE5;
+      --muted: #888880;
+      --faint: #252522;
+      --accent: #7A1525;
+      --accent2: #9B1E30;
+      --accentd: #4A0C18;
+      --wire: rgba(255, 255, 255, 0.055);
+      --wire-h: rgba(122, 21, 37, 0.22);
+      --nav-bg: rgba(10, 10, 10, 0.9);
+      --modal-bg: #0D0D0E;
+      --card-bg: #111111;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --display: 'Playfair Display', Georgia, serif;
+      --sans: 'Syne', sans-serif;
+      --mono: 'Syne Mono', monospace;
+    }
+
+    /* GLOBAL ACCESSIBLE FOCUS RINGS */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
     }
 
     * {
@@ -89,7 +121,7 @@
       align-items: center;
       padding: 18px 52px;
       border-bottom: 0.5px solid var(--wire);
-      background: rgba(10, 10, 10, 0.9);
+      background: var(--nav-bg, rgba(247, 244, 238, 0.92));
       backdrop-filter: blur(14px);
       animation: rise 600ms ease 0ms both;
     }
@@ -1186,7 +1218,13 @@
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <div class="nav-cta">Available for work</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" onclick="openResume()" class="nav-cv-btn" style="cursor: pointer; background: var(--wire); border: 0.5px solid var(--wire); color: var(--accent2); font-family: var(--mono); font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 2px;">CV ↗</button>
+        <button type="button" onclick="toggleTheme()" class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0.5px solid var(--wire); border-radius: 2px; color: var(--text); cursor: pointer;">
+          <svg id="themeMoonIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <div class="nav-cta">Available for work</div>
+      </div>
     </div>
   </nav>
 
@@ -1349,11 +1387,12 @@
   <!-- ══ WORK GRID ══ -->
   <div class="sec-hd" id="work">
     <span class="sec-lbl">Selected work</span>
-    <span class="sec-ct">04 projects</span>
+    <span class="sec-ct">08 projects</span>
   </div>
 
   <div class="work-grid">
 
+    <!-- 01 Moriku -->
     <div class="wc">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
@@ -1367,13 +1406,18 @@
         <span class="w-num">01</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Enterprise Workflow & Operations</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">Industrial K3 Compliance Engine</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:12px;">MORIKU · PT Delta Nusantara Persada · Disnaker Statutory SLA & Inspection Kanban</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">MORIKU · PT Delta Nusantara Persada · Disnaker Statutory SLA & Inspection Kanban</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>270+ Passing Tests · Zero-Downtime Releases</span>
+        </div>
         <button class="case-btn" onclick="openCase(1)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
-          <span>Case Dossier</span> <span>↗</span>
+          <span>View Project</span> <span>↗</span>
         </button>
       </div>
     </div>
 
+    <!-- 02 Indonesian 3D Material Studies -->
     <div class="wc">
       <div class="wph" style="position:relative; overflow:hidden;">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
@@ -1390,13 +1434,18 @@
         <span class="w-num">02</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">3D WebGL &amp; Shaders</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">Indonesian 3D Material Studies</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:12px;">Three.js · Ulun Danu Meru Temple &amp; Raja Ampat Coral Reef · Realtime GLSL</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Three.js · Ulun Danu Meru Temple &amp; Raja Ampat Coral Reef · Realtime GLSL</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>60 FPS GLSL · Zero-RAM Static Export</span>
+        </div>
         <button class="case-btn" onclick="openCase(2)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
-          <span>Case Dossier</span> <span>↗</span>
+          <span>View Project</span> <span>↗</span>
         </button>
       </div>
     </div>
 
+    <!-- 03 TATA$ -->
     <div class="wc">
       <div class="wph" style="position:relative; overflow:hidden;">
         <div
@@ -1412,13 +1461,18 @@
         <span class="w-num">03</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">3D Web &amp; Showcase Landing Page</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">TATA$</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:12px;">Vue 3 · Three.js · Interactive 3D Bag Showcase Landing Page · Cognac Leather Staging</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Vue 3 · Three.js · Interactive 3D Bag Showcase Landing Page · Cognac Leather Staging</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>360° Studio Orbit · Instant 3D Staging</span>
+        </div>
         <button class="case-btn" onclick="openCase(3)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
-          <span>Case Dossier</span> <span>↗</span>
+          <span>View Project</span> <span>↗</span>
         </button>
       </div>
     </div>
 
+    <!-- 04 Academic Thesis Docket -->
     <div class="wc">
       <div class="wph">
         <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
@@ -1432,9 +1486,109 @@
         <span class="w-num">04</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Systems & Optimization Algorithms</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">Academic Thesis Docket</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:12px;">Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Laravel API · MySQL · Gale-Shapley & Hungarian · 88 Tests</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>88 Passing Tests · Zero Deadlocks</span>
+        </div>
         <button class="case-btn" onclick="openCase(4)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
-          <span>Case Dossier</span> <span>↗</span>
+          <span>View Project</span> <span>↗</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 05 Delta IT Helpdesk -->
+    <div class="wc">
+      <div class="wph">
+        <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
+          <rect x="6" y="8" width="36" height="28" rx="3" />
+          <path d="M14 20h20M14 26h12" />
+        </svg>
+        <span class="wph-lbl">Delta IT Helpdesk · Enterprise Support Pipeline</span>
+      </div>
+      <div class="wo">
+        <span class="w-num">05</span>
+        <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Enterprise Support</div>
+        <div class="w-title" style="font-size:24px; margin-bottom:4px;">Delta IT Helpdesk</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Next.js 16 · Laravel 11 · Meta WhatsApp Cloud API · Soketi WebSockets</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>94% Sub-2h SLA · WhatsApp Webhooks</span>
+        </div>
+        <button class="case-btn" onclick="openCase(5)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
+          <span>View Project</span> <span>↗</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 06 Geopetak Aerial AI -->
+    <div class="wc">
+      <div class="wph">
+        <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
+          <circle cx="24" cy="24" r="18" />
+          <path d="M6 24h36M24 6c4 6 6 12 6 18s-2 12-6 18c-4-6-6-12-6-18s2-12 6-18z" />
+        </svg>
+        <span class="wph-lbl">Geopetak Aerial AI · Spatial Raster Analysis</span>
+      </div>
+      <div class="wo">
+        <span class="w-num">06</span>
+        <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Spatial AI &amp; GIS Analytics</div>
+        <div class="w-title" style="font-size:24px; margin-bottom:4px;">Geopetak Aerial AI</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Bekasi Aerial Sample</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>3-Layer X-Ray · Spatial AI</span>
+        </div>
+        <button class="case-btn" onclick="openCase(6)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
+          <span>View Project</span> <span>↗</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 07 Expense Tracker -->
+    <div class="wc">
+      <div class="wph">
+        <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
+          <rect x="8" y="6" width="32" height="36" rx="2" />
+          <path d="M16 16h16M16 24h16M16 32h10" />
+        </svg>
+        <span class="wph-lbl">Expense Tracker · LLM Structured Ledger</span>
+      </div>
+      <div class="wo">
+        <span class="w-num">07</span>
+        <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">AI &amp; Fullstack Product</div>
+        <div class="w-title" style="font-size:24px; margin-bottom:4px;">Expense Tracker</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Next.js 16 · Prisma · Express · Gemini 2.0 Flash Structured Extraction</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>Sub-1s AI Extraction · Gemini 2.0 Flash</span>
+        </div>
+        <button class="case-btn" onclick="openCase(7)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
+          <span>View Project</span> <span>↗</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 08 Makna Works -->
+    <div class="wc">
+      <div class="wph">
+        <svg width="48" height="48" viewBox="0 0 48 48" class="ph-s">
+          <circle cx="24" cy="24" r="16" />
+          <polygon points="24,12 34,32 14,32" />
+        </svg>
+        <span class="wph-lbl">Makna Works · Design System &amp; Brand Guidelines</span>
+      </div>
+      <div class="wo">
+        <span class="w-num">08</span>
+        <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Brand Identity &amp; Design System</div>
+        <div class="w-title" style="font-size:24px; margin-bottom:4px;">Makna Works</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Creative Engineering · Design Tokens · Vector Brand Geometry</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
+          <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          <span>100% Design Token System · Vector Geometry</span>
+        </div>
+        <button class="case-btn" onclick="openCase(8)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
+          <span>View Project</span> <span>↗</span>
         </button>
       </div>
     </div>
@@ -1713,6 +1867,7 @@
       observer.observe(el);
     });
     /* Case Framework Modal System */
+    let currentCaseId = 1;
     const CASE_DATA = {
       1: {
         cat: 'Enterprise Workflow & Operations',
@@ -1753,10 +1908,51 @@
         think: 'Modeled advisor matching via Gale-Shapley, defense scheduling via Hungarian cost-optimization, and graduation velocity via Markov chains.',
         exec: 'Laravel REST API, MySQL, React 19/TS, LiveCohortSeeder (20 student dossiers), and Kaprodi Algorithm Center.',
         res: '88 automated tests passing (100%), verified 9-stage academic progression, and zero scheduling deadlocks.'
+      },
+      5: {
+        cat: 'Enterprise Support',
+        title: 'Delta IT Helpdesk',
+        sub: 'Next.js 16 · Laravel 11 · Meta WhatsApp Cloud API · Soketi WebSockets',
+        year: '2025',
+        prob: 'Critical support tickets were delayed because field technicians missed web portal alerts.',
+        think: 'Connected ticket dispatching with live WebSocket queues and automated WhatsApp Cloud API escalation webhooks.',
+        exec: 'Next.js 16, Laravel 11, MariaDB, Soketi WebSockets, and Meta WhatsApp Cloud API webhooks.',
+        res: 'Sub-2h SLA compliance reached 94%, zero missed alerts, and realtime bidirectional field communication.'
+      },
+      6: {
+        cat: 'Spatial AI & GIS Analytics',
+        title: 'Geopetak Aerial AI',
+        sub: 'Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Bekasi Aerial Sample',
+        year: '2026',
+        prob: 'Land and spatial inspection required manual satellite imagery comparison across fragmented datasets.',
+        think: 'Built a 3-layer spatial inspection tool (Saturated, X-Ray, Wireframe Mesh) featuring smooth cross-dissolve reveals using GSAP.',
+        exec: 'Vue 3, Tailwind CSS, GSAP, high-resolution aerial rasters, and spatial tile inspection controls with Bekasi Aerial Photo sample.',
+        res: 'Seamless sub-second multi-spectrum imagery inspection, zero frame drops on 4K displays, and instant land contour defect identification.'
+      },
+      7: {
+        cat: 'AI & Fullstack Product',
+        title: 'Expense Tracker',
+        sub: 'Next.js 16 · Prisma · Express · Gemini 2.0 Flash Structured Extraction',
+        year: '2026',
+        prob: 'Manual receipt entry was tedious, error-prone, and failed to extract itemized tax and merchant metadata.',
+        think: 'Combined multi-modal LLM reasoning with a deterministic relational schema for automated, auditable transaction ledgering.',
+        exec: 'Next.js 16 App Router, TypeScript, Prisma ORM, Express, and Google Gemini 2.0 Flash API with structured JSON output schemas.',
+        res: 'Sub-1s extraction of merchant, date, amount, items, and tax breakdown with 99%+ schema validation accuracy.'
+      },
+      8: {
+        cat: 'Brand Identity & Design System',
+        title: 'Makna Works',
+        sub: 'Creative Engineering · Design Tokens · Vector Brand Geometry',
+        year: '2025',
+        prob: 'Scaling brand assets across disparate marketing decks, portals, and print touchpoints created visual drift and inconsistent typography.',
+        think: 'Standardized visual guidelines into a cohesive mathematical token system spanning display typography, color harmonies, and layout geometry.',
+        exec: 'Figma design tokens, vector logo geometry, editorial layout grid, multi-format collateral specs, and interactive digital guidelines.',
+        res: '100% visual consistency across digital, print, and collateral merchandise with streamlined client design handover.'
       }
     };
 
     function openCase(id) {
+      currentCaseId = id;
       const data = CASE_DATA[id];
       if (!data) return;
       document.getElementById('cmCat').textContent = data.cat;
@@ -1766,6 +1962,15 @@
       document.getElementById('cmThink').textContent = data.think;
       document.getElementById('cmExec').textContent = data.exec;
       document.getElementById('cmRes').textContent = data.res;
+
+      const counter = document.getElementById('cmCounter');
+      if (counter) counter.textContent = id + ' / 8';
+
+      const prevBtn = document.getElementById('cmPrevBtn');
+      if (prevBtn) prevBtn.disabled = id <= 1;
+
+      const nextBtn = document.getElementById('cmNextBtn');
+      if (nextBtn) nextBtn.disabled = id >= 8;
 
       const liveBtn = document.getElementById('cmLiveBtn');
       if (liveBtn) {
@@ -1791,10 +1996,26 @@
       document.body.style.overflow = 'hidden';
     }
 
+    function prevCase() {
+      if (currentCaseId > 1) openCase(currentCaseId - 1);
+    }
+
+    function nextCase() {
+      if (currentCaseId < 8) openCase(currentCaseId + 1);
+    }
+
     function closeCase() {
       const m = document.getElementById('caseModal');
       m.style.display = 'none';
       document.body.style.overflow = '';
+    }
+
+    /* Theme Switcher */
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('portfolio-theme', next); } catch(e){}
     }
 
     /* Résumé Modal System */
@@ -1839,9 +2060,17 @@
     }
 
     window.addEventListener('keydown', (e) => {
+      const caseModal = document.getElementById('caseModal');
+      const isCaseOpen = caseModal && caseModal.style.display === 'flex';
       if (e.key === 'Escape') {
         closeCase();
         closeResume();
+      }
+      if (isCaseOpen && e.key === 'ArrowLeft') {
+        prevCase();
+      }
+      if (isCaseOpen && e.key === 'ArrowRight') {
+        nextCase();
       }
     });
   </script>
@@ -1859,10 +2088,19 @@
           style="font-family:var(--mono); font-size:12px; letter-spacing:0.15em; color:var(--accent2); text-transform:uppercase; font-weight:bold;">
           CASE DOSSIER / <span id="cmCat" style="color:var(--muted);"></span>
         </div>
-        <button onclick="closeCase()"
-          style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:12px; cursor:pointer; text-transform:uppercase;">
-          CLOSE <span style="color:var(--accent2); font-weight:bold;">[ESC]</span>
-        </button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="cmPrevBtn" onclick="prevCase()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:4px 10px; font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;">
+            ← Previous Project
+          </button>
+          <span id="cmCounter" style="font-family:var(--mono); font-size:11px; color:var(--muted); padding:0 4px;">1 / 8</span>
+          <button id="cmNextBtn" onclick="nextCase()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:4px 10px; font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;">
+            Next Project →
+          </button>
+          <button onclick="closeCase()"
+            style="background:transparent; border:none; color:var(--muted); font-family:var(--mono); font-size:12px; cursor:pointer; text-transform:uppercase; margin-left:6px;">
+            CLOSE <span style="color:var(--accent2); font-weight:bold;">[ESC]</span>
+          </button>
+        </div>
       </div>
 
       <div style="margin-bottom:28px;">
@@ -1901,7 +2139,14 @@
 
       <div
         style="margin-top:28px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:12px;">
-        <span style="color:#27AE60;">● 100% Verified Production Benchmark</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="prevCase()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:6px 12px; font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;">
+            ← Previous Project
+          </button>
+          <button onclick="nextCase()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:6px 12px; font-family:var(--mono); font-size:11px; cursor:pointer; border-radius:2px;">
+            Next Project →
+          </button>
+        </div>
         <button onclick="closeCase()"
           style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:var(--text); padding:8px 16px; font-family:var(--mono); font-size:12px; cursor:pointer;">
           ← Return to Grid

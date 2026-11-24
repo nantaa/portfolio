@@ -7,7 +7,7 @@
       --s2: #EFECE4;
       --s3: #E5E0D5;
       --text: #161615;
-      --muted: #6E6A62;
+      --muted: #545049;
       --faint: #DDD8CD;
       --accent: #851726;
       --accent2: #A31F32;
@@ -67,6 +67,12 @@
       overflow-x: hidden;
       cursor: default;
       transition: background-color 220ms ease, color 220ms ease;
+    }
+
+    /* GLOBAL ACCESSIBLE FOCUS RINGS */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
     }
 
     /* SELECTION STYLING */
