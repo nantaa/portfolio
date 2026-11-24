@@ -155,16 +155,12 @@ test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing
   assert.ok(css.includes('.hero-right') && css.includes('flex-direction: column'), '.hero-right must be styled as a full-height flex column frame');
 });
 
-test('Hero section integrates HeroExecutiveSpecimen with verified architecture capabilities', () => {
-  const specimenPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroExecutiveSpecimen.tsx');
+test('Hero section renders clean editorial options without HeroTelemetryHUD canvas', () => {
   const heroPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
-
-  assert.ok(fs.existsSync(specimenPath), 'HeroExecutiveSpecimen.tsx component must exist');
-  const specimenContent = fs.readFileSync(specimenPath, 'utf-8');
   const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
-  assert.ok(specimenContent.includes('ENTERPRISE SYSTEMS & ERP'), 'Specimen must display Enterprise Systems');
-  assert.ok(heroContent.includes('HeroExecutiveSpecimen'), 'Hero.tsx must embed HeroExecutiveSpecimen');
+  assert.ok(!heroContent.includes('HeroTelemetryHUD'), 'Hero.tsx must not embed HeroTelemetryHUD');
+  assert.ok(heroContent.includes('Option A') && heroContent.includes('Option B') && heroContent.includes('Option C'), 'Hero.tsx must render all 3 review options');
 });
 
 test('Global styles purge intrusive text selection dragging across the portfolio', () => {

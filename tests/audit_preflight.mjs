@@ -90,8 +90,8 @@ if (!fs.existsSync(modalPath)) {
   if (!modalCode.includes('overflow-y-auto')) {
     errors.push('CaseStudyModal.tsx does not have overflow-y-auto for scrollability');
   }
-  if (!modalCode.includes('/projects/moriku/index.html')) {
-    errors.push('CaseStudyModal.tsx does not reference /projects/moriku/index.html');
+  if (!modalCode.includes('/projects/moriku/simulator.html') && !modalCode.includes('/projects/moriku/index.html')) {
+    errors.push('CaseStudyModal.tsx does not reference Moriku runtime HTML');
   }
   if (modalCode.includes('1:1 LIVE SYSTEM / ENTERPRISE WORKFLOW')) {
     errors.push('CaseStudyModal.tsx contains legacy AI slop badge');

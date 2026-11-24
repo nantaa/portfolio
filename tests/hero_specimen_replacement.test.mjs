@@ -7,13 +7,13 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 
-test('Hero.tsx embeds HeroExecutiveSpecimen and purges HeroTelemetryHUD', () => {
+test('Hero.tsx purges HeroTelemetryHUD and renders editorial options', () => {
   const heroPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
   const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
   assert.ok(
-    heroContent.includes('HeroExecutiveSpecimen'),
-    'Hero.tsx must import and embed HeroExecutiveSpecimen'
+    heroContent.includes('Option A'),
+    'Hero.tsx must render editorial Option A'
   );
   assert.ok(
     !heroContent.includes('HeroTelemetryHUD'),
@@ -53,14 +53,12 @@ test('HeroExecutiveSpecimen.tsx uses semantic theme tokens and high-contrast typ
   assert.ok(content.includes('var(--muted)'), 'Must bind to semantic muted color variable');
 });
 
-test('index.html .hero-right matrix maintains content and metric parity with HeroExecutiveSpecimen', () => {
+test('index.html hero renders all 3 editorial options cleanly', () => {
   const indexPath = path.join(rootDir, 'index.html');
   const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
-  assert.ok(indexContent.includes('hero-right'), 'index.html must define .hero-right');
-  assert.ok(indexContent.includes('SYSTEMS ARCHITECT') || indexContent.includes('Systems Architecture'), 'index.html must display Systems Architecture');
-  assert.ok(indexContent.includes('350+'), 'index.html must display 350+ tests summary');
-  assert.ok(indexContent.includes('SLA'), 'index.html must display SLA metric');
-  assert.ok(indexContent.includes('Downtime'), 'index.html must display downtime metric');
+  assert.ok(indexContent.includes('Option A'), 'index.html must display Option A');
+  assert.ok(indexContent.includes('Option B'), 'index.html must display Option B');
+  assert.ok(indexContent.includes('Option C'), 'index.html must display Option C');
 });
 
