@@ -157,8 +157,9 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/moriku/index.html"
           title="Moriku - DNP Compliance Engine"
-          className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-100 pointer-events-auto"
+          className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-950 pointer-events-auto"
           loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -170,6 +171,7 @@ export default function CaseStudyModal({
           title="TATA$ 3D Showcase"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }

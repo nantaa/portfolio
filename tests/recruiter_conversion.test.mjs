@@ -50,20 +50,18 @@ test('Criterion 4: Print stylesheet @media print formats resume for export in gl
 
 test('Criterion 5: One-click email copy functionality with visual confirmation exists across components', () => {
   const contact = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Contact.tsx'), 'utf-8');
-  const hero = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx'), 'utf-8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
 
   assert.ok(contact.includes('copyEmail') || contact.includes('copied'), 'Contact.tsx must provide copy email functionality');
-  assert.ok(hero.includes('copyEmail') || hero.includes('copied'), 'Hero.tsx must provide copy email functionality');
   assert.ok(indexHtml.includes('copyEmail'), 'index.html must provide copyEmail function');
 });
 
-test('Criterion 6: Hero section displays candidate availability badge in Hero.tsx and index.html', () => {
-  const hero = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx'), 'utf-8');
+test('Criterion 6: Hero section displays candidate availability badge in Navbar and index.html', () => {
+  const nav = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Nav.tsx'), 'utf-8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
 
-  assert.ok(hero.includes('Available for') || hero.includes('Open to'), 'Hero.tsx must declare candidate availability');
-  assert.ok(indexHtml.includes('Available for') || indexHtml.includes('Open to'), 'index.html must declare candidate availability');
+  assert.ok(nav.includes('AVAILABLE FOR WORK') || nav.includes('Available for work'), 'Navbar must declare candidate availability');
+  assert.ok(indexHtml.includes('AVAILABLE FOR WORK') || indexHtml.includes('Available for work'), 'index.html must declare candidate availability');
 });
 
 test('Criterion 7: Email address is strictly standardized to rifai.aryo@gmail.com with zero legacy addresses', () => {

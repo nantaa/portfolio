@@ -218,7 +218,7 @@
 
     /* ══ HERO ══ */
     .hero {
-      padding-top: 64px;
+      padding-top: 112px;
       border-bottom: 0.5px solid var(--wire);
       animation: fadeU 800ms ease 80ms both;
     }
@@ -2162,7 +2162,7 @@
 
       /* HERO */
       .hero {
-        padding-top: 56px;
+        padding-top: 96px;
       }
 
       .hero-strip {

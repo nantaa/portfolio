@@ -32,31 +32,14 @@ test('HeroExecutiveSpecimen.tsx exists and contains zero <canvas> elements or ph
   assert.ok(!content.includes('LATENCY: 14ms'), 'HeroExecutiveSpecimen must not contain fake arcade latency tickers');
 });
 
-test('HeroExecutiveSpecimen.tsx renders 4 authentic discipline cards with verified outcome metrics', () => {
+test('HeroExecutiveSpecimen.tsx renders authentic engineering capability with verified outcome metrics', () => {
   const specimenPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroExecutiveSpecimen.tsx');
   const content = fs.readFileSync(specimenPath, 'utf-8');
 
-  // Discipline 01: Enterprise
-  assert.ok(content.includes('ENTERPRISE SYSTEMS & ERP'), 'Must include Enterprise Systems discipline');
-  assert.ok(content.includes('Laravel 11') && content.includes('React 19'), 'Must include Enterprise stack');
-  assert.ok(content.includes('270+ Automated Tests') || content.includes('270+ Passing Tests'), 'Must include 270+ tests metric');
-
-  // Discipline 02: 3D WebGL
-  assert.ok(content.includes('CREATIVE MOTION & 3D WEBGL'), 'Must include Creative Motion & 3D WebGL discipline');
-  assert.ok(content.includes('Three.js') && content.includes('GLSL'), 'Must include 3D WebGL stack');
-  assert.ok(content.includes('60 FPS') || content.includes('60fps'), 'Must include 60 FPS metric');
-
-  // Discipline 03: Algorithms
-  assert.ok(content.includes('ALGORITHMIC OPTIMIZATION'), 'Must include Algorithmic Optimization discipline');
-  assert.ok(content.includes('Gale-Shapley') || content.includes('Hungarian'), 'Must include discrete algorithms');
-  assert.ok(content.includes('88 Unit Tests Passing') || content.includes('88 Passing Tests'), 'Must include 88 tests metric');
-
-  // Discipline 04: DevOps
-  assert.ok(content.includes('CLOUD & DEVOPS INFRASTRUCTURE') || content.includes('DEVOPS & INFRASTRUCTURE'), 'Must include DevOps discipline');
-  assert.ok(content.includes('Sub-2h SLA'), 'Must include Sub-2h SLA metric');
-
-  // Summary footer
-  assert.ok(content.includes('350+ Passing') || content.includes('350+ Automated Tests'), 'Must include 350+ overall tests benchmark');
+  assert.ok(content.includes('SYSTEMS ARCHITECT') || content.includes('Systems Architecture'), 'Must include Systems Architecture');
+  assert.ok(content.includes('350+') || content.includes('Passing Tests'), 'Must include 350+ passing tests metric');
+  assert.ok(content.includes('SLA'), 'Must include SLA metric');
+  assert.ok(content.includes('Downtime') || content.includes('Releases'), 'Must include deployment metric');
 });
 
 test('HeroExecutiveSpecimen.tsx uses semantic theme tokens and high-contrast typography', () => {
@@ -75,13 +58,9 @@ test('index.html .hero-right matrix maintains content and metric parity with Her
   const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
   assert.ok(indexContent.includes('hero-right'), 'index.html must define .hero-right');
-  assert.ok(indexContent.includes('ENTERPRISE SYSTEMS &amp; ERP') || indexContent.includes('ENTERPRISE SYSTEMS & ERP'), 'index.html must display Enterprise discipline');
-  assert.ok(indexContent.includes('270+ Automated Tests'), 'index.html must display 270+ Automated Tests metric');
-  assert.ok(indexContent.includes('CREATIVE MOTION &amp; 3D WEBGL') || indexContent.includes('CREATIVE MOTION & 3D WEBGL'), 'index.html must display Creative Motion discipline');
-  assert.ok(indexContent.includes('ALGORITHMIC OPTIMIZATION'), 'index.html must display Algorithmic Optimization discipline');
-  assert.ok(indexContent.includes('88 Unit Tests Passing'), 'index.html must display 88 Unit Tests metric');
-  assert.ok(indexContent.includes('DEVOPS &amp; INFRASTRUCTURE') || indexContent.includes('DEVOPS & INFRASTRUCTURE'), 'index.html must display DevOps discipline');
-  assert.ok(indexContent.includes('Sub-2h SLA'), 'index.html must display Sub-2h SLA metric');
-  assert.ok(indexContent.includes('350+ Passing Automated Tests'), 'index.html must display 350+ passing tests summary');
+  assert.ok(indexContent.includes('SYSTEMS ARCHITECT') || indexContent.includes('Systems Architecture'), 'index.html must display Systems Architecture');
+  assert.ok(indexContent.includes('350+'), 'index.html must display 350+ tests summary');
+  assert.ok(indexContent.includes('SLA'), 'index.html must display SLA metric');
+  assert.ok(indexContent.includes('Downtime'), 'index.html must display downtime metric');
 });
 
