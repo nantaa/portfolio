@@ -30,6 +30,16 @@
   </script>
   <style>
     /* Custom scrollbar for horizontal Kanban */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
     .kanban-scroll::-webkit-scrollbar {
       height: 10px;
     }
@@ -55,6 +65,7 @@
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+  <div id="app" data-page='{"component":"Kanban/Index","props":{"auth":{"user":{"name":"Aryo Rifai"}}},"url":"/kanban","version":"1.0.0"}'>
 
   <!-- ================= TOP NAVIGATION HEADER ================= -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
@@ -676,6 +687,20 @@
       updateLogUI();
     });
     renderBoard();
+
+    // Standalone Mock State & Escape Bridge for Parent Modal
+    window.__DNP_INITIAL_PAGE__ = {
+      component: "Kanban/Index",
+      props: { auth: { user: { name: "Aryo Rifai", role: "SUPER ADMINISTRATOR" } } },
+      url: "/kanban",
+      version: "1.0.0"
+    };
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        window.parent.postMessage({ type: 'close-modal' }, '*');
+      }
+    });
   </script>
+  </div>
 </body>
 </html>

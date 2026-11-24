@@ -1305,13 +1305,12 @@
     </div>
   </nav>
 
-  <!-- ══ HERO ══ -->
+  <!-- ══ HERO: PLAN A (PURE CENTERED EDITORIAL) ══ -->
   <section class="hero">
-
     <div class="hero-strip">
       <div class="hero-strip-left">
-        <span class="hero-eyebrow">Portfolio — 2026</span>
-        <span class="hero-location">Bekasi, Indonesia</span>
+        <span class="hero-eyebrow">PLAN A — PURE CENTERED EDITORIAL</span>
+        <span class="hero-location">Portfolio — 2026 · Bekasi, Indonesia</span>
       </div>
       <div class="hero-strip-right">
         Solving problems across<br>
@@ -1320,81 +1319,89 @@
       </div>
     </div>
 
-    <div class="hero-body">
+    <div style="max-width:900px; margin:0 auto; padding:96px 24px 112px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh;">
+      <span style="font-family:var(--mono); font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); margin-bottom:20px;">
+        Systems Engineer · Multidisciplinary Technologist
+      </span>
+      <div class="hero-name" style="text-align:center; margin-bottom:28px;">
+        Rifa'i<em>Aryo Ananta.</em>
+      </div>
+      <p style="font-family:var(--mono); font-size:15px; color:var(--muted); max-width:620px; line-height:1.7; margin-bottom:36px;">
+        Bridging fullstack architecture, real-time 3D WebGL graphics, and mission-critical cloud infrastructure.
+      </p>
+      <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+        <a href="#work" class="hero-btn filled">View work</a>
+        <a href="docs/CV%20Aryo%20Update.pdf" download="CV Aryo Update.pdf" class="hero-btn" style="text-decoration: none;">Curriculum Vitae ↓</a>
+      </div>
+    </div>
+  </section>
 
-      <div class="hero-left">
+  <!-- ══ HERO: PLAN B (ASYMMETRIC + GEOMETRIC WIREFRAME) ══ -->
+  <section style="border-bottom:0.5px solid var(--wire);">
+    <div class="hero-strip">
+      <div class="hero-strip-left">
+        <span class="hero-eyebrow">PLAN B — ASYMMETRIC + GEOMETRIC WIREFRAME</span>
+        <span class="hero-location">Portfolio 2026 · Bekasi, Indonesia</span>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); align-items:center; padding:80px 52px; gap:48px; min-height:70vh;">
+      <div style="display:flex; flex-direction:column; gap:28px;">
         <div class="hero-name">
           Rifa'i<em>Aryo Ananta.</em>
         </div>
-        <div class="hero-bottom">
-          <div class="hero-descriptor">
-            <strong>Systems Engineer</strong> &nbsp;·&nbsp; Multidisciplinary Technologist<br>
-            Bridging fullstack architecture, real-time 3D WebGL graphics,<br>
-            and mission-critical cloud infrastructure.
-          </div>
-          <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; gap:10px;">
-            <a href="#work" class="hero-btn filled">View work</a>
-            <a href="docs/CV%20Aryo%20Update.pdf" download="CV Aryo Update.pdf" class="hero-btn" style="text-decoration: none;">Curriculum Vitae ↓</a>
-          </div>
-          <div class="scroll-hint">Scroll to explore</div>
+        <div class="hero-descriptor" style="max-width:540px;">
+          <strong>Systems Engineer</strong> &nbsp;·&nbsp; Multidisciplinary Technologist<br>
+          Bridging fullstack architecture, real-time 3D WebGL graphics,<br>
+          and mission-critical cloud infrastructure.
+        </div>
+        <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; gap:12px;">
+          <a href="#work" class="hero-btn filled">View work</a>
+          <a href="docs/CV%20Aryo%20Update.pdf" download="CV Aryo Update.pdf" class="hero-btn" style="text-decoration: none;">Curriculum Vitae ↓</a>
         </div>
       </div>
+      <div style="display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 360 360" style="width:100%; max-width:340px; height:auto; opacity:0.85;" fill="none" aria-hidden="true">
+          <circle cx="180" cy="180" r="140" stroke="var(--wire)" stroke-width="0.75" stroke-dasharray="4 4" />
+          <circle cx="180" cy="180" r="98" stroke="var(--wire)" stroke-width="0.75" />
+          <polygon points="180,32 308,106 308,254 180,328 52,254 52,106" stroke="var(--accent)" stroke-width="1" />
+          <polygon points="180,72 274,126 274,234 180,288 86,234 86,126" stroke="var(--muted)" stroke-width="0.6" />
+          <line x1="180" y1="32" x2="180" y2="328" stroke="var(--wire)" stroke-width="0.75" />
+          <line x1="52" y1="106" x2="308" y2="254" stroke="var(--wire)" stroke-width="0.75" />
+          <line x1="308" y1="106" x2="52" y2="254" stroke="var(--wire)" stroke-width="0.75" />
+          <circle cx="180" cy="180" r="4" fill="var(--accent)" />
+        </svg>
+      </div>
+    </div>
+  </section>
 
-      <!-- Executive Systems Architecture Ledger -->
-      <div class="hero-right hero-architectural-frame" id="heroRightFrame"
-        style="position:relative; width:100%; user-select:none; overflow:hidden; background:var(--s1);">
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
-          <!-- Column 1: Domain Identity & Stack -->
-          <div style="padding:32px 52px; border-right:0.5px solid var(--wire); display:flex; flex-direction:column; justify-content:space-between; gap:16px;">
-            <div style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase;">
-              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-              <span style="color:var(--text); font-weight:bold;">SYSTEMS ARCHITECT &amp; LEAD ENGINEER</span>
-            </div>
-            <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); display:flex; flex-wrap:wrap; gap:6px;">
-              <span>[01] ENTERPRISE SYSTEMS &amp; ERP</span>
-              <span>·</span>
-              <span>[02] CREATIVE MOTION &amp; 3D WEBGL</span>
-              <span>·</span>
-              <span>[03] ALGORITHMIC OPTIMIZATION</span>
-              <span>·</span>
-              <span>[04] CLOUD &amp; DEVOPS</span>
-            </div>
-          </div>
-
-          <!-- Column 2: Engineering Focus -->
-          <div style="padding:32px 36px; border-right:0.5px solid var(--wire); display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
-            <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted);">
-              Core Architecture Focus
-            </div>
-            <div style="color:var(--text); font-size:13.5px; line-height:1.6;">
-              Formal state machines, strict ACID transaction guarantees, and sub-second deterministic pipelines.
-            </div>
-          </div>
-
-          <!-- Column 3: Verified Production Benchmarks -->
-          <div style="padding:32px 52px; display:flex; flex-direction:column; justify-content:space-between; gap:16px;">
-            <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted);">
-              <span>Production Verified</span>
-              <span style="color:var(--accent); font-weight:bold;">2026</span>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
-              <div>
-                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">350+</div>
-                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Passing Tests</div>
-              </div>
-              <div>
-                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">&lt;2h SLA</div>
-                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Event Latency</div>
-              </div>
-              <div>
-                <div style="font-family:var(--mono); font-size:16px; font-weight:bold; color:var(--text);">0-Downtime</div>
-                <div style="font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">Atomic Releases</div>
-              </div>
-            </div>
-          </div>
+  <!-- ══ HERO: PLAN C (EDITORIAL SPLIT + AUTHOR PORTRAIT) ══ -->
+  <section style="border-bottom:0.5px solid var(--wire);">
+    <div class="hero-strip">
+      <div class="hero-strip-left">
+        <span class="hero-eyebrow">PLAN C — EDITORIAL SPLIT + AUTHOR PORTRAIT</span>
+        <span class="hero-location">Portfolio 2026 · Bekasi, Indonesia</span>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); align-items:center; padding:80px 52px; gap:48px; min-height:70vh;">
+      <div style="display:flex; flex-direction:column; gap:28px;">
+        <div class="hero-name">
+          Rifa'i<em>Aryo Ananta.</em>
+        </div>
+        <div class="hero-descriptor" style="max-width:540px;">
+          <strong>Systems Engineer</strong> &nbsp;·&nbsp; Multidisciplinary Technologist<br>
+          Bridging fullstack architecture, real-time 3D WebGL graphics,<br>
+          and mission-critical cloud infrastructure.
+        </div>
+        <div class="hero-cta-row" style="display:flex; flex-wrap:wrap; gap:12px;">
+          <a href="#work" class="hero-btn filled">View work</a>
+          <a href="docs/CV%20Aryo%20Update.pdf" download="CV Aryo Update.pdf" class="hero-btn" style="text-decoration: none;">Curriculum Vitae ↓</a>
         </div>
       </div>
-
+      <div style="display:flex; align-items:center; justify-content:flex-end;">
+        <div style="width:100%; max-width:340px; aspect-ratio:4/5; border:0.5px solid var(--wire); overflow:hidden; background:var(--s1);">
+          <img src="/images/aryo.png" alt="Rifa'i Aryo Ananta" style="width:100%; height:100%; object-fit:cover; filter:grayscale(100%) contrast(1.08);" />
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2011,7 +2018,7 @@
       if (liveBtn) {
         if (id === 1) {
           liveBtn.style.display = 'inline-flex';
-          liveBtn.href = 'projects/moriku/index.html';
+          liveBtn.href = 'projects/moriku/simulator.html?v=20261125';
           liveBtn.innerHTML = '⚡ Launch Live Moriku Runtime ↗';
         } else if (id === 2) {
           liveBtn.style.display = 'inline-flex';
@@ -2019,7 +2026,7 @@
           liveBtn.innerHTML = '⚡ Launch Live Material Studies ↗';
         } else if (id === 3) {
           liveBtn.style.display = 'inline-flex';
-          liveBtn.href = 'projects/tata/index.html';
+          liveBtn.href = 'projects/tata/index.html?v=20261125';
           liveBtn.innerHTML = '⚡ Launch Live TATA$ 3D Showcase ↗';
         } else {
           liveBtn.style.display = 'none';
