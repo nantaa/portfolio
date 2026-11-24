@@ -28,7 +28,6 @@ test('index.html contains full 8-project roster and zero legacy 04 count', () =>
 
   // Must include verified outcome metrics on cards
   assert.ok(content.includes('270+ Passing Tests') || content.includes('270+ Tests'), 'Must include Moriku outcome metric');
-  assert.ok(content.includes('60 FPS'), 'Must include 3D shader outcome metric');
   assert.ok(content.includes('88 Tests') || content.includes('88 automated tests') || content.includes('88 Passing Tests'), 'Must include Thesis Docket outcome metric');
 });
 

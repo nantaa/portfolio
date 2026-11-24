@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
@@ -35,6 +35,12 @@ export default function CaseStudyModal({
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const triggerElementRef = useRef<HTMLElement | null>(null);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const isAutomatedBot = useSyncExternalStore(
+    emptySubscribe,
+    () => typeof navigator !== "undefined" && Boolean(navigator.webdriver),
+    () => false
+  );
+  const [privacyVeil, setPrivacyVeil] = useState(false);
 
   const currentIndex = allProjects && project ? allProjects.findIndex((p) => p.id === project.id) : -1;
   const prevProject = allProjects && currentIndex > 0 ? allProjects[currentIndex - 1] : null;
@@ -65,10 +71,33 @@ export default function CaseStudyModal({
       }
     }, 20);
 
+    let veilTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
+        return;
+      }
+
+      const keyLower = e.key.toLowerCase();
+      const mod = e.ctrlKey || e.metaKey;
+      if (
+        e.key === "PrintScreen" ||
+        e.key === "F12" ||
+        (mod && ["c", "x", "s", "u", "p"].includes(keyLower)) ||
+        (mod && e.shiftKey && ["i", "j", "c", "s"].includes(keyLower))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key === "PrintScreen") {
+          setPrivacyVeil(true);
+          if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText("").catch(() => {});
+          }
+          if (veilTimer) clearTimeout(veilTimer);
+          veilTimer = setTimeout(() => setPrivacyVeil(false), 2000);
+        }
         return;
       }
 
@@ -121,13 +150,34 @@ export default function CaseStudyModal({
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    const handleWindowBlur = () => {
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === "IFRAME") return;
+      setPrivacyVeil(true);
+    };
+
+    const handleWindowFocus = () => {
+      setPrivacyVeil(false);
+    };
+
+    const handleVisibilityChange = () => {
+      setPrivacyVeil(document.visibilityState === "hidden");
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
     window.addEventListener("message", handleMessage);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearTimeout(focusTimer);
-      window.removeEventListener("keydown", handleKeyDown);
+      if (veilTimer) clearTimeout(veilTimer);
+      window.removeEventListener("keydown", handleKeyDown, true);
       window.removeEventListener("message", handleMessage);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.body.style.overflow = originalOverflow;
 
       if (mainContent) {
@@ -215,8 +265,13 @@ export default function CaseStudyModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="case-modal-title"
-      className="fixed inset-0 z-[9999] flex flex-col md:items-center md:justify-center p-0 md:p-6 lg:p-8 bg-black/85 backdrop-blur-md animate-fadeIn select-text overflow-hidden"
+      data-nosnippet="true"
+      className="case-modal-protected fixed inset-0 z-[9999] flex flex-col md:items-center md:justify-center p-0 md:p-6 lg:p-8 bg-black/85 backdrop-blur-md animate-fadeIn select-none overflow-hidden"
       onClick={onClose}
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
     >
       <div
         ref={modalContainerRef}
@@ -303,7 +358,43 @@ export default function CaseStudyModal({
 
         {/* ── Main Viewport: Scrollable, Interactive, Full-Bleed ── */}
         <main className="relative w-full flex-1 min-h-0 bg-[var(--s1)] overflow-y-auto pointer-events-auto flex flex-col">
-          {renderLivePreview(project)}
+          {isAutomatedBot ? (
+            <div className="w-full h-full flex items-center justify-center p-8 text-center">
+              <div className="max-w-md border border-[var(--wire)] bg-[var(--s2)] p-6 rounded">
+                <p className="font-mono text-xs uppercase tracking-widest text-[var(--accent2-text)] mb-2">
+                  Protected Preview
+                </p>
+                <p className="text-sm text-[var(--muted)]">
+                  Automated scraping and headless capture are disabled for this project showcase.
+                </p>
+              </div>
+            </div>
+          ) : (
+            renderLivePreview(project)
+          )}
+
+          {/* Subtle repeating attribution watermark */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed md:absolute inset-0 z-20 opacity-[0.06] overflow-hidden"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='140'%3E%3Ctext x='12' y='78' transform='rotate(-22 130 70)' fill='%23888888' font-family='monospace' font-size='11' letter-spacing='2'%3EARYO %2F%2F PROTECTED%3C/text%3E%3C/svg%3E\")",
+              backgroundRepeat: "repeat",
+            }}
+          />
+
+          {/* Privacy veil on window blur, tab switch, or PrintScreen */}
+          {privacyVeil && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 z-30 flex items-center justify-center bg-[var(--modal-bg)]/95 backdrop-blur-xl"
+            >
+              <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+                Preview hidden while inactive
+              </p>
+            </div>
+          )}
         </main>
       </div>
     </div>,

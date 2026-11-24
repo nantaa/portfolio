@@ -29,7 +29,20 @@
       flex-direction: column;
       overflow: hidden;
     }
+    html, body, #app, * {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    @media print {
+      body { display: none !important; visibility: hidden !important; }
+    }
   </style>
+  <script>
+    ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function(evt) {
+      window.addEventListener(evt, function(e) { e.preventDefault(); }, true);
+    });
+  </script>
 
   <!-- Global Route Fallback Helper & Standalone Inertia Bootstrap for Moriku -->
   <script>

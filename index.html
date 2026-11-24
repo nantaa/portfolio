@@ -1011,38 +1011,6 @@
       margin-bottom: 36px;
     }
 
-    .a-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-top: 0.5px solid var(--wire);
-    }
-
-    .a-stat {
-      padding: 20px 0;
-    }
-
-    .a-stat:not(:first-child) {
-      padding-left: 20px;
-      border-left: 0.5px solid var(--wire);
-    }
-
-    .a-stat-num {
-      font-family: var(--display);
-      font-size: 38px;
-      font-weight: 700;
-      display: block;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .a-stat-lbl {
-      font-family: var(--mono);
-      font-size: 8px;
-      letter-spacing: 0.18em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
     /* ══ PHOTOGRAPHY ══ */
     .photo-grid {
       display: grid;
@@ -1267,6 +1235,10 @@
       }
       nav, footer, .hero, .work-grid, .disc-table, .about, .contact, #cur {
         display: none !important;
+      }
+      #caseModal, .case-modal-protected {
+        display: none !important;
+        visibility: hidden !important;
       }
       #resumeModal {
         display: block !important;
@@ -1750,20 +1722,6 @@
         think through constraints, execute with intention, measure the result.<br><br>
         The depth isn't always visible. But it's always there.
       </p>
-      <div class="a-stats">
-        <div class="a-stat">
-          <span class="a-stat-num">350+</span>
-          <span class="a-stat-lbl">Automated Tests Passed</span>
-        </div>
-        <div class="a-stat">
-          <span class="a-stat-num">60 FPS</span>
-          <span class="a-stat-lbl">WebGL Shaders</span>
-        </div>
-        <div class="a-stat">
-          <span class="a-stat-num">16</span>
-          <span class="a-stat-lbl">SLA Pipeline Stages</span>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -2082,22 +2040,69 @@
         closeCase();
         closeResume();
       }
-      if (isCaseOpen && e.key === 'ArrowLeft') {
-        prevCase();
+      if (isCaseOpen) {
+        const keyLower = (e.key || '').toLowerCase();
+        const mod = e.ctrlKey || e.metaKey;
+        if (
+          e.key === 'PrintScreen' ||
+          e.key === 'F12' ||
+          (mod && ['c', 'x', 's', 'u', 'p'].includes(keyLower)) ||
+          (mod && e.shiftKey && ['i', 'j', 'c', 's'].includes(keyLower))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.key === 'PrintScreen') {
+            const veil = document.getElementById('caseModalPrivacyVeil');
+            if (veil) {
+              veil.style.display = 'flex';
+              setTimeout(() => { veil.style.display = 'none'; }, 2000);
+            }
+          }
+          return;
+        }
+        if (e.key === 'ArrowLeft') prevCase();
+        if (e.key === 'ArrowRight') nextCase();
       }
-      if (isCaseOpen && e.key === 'ArrowRight') {
-        nextCase();
+    }, true);
+
+    window.addEventListener('blur', () => {
+      const caseModal = document.getElementById('caseModal');
+      const veil = document.getElementById('caseModalPrivacyVeil');
+      if (caseModal && caseModal.style.display === 'flex' && veil) {
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+        veil.style.display = 'flex';
+      }
+    });
+    window.addEventListener('focus', () => {
+      const veil = document.getElementById('caseModalPrivacyVeil');
+      if (veil) veil.style.display = 'none';
+    });
+    document.addEventListener('visibilitychange', () => {
+      const caseModal = document.getElementById('caseModal');
+      const veil = document.getElementById('caseModalPrivacyVeil');
+      if (caseModal && caseModal.style.display === 'flex' && veil) {
+        veil.style.display = document.visibilityState === 'hidden' ? 'flex' : 'none';
       }
     });
   </script>
 
   <!-- ══ CASE FRAMEWORK MODAL ══ -->
-  <div id="caseModal" class="case-modal"
-    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px;"
+  <div id="caseModal" class="case-modal case-modal-protected" data-nosnippet="true"
+    style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); align-items:center; justify-content:center; padding:20px; user-select:none; -webkit-user-select:none;"
+    oncopy="event.preventDefault()" oncut="event.preventDefault()" oncontextmenu="event.preventDefault()" ondragstart="event.preventDefault()"
     onclick="closeCase()">
     <div
       style="background:var(--modal-bg); border:1px solid var(--wire); max-width:920px; width:100%; max-height:92vh; overflow-y:auto; padding:38px; border-radius:3px; position:relative;"
       onclick="event.stopPropagation()">
+      <div id="caseModalPrivacyVeil" aria-hidden="true"
+        style="display:none; position:absolute; inset:0; z-index:40; background:rgba(12,12,12,0.96); backdrop-filter:blur(14px); align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted);">
+        Preview hidden while inactive
+      </div>
+      <script>
+        if (typeof navigator !== 'undefined' && navigator.webdriver) {
+          document.getElementById('caseModal')?.setAttribute('data-bot-blocked', 'true');
+        }
+      </script>
       <div
         style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--wire); padding-bottom:14px; margin-bottom:24px;">
         <div

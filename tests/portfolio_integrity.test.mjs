@@ -77,9 +77,9 @@ test('About section purges corny infinity stat and highlights verified productio
   assert.ok(!aboutContent.includes('>∞<') && !aboutContent.includes('Systems built'), 'About.tsx must not contain corny infinity systems built stat');
   assert.ok(!indexContent.includes('>∞<') && !indexContent.includes('Systems built'), 'index.html must not contain corny infinity systems built stat');
 
-  // Must highlight concrete production metrics
-  assert.ok(aboutContent.includes('Automated Tests') || aboutContent.includes('Tests Passed') || aboutContent.includes('350+') || aboutContent.includes('270+'), 'About.tsx must highlight automated testing rigor');
-  assert.ok(aboutContent.includes('60 FPS') || aboutContent.includes('WebGL') || aboutContent.includes('Realtime'), 'About.tsx must highlight real-time performance benchmark');
+  // Must not render unnecessary static metric counters
+  assert.ok(!aboutContent.includes('a-stats') && !aboutContent.includes('350+'), 'About.tsx must not render .a-stats counter clutter');
+  assert.ok(!indexContent.includes('350+') && !indexContent.includes('60 FPS WebGL Shaders'), 'index.html About must not render .a-stats counter clutter');
 });
 
 test('Ulun Danu standalone static asset exists in public and root for low-resource zero-daemon hosting', () => {

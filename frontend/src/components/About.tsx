@@ -30,20 +30,6 @@ export default function About() {
             think through constraints, execute with intention, measure the result.<br /><br />
             The depth isn&apos;t always visible. But it&apos;s always there.
           </p>
-          <div className="a-stats">
-            <div className="a-stat">
-              <span className="a-stat-num">350+</span>
-              <span className="a-stat-lbl">Automated Tests Passed</span>
-            </div>
-            <div className="a-stat">
-              <span className="a-stat-num">60 FPS</span>
-              <span className="a-stat-lbl">WebGL Shaders</span>
-            </div>
-            <div className="a-stat">
-              <span className="a-stat-num">16</span>
-              <span className="a-stat-lbl">SLA Pipeline Stages</span>
-            </div>
-          </div>
         </div>
       </section>
     </>

@@ -5,7 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TATA$ - Realtime 3D Luxury Bag Showcase</title>
+    <style>
+      html, body, #app, * {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      @media print {
+        body { display: none !important; visibility: hidden !important; }
+      }
+    </style>
     <script>
+      ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function(evt) {
+        window.addEventListener(evt, function(e) { e.preventDefault(); }, true);
+      });
       // Escape key bridge to parent modal
       window.addEventListener("keydown", function(e) {
         if (e.key === "Escape") {

@@ -121,19 +121,31 @@
           return origFetch.apply(this, arguments);
         };
 
-        // Prevent React Router BrowserRouter from leaving /projects/maknaworks/
-        var origPush = history.pushState;
-        var origReplace = history.replaceState;
-        history.pushState = function(state, title, url) {
-          return origPush.call(history, state, title, window.location.pathname + window.location.search);
-        };
-        history.replaceState = function(state, title, url) {
-          return origReplace.call(history, state, title, window.location.pathname + window.location.search);
-        };
+        // Keep relative asset URLs anchored to /projects/maknaworks/ before routing to /penjualan
       })();
+    </script>
+    <style>
+      html, body, #root, * {
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+      @media print {
+        body { display: none !important; visibility: hidden !important; }
+      }
+    </style>
+    <script>
+      ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function(evt) {
+        window.addEventListener(evt, function(e) { e.preventDefault(); }, true);
+      });
     </script>
     <script type="module" crossorigin src="./assets/index-nigyFKql.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-38OHbNsg.css">
+    <script>
+      try {
+        history.replaceState(null, '', '/penjualan');
+      } catch (e) {}
+    </script>
   </head>
   <body class="bg-background text-foreground antialiased">
     <div id="root"></div>
