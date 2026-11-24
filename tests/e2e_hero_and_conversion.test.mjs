@@ -155,17 +155,16 @@ test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing
   assert.ok(css.includes('.hero-right') && css.includes('flex-direction: column'), '.hero-right must be styled as a full-height flex column frame');
 });
 
-test('Hero section integrates HeroTelemetryHUD with interactive TOPOLOGY vs TELEMETRY', () => {
-  const hudPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroTelemetryHUD.tsx');
+test('Hero section integrates HeroExecutiveSpecimen with verified architecture capabilities', () => {
+  const specimenPath = path.join(rootDir, 'frontend', 'src', 'components', 'HeroExecutiveSpecimen.tsx');
   const heroPath = path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx');
 
-  assert.ok(fs.existsSync(hudPath), 'HeroTelemetryHUD.tsx component must exist');
-  const hudContent = fs.readFileSync(hudPath, 'utf-8');
+  assert.ok(fs.existsSync(specimenPath), 'HeroExecutiveSpecimen.tsx component must exist');
+  const specimenContent = fs.readFileSync(specimenPath, 'utf-8');
   const heroContent = fs.readFileSync(heroPath, 'utf-8');
 
-  assert.ok(hudContent.includes('TOPOLOGY') && hudContent.includes('TELEMETRY'), 'HUD must support TOPOLOGY and TELEMETRY modes');
-  assert.ok(hudContent.includes('<canvas') || hudContent.includes('canvasRef'), 'HUD must render architectural wireframe canvas');
-  assert.ok(heroContent.includes('HeroTelemetryHUD'), 'Hero.tsx must embed HeroTelemetryHUD');
+  assert.ok(specimenContent.includes('ENTERPRISE SYSTEMS & ERP'), 'Specimen must display Enterprise Systems');
+  assert.ok(heroContent.includes('HeroExecutiveSpecimen'), 'Hero.tsx must embed HeroExecutiveSpecimen');
 });
 
 test('Global styles purge intrusive text selection dragging across the portfolio', () => {

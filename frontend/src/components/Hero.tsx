@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ResumeModal from "@/components/ResumeModal";
-import HeroTelemetryHUD from "@/components/HeroTelemetryHUD";
+import HeroExecutiveSpecimen from "@/components/HeroExecutiveSpecimen";
 
 export default function Hero() {
   const [isResumeOpen, setIsResumeOpen] = useState(false);
@@ -54,7 +54,7 @@ export default function Hero() {
           </div>
 
           <div className="hero-right">
-            <HeroTelemetryHUD />
+            <HeroExecutiveSpecimen />
           </div>
         </div>
       </section>
