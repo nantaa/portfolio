@@ -44,7 +44,7 @@ export default function Hero() {
                 <a
                   href="/docs/CV-Aryo-Update.pdf"
                   download="CV Aryo Update.pdf"
-                  className="hero-btn cursor-pointer font-mono text-[12px]"
+                  className="hero-btn cursor-pointer font-mono"
                 >
                   Curriculum Vitae ↓
                 </a>

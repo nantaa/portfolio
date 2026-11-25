@@ -283,7 +283,7 @@
 
     .hero-name {
       font-family: var(--display);
-      font-size: clamp(56px, 7vw, 112px);
+      font-size: clamp(68px, 8.4vw, 134px);
       font-weight: 700;
       line-height: 0.92;
       letter-spacing: -0.03em;
@@ -305,7 +305,7 @@
 
     .hero-descriptor {
       font-family: var(--mono);
-      font-size: 14px;
+      font-size: 17px;
       letter-spacing: 0.1em;
       color: var(--muted);
       line-height: 1.9;
@@ -324,11 +324,11 @@
 
     .hero-btn {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 13px;
       letter-spacing: 0.16em;
       color: var(--text);
       border: 0.5px solid var(--wire);
-      padding: 12px 24px;
+      padding: 14px 28px;
       text-transform: uppercase;
       cursor: pointer;
       transition: border-color 200ms, color 200ms, background 200ms;
@@ -353,7 +353,7 @@
 
     .scroll-hint {
       font-family: var(--mono);
-      font-size: 8px;
+      font-size: 10px;
       letter-spacing: 0.18em;
       color: var(--muted);
       text-transform: uppercase;

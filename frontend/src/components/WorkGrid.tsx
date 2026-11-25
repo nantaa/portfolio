@@ -263,16 +263,24 @@ export default function WorkGrid({ projects }: WorkGridProps) {
     }
 
     if (project.id === 2) {
-      // 02: Indonesian 3D Material Studies (Cream Square)
+      // 02: Indonesian 3D Material Studies (Cream Square, TATA$ Cover Style)
       return (
         <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#f7f4ee] via-[#efece4] to-[#e5e0d5] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500 border border-[var(--wire)]">
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(122,21,37,0.08)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/3d-cover.webp"
+              alt="Indonesian 3D Material Studies"
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover filter contrast-125"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#efece4]/90 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-[3px] bg-[#7a1525]/10 border border-[#7a1525]/30 flex items-center justify-center shadow-sm group-hover:border-[#7a1525] transition-colors">
-              <span className="font-mono text-sm font-bold text-[#7a1525]">3D</span>
-            </div>
+            <div className="font-serif text-3xl font-bold tracking-tight text-[#161615] drop-shadow-sm">3D STUDIES</div>
             <div className="font-mono text-xs text-[#6e6a62] tracking-widest uppercase">RAJA AMPAT &amp; ULUN DANU · REALTIME GLSL</div>
-            <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+            <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
               SHADER DIORAMA ↗
             </div>
