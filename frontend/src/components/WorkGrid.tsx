@@ -137,20 +137,20 @@ const CORE_PROJECTS: Project[] = [
   },
   {
     id: 7,
-    title: "AI Expense Tracker",
-    category: "AI / Full-stack",
-    subtitle: "Next.js 16 · Express · Prisma · Google Gemini 2.0 Flash",
-    outcome_metric: "Sub-1s OCR · Gemini 2.0 Flash",
+    title: "VAULTR",
+    category: "3D Web & Interactive Vault",
+    subtitle: "Vue 3 · Three.js · GSAP · Lenis Smooth Scroll",
+    outcome_metric: "60 FPS WebGL · Interactive 3D Vault",
     image_url: null,
     link: null,
-    year: "2025",
+    year: "2026",
     sort_order: 6,
     is_featured: false,
     case_study: {
-      problem: "Personal expense tracking suffers from high manual entry friction and inconsistent vendor receipt categorization.",
-      thinking: "Engineered an automated parsing pipeline using Gemini 2.0 Flash to extract structured line items from raw receipts.",
-      execution: "Next.js App Router, Node.js Express API, Prisma ORM, and Google Generative AI SDK with model fallback.",
-      result: "Sub-second receipt categorization, zero manual tagging, and automated monthly spending summaries.",
+      problem: "Digital asset showcases often feel flat and static without tactile 3D depth or responsive motion choreography.",
+      thinking: "Combined a custom Three.js 3D vault stage with GSAP scroll triggers and Lenis smooth-scroll physics in Vue 3.",
+      execution: "Vue 3, Three.js WebGL scene, GSAP timeline orchestration, and Lenis inertia scrolling.",
+      result: "Fluid 60fps interactive 3D vault experience with synchronized scroll-driven camera motion.",
     },
   },
   {
@@ -395,7 +395,25 @@ export default function WorkGrid({ projects }: WorkGridProps) {
       );
     }
 
-    // Alternating Chessboard Cover for Academic Docket, Helpdesk, AI Expense Tracker
+    if (project.id === 7) {
+      // 07: VAULTR - Interactive 3D Vault (Maroon Square, TATA$ Cover Style)
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(247,244,238,0.14)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#4e0a15]/90 via-transparent to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="font-serif text-3xl font-bold tracking-tight text-[#f7f4ee] drop-shadow-sm">VAULTR</div>
+            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">VUE 3 · THREE.JS · GSAP · LENIS</div>
+            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
+              3D VAULT RUNTIME ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Alternating Chessboard Cover for Academic Docket, Helpdesk, VAULTR
     if (isMaroon) {
       return (
         <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">

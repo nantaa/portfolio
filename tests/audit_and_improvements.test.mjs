@@ -23,7 +23,7 @@ test('index.html contains full 8-project roster and zero legacy 04 count', () =>
   assert.ok(content.includes('Thesis') || content.includes('Docket'), 'Must include Academic Thesis Docket');
   assert.ok(content.includes('Delta IT Helpdesk') || content.includes('Helpdesk'), 'Must include Helpdesk');
   assert.ok(content.includes('Geopetak'), 'Must include Geopetak Aerial AI');
-  assert.ok(content.includes('Expense Tracker'), 'Must include Expense Tracker');
+  assert.ok(content.includes('VAULTR'), 'Must include VAULTR');
   assert.ok(content.includes('Makna Works'), 'Must include Makna Works');
 
   // Must include verified outcome metrics on cards
