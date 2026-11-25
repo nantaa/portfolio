@@ -36,6 +36,11 @@ test('Actual compiled Geopetak landing page is deployed in public and root proje
     assert.ok(html.includes('./assets/index-zd3DEfeL.js'), `${htmlPath} must reference ./assets/index-zd3DEfeL.js`);
     assert.ok(!html.includes('"/assets/'), `${htmlPath} must not leave root-relative /assets/ paths`);
     assert.ok(fs.existsSync(path.join(assetsDir, 'index-zd3DEfeL.js')), `index-zd3DEfeL.js must exist in ${assetsDir}`);
+    assert.ok(fs.existsSync(path.join(assetsDir, 'bekasi_saturated.jpg')), `bekasi_saturated.jpg must exist in ${assetsDir}`);
+    assert.ok(fs.existsSync(path.join(assetsDir, 'bekasi_xray.jpg')), `bekasi_xray.jpg must exist in ${assetsDir}`);
+    assert.ok(fs.existsSync(path.join(assetsDir, 'bekasi_mesh.jpg')), `bekasi_mesh.jpg must exist in ${assetsDir}`);
+    const js = fs.readFileSync(path.join(assetsDir, 'index-zd3DEfeL.js'), 'utf-8');
+    assert.ok(js.includes('bekasi_saturated.jpg') && js.includes('bekasi_xray.jpg') && js.includes('bekasi_mesh.jpg'), `index-zd3DEfeL.js in ${assetsDir} must wire all 3 Bekasi randomizer layers`);
     assert.ok(html.includes('close-modal'), `${htmlPath} must bridge Escape key to parent modal`);
     assert.ok(html.includes('user-select: none') && html.includes('contextmenu'), `${htmlPath} must include anti-copy protection`);
     assert.ok(html.includes('@media print'), `${htmlPath} must include print-hide protection`);

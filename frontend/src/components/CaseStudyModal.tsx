@@ -41,6 +41,7 @@ export default function CaseStudyModal({
     () => false
   );
   const [privacyVeil, setPrivacyVeil] = useState(false);
+  const [activeStudyIndex, setActiveStudyIndex] = useState(0);
 
   const currentIndex = allProjects && project ? allProjects.findIndex((p) => p.id === project.id) : -1;
   const prevProject = allProjects && currentIndex > 0 ? allProjects[currentIndex - 1] : null;
@@ -194,7 +195,11 @@ export default function CaseStudyModal({
 
   const getDirectUrl = (p: Project) => {
     if (p.id === 1) return "/projects/moriku/index.html?v=20261125c";
-    if (p.id === 2) return "/raja_ampat_snorkel_day.html";
+    if (p.id === 2) {
+      return activeStudyIndex === 1
+        ? "/ulun_danu_lake_bratan_material_studies.html"
+        : "/raja_ampat_snorkel_day.html";
+    }
     if (p.id === 3) return "/projects/tata/index.html?v=20261125";
     if (p.id === 4) return "/projects/thesis-docket/index.html?v=20261125";
     if (p.id === 5) return "/projects/maknaworks/index.html?v=20261125";
@@ -217,7 +222,7 @@ export default function CaseStudyModal({
         />
       );
     }
-    if (p.id === 2) return <MaterialStudiesCarousel />;
+    if (p.id === 2) return <MaterialStudiesCarousel activeSlide={activeStudyIndex} />;
     if (p.id === 3) {
       return (
         <iframe
@@ -303,7 +308,8 @@ export default function CaseStudyModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Refined Single Header: Confident, Legible, Decluttered ── */}
-        <header className="px-4 sm:px-6 py-2.5 sm:py-3.5 border-b border-[var(--wire)] bg-[var(--s1)] shrink-0 flex items-center justify-between gap-3 sm:gap-4">
+        <header className="px-4 sm:px-6 py-2.5 sm:py-3.5 border-b border-[var(--wire)] bg-[var(--s1)] shrink-0 flex flex-col gap-2.5">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
             <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
               <h2 id="case-modal-title" className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-[var(--text)] truncate">
@@ -377,6 +383,35 @@ export default function CaseStudyModal({
               <span className="text-[var(--muted)] font-normal text-[10px] hidden md:inline">[ESC]</span>
             </button>
           </div>
+          </div>
+
+          {project.id === 2 && (
+            <div className="flex items-center gap-2 pt-2 border-t border-[var(--wire)] flex-wrap">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-[var(--muted)] mr-1">
+                Diorama:
+              </span>
+              {[
+                { label: "01 Raja Ampat", idx: 0 },
+                { label: "02 Ulun Danu", idx: 1 },
+              ].map((item) => {
+                const isActive = activeStudyIndex === item.idx;
+                return (
+                  <button
+                    key={item.idx}
+                    type="button"
+                    onClick={() => setActiveStudyIndex(item.idx)}
+                    className={`px-3 py-1 font-mono text-xs uppercase tracking-wider rounded-[2px] border transition-colors cursor-pointer ${
+                      isActive
+                        ? "bg-[var(--accent)] border-[var(--accent)] text-white font-bold"
+                        : "bg-[var(--s2)] hover:bg-[var(--s3)] border-[var(--card-border)] text-[var(--text)]"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </header>
 
         {/* ── Main Viewport: Scrollable, Interactive, Full-Bleed ── */}

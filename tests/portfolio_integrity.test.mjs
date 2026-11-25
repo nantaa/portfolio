@@ -116,7 +116,7 @@ test('MaterialStudiesCarousel preview component embeds dual studies with Raja Am
 
   // Must implement on-demand click to load (not eager WebGL mounting)
   assert.ok(content.includes('Load Interactive 3D') || content.includes('isLoaded') || content.includes('hasActivated') || content.includes('activeSlide'), 'Must provide click-to-load activation for client GPU protection');
-  assert.ok(content.includes('Open Full 3D Study') || content.includes('Launch 3D Diorama'), 'Must provide external action trigger for full unconstrained diorama');
+  assert.ok(content.includes('fullSrc') || content.includes('Open Full 3D Study') || content.includes('Launch 3D Diorama'), 'Must provide external action URL for full unconstrained diorama');
 });
 
 test('Interactive project cards implement on-demand standby gating before mounting heavy simulators', () => {

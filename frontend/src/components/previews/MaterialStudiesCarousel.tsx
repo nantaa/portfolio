@@ -16,7 +16,7 @@ interface StudyItem {
   accent: string;
 }
 
-const STUDIES: StudyItem[] = [
+export const MATERIAL_STUDIES: StudyItem[] = [
   {
     id: "raja-ampat",
     name: "Raja Ampat Snorkel Day",
@@ -35,10 +35,13 @@ const STUDIES: StudyItem[] = [
   },
 ];
 
-export default function MaterialStudiesCarousel() {
+interface MaterialStudiesCarouselProps {
+  activeSlide?: number;
+}
+
+export default function MaterialStudiesCarousel({ activeSlide = 0 }: MaterialStudiesCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(true);
-  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -54,47 +57,14 @@ export default function MaterialStudiesCarousel() {
     return () => observer.disconnect();
   }, []);
 
-  const currentStudy = STUDIES[activeSlide];
+  const currentStudy = MATERIAL_STUDIES[activeSlide] || MATERIAL_STUDIES[0];
 
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-neutral-950 select-none flex flex-col"
     >
-      {/* ── Floating Minimal Diorama Switcher (Zero AI Slop) ── */}
-      <div className="absolute top-3 left-4 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded border border-white/10 shadow-lg pointer-events-auto">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-widest mr-1">
-          Diorama:
-        </span>
-        {STUDIES.map((study, idx) => {
-          const isActive = activeSlide === idx;
-          return (
-            <button
-              key={study.id}
-              type="button"
-              onClick={() => setActiveSlide(idx)}
-              className={`px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider rounded transition-all cursor-pointer ${
-                isActive
-                  ? "bg-white text-black font-bold shadow-sm"
-                  : "text-neutral-400 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              0{idx + 1} {study.id === "ulun-danu" ? "Ulun Danu" : "Raja Ampat"}
-            </button>
-          );
-        })}
-        <a
-          href={currentStudy.fullSrc}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-2 font-mono text-[10px] text-sky-400 hover:text-sky-300 underline"
-        >
-          Open Full 3D Study ↗
-        </a>
-      </div>
-
-      {/* ── Full-Bleed 3D WebGL Canvas ── */}
+      {/* ── Full-Bleed 3D WebGL Canvas (Header handles diorama switching) ── */}
       <div className="relative w-full flex-1 bg-neutral-950">
         {isInView ? (
           <iframe
