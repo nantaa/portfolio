@@ -204,7 +204,7 @@ export default function CaseStudyModal({
     if (p.id === 4) return "/projects/thesis-docket/index.html?v=20261125";
     if (p.id === 5) return "/projects/maknaworks/index.html?v=20261125";
     if (p.id === 6) return "/projects/geopetak/index.html?v=20261125";
-    if (p.id === 7) return "/projects/vaultr/index.html?v=20261125";
+    if (p.id === 7) return "/projects/vaultr/index.html?v=20261125b";
     return p.link || null;
   };
 
@@ -271,7 +271,7 @@ export default function CaseStudyModal({
     if (p.id === 7) {
       return (
         <iframe
-          src="/projects/vaultr/index.html?v=20261125"
+          src="/projects/vaultr/index.html?v=20261125b"
           title="VAULTR - 3D Vault Showcase"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"

@@ -37,6 +37,8 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
   const [engagementType, setEngagementType] = useState("Contract / Freelance");
   const [timeline, setTimeline] = useState("Immediate");
   const [brief, setBrief] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sentDirect, setSentDirect] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -61,22 +63,42 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sending) return;
+    setSending(true);
 
+    let delivered = false;
     try {
-      await fetch("/api/inquiries", {
+      const res = await fetch("https://formsubmit.co/ajax/rifai.aryo@gmail.com", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, engagementType, timeline, brief }),
-      }).catch(() => null);
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          engagementType,
+          timeline,
+          brief,
+          _subject: `Work Proposal (${engagementType}): ${name}`,
+          _replyto: email,
+        }),
+      });
+      delivered = res.ok;
     } catch {
-      // Static export fallback handled below
+      delivered = false;
     }
 
-    const subject = encodeURIComponent(`Work Proposal (${engagementType}): ${name}`);
-    const body = encodeURIComponent(
-      `Name / Organization: ${name}\nReply Email: ${email}\nEngagement: ${engagementType}\nTimeline: ${timeline}\n\nProject Brief:\n${brief}\n`
-    );
-    window.location.href = `mailto:rifai.aryo@gmail.com?subject=${subject}&body=${body}`;
+    if (!delivered) {
+      const subject = encodeURIComponent(`Work Proposal (${engagementType}): ${name}`);
+      const body = encodeURIComponent(
+        `Name / Organization: ${name}\nReply Email: ${email}\nEngagement: ${engagementType}\nTimeline: ${timeline}\n\nProject Brief:\n${brief}\n`
+      );
+      window.location.href = `mailto:rifai.aryo@gmail.com?subject=${subject}&body=${body}`;
+    }
+
+    setSentDirect(delivered);
+    setSending(false);
     setSubmitted(true);
   };
 
@@ -182,7 +204,11 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
                 lineHeight: 1.6,
               }}
             >
-              Your email client has been opened with the structured proposal for <strong>rifai.aryo@gmail.com</strong>.
+              {sentDirect ? (
+                <>Proposal sent directly to <strong>rifai.aryo@gmail.com</strong>.</>
+              ) : (
+                <>Your email client has been opened with the structured proposal for <strong>rifai.aryo@gmail.com</strong>.</>
+              )}
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button
@@ -246,7 +272,7 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
                 >
                   <option value="Full-Time Role">Full-Time Role</option>
                   <option value="Contract / Freelance">Contract / Freelance</option>
-                  <option value="Systems Architecture">Systems Architecture</option>
+                  <option value="Consultant">Consultant</option>
                 </select>
               </div>
               <div>
@@ -306,6 +332,7 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
               </button>
               <button
                 type="submit"
+                disabled={sending}
                 style={{
                   padding: "11px 24px",
                   border: "none",
@@ -317,10 +344,11 @@ export default function WorkProposalModal({ isOpen, onClose }: WorkProposalModal
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
                   borderRadius: "3px",
-                  cursor: "pointer",
+                  cursor: sending ? "wait" : "pointer",
+                  opacity: sending ? 0.7 : 1,
                 }}
               >
-                Send Proposal →
+                {sending ? "Sending..." : "Send Proposal →"}
               </button>
             </div>
           </form>

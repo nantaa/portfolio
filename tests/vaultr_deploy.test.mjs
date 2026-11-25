@@ -21,10 +21,10 @@ test('Actual compiled VAULTR app is deployed in public and root projects', () =>
     assert.ok(fs.existsSync(assetsDir), `${assetsDir} must exist`);
 
     const html = fs.readFileSync(htmlPath, 'utf-8');
-    assert.ok(html.includes('./assets/index-DEaGAN5o.js'), `${htmlPath} must reference ./assets/index-DEaGAN5o.js`);
-    assert.ok(html.includes('./assets/index-BSnecMdg.css'), `${htmlPath} must reference ./assets/index-BSnecMdg.css`);
+    assert.ok(html.includes('./assets/index-CupVOjsJ.js'), `${htmlPath} must reference ./assets/index-CupVOjsJ.js`);
+    assert.ok(html.includes('./assets/index-Bm91PO_0.css'), `${htmlPath} must reference ./assets/index-Bm91PO_0.css`);
     assert.ok(!html.includes('"/assets/'), `${htmlPath} must not leave root-relative /assets/ paths`);
-    assert.ok(fs.existsSync(path.join(assetsDir, 'index-DEaGAN5o.js')), `index-DEaGAN5o.js must exist in ${assetsDir}`);
+    assert.ok(fs.existsSync(path.join(assetsDir, 'index-CupVOjsJ.js')), `index-CupVOjsJ.js must exist in ${assetsDir}`);
     assert.ok(html.includes('close-modal'), `${htmlPath} must bridge Escape key to parent modal`);
     assert.ok(html.includes('user-select: none') && html.includes('contextmenu'), `${htmlPath} must include anti-copy protection`);
     assert.ok(html.includes('@media print'), `${htmlPath} must include print-hide protection`);

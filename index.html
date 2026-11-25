@@ -1905,7 +1905,7 @@
         title: 'VAULTR',
         sub: 'Vue 3 · Three.js · GSAP · Lenis Smooth Scroll',
         year: '2026',
-        link: 'projects/vaultr/index.html?v=20261125',
+        link: 'projects/vaultr/index.html?v=20261125b',
         prob: 'Digital asset showcases often feel flat and static without tactile 3D depth or responsive motion choreography.',
         think: 'Combined a custom Three.js 3D vault stage with GSAP scroll triggers and Lenis smooth-scroll physics in Vue 3.',
         exec: 'Vue 3, Three.js WebGL scene, GSAP timeline orchestration, and Lenis inertia scrolling.',
@@ -2324,7 +2324,7 @@
             <select id="propType" style="width:100%; padding:12px 14px; background:var(--s2); border:1px solid var(--wire); color:var(--text); font-size:14px; line-height:1.5; border-radius:3px;">
               <option value="Full-Time Role">Full-Time Role</option>
               <option value="Contract / Freelance" selected>Contract / Freelance</option>
-              <option value="Systems Architecture">Systems Architecture</option>
+              <option value="Consultant">Consultant</option>
             </select>
           </div>
           <div>
@@ -2363,16 +2363,37 @@
         document.body.style.overflow = '';
       }
     }
-    function submitProposal(e) {
+    async function submitProposal(e) {
       e.preventDefault();
       var n = document.getElementById('propName').value;
       var em = document.getElementById('propEmail').value;
       var tp = document.getElementById('propType').value;
       var tl = document.getElementById('propTimeline').value;
       var br = document.getElementById('propBrief').value;
-      var subject = encodeURIComponent('Work Proposal (' + tp + '): ' + n);
-      var body = encodeURIComponent('Name / Organization: ' + n + '\nReply Email: ' + em + '\nEngagement: ' + tp + '\nTimeline: ' + tl + '\n\nProject Brief:\n' + br + '\n');
-      window.location.href = 'mailto:rifai.aryo@gmail.com?subject=' + subject + '&body=' + body;
+      var delivered = false;
+      try {
+        var res = await fetch('https://formsubmit.co/ajax/rifai.aryo@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            name: n,
+            email: em,
+            engagementType: tp,
+            timeline: tl,
+            brief: br,
+            _subject: 'Work Proposal (' + tp + '): ' + n,
+            _replyto: em
+          })
+        });
+        delivered = res.ok;
+      } catch (err) {
+        delivered = false;
+      }
+      if (!delivered) {
+        var subject = encodeURIComponent('Work Proposal (' + tp + '): ' + n);
+        var body = encodeURIComponent('Name / Organization: ' + n + '\nReply Email: ' + em + '\nEngagement: ' + tp + '\nTimeline: ' + tl + '\n\nProject Brief:\n' + br + '\n');
+        window.location.href = 'mailto:rifai.aryo@gmail.com?subject=' + subject + '&body=' + body;
+      }
       closeProposal();
     }
     window.addEventListener('keydown', function(e) {
