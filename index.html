@@ -1255,6 +1255,35 @@
         padding: 0 !important;
       }
     }
+
+    @media (max-width: 768px) {
+      #cur { display: none !important; }
+      body { cursor: auto; }
+      nav { padding: 12px 16px; }
+      .nav-links { display: none; }
+      .hero-strip { padding: 12px 16px; }
+      .hero-body { grid-template-columns: 1fr; }
+      .hero-left { padding: 28px 18px; border-right: none; border-bottom: 0.5px solid var(--wire); }
+      .hero-right { min-height: 220px !important; }
+      #heroWireframeCanvas { height: 220px !important; }
+      .sec-hd { padding: 12px 16px; }
+      .work-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
+      .wc { display: flex; flex-direction: column; grid-column: auto !important; grid-row: auto !important; min-height: 320px; }
+      .wc > :first-child:not(.wo) { min-height: 190px; height: 190px; flex-shrink: 0; }
+      .wo { position: static; inset: auto; padding: 14px 16px; background: var(--s1) !important; border-top: 0.5px solid var(--wire); }
+      .w-arrow { display: none; }
+      .w-cat { opacity: 1; transform: none; }
+      .dr { display: flex; flex-direction: column; align-items: flex-start; padding: 14px 16px; gap: 8px; }
+      .dr > div { text-align: left !important; width: 100%; }
+      #brand-guidelines .wph, #brand-guidelines > div > div { height: 240px !important; min-height: 240px !important; }
+      .about { grid-template-columns: 1fr; }
+      .about-left { border-right: none; border-bottom: 0.5px solid var(--wire); max-height: 220px; }
+      .about-right { padding: 28px 18px; }
+      .contact { grid-template-columns: 1fr; }
+      .contact-left { padding: 32px 18px 20px; border-right: none; border-bottom: 0.5px solid var(--wire); }
+      .contact-right { padding: 20px 18px 32px; }
+      footer { padding: 18px 16px; flex-direction: column; gap: 10px; text-align: center; }
+    }
   </style>
 </head>
 
@@ -1361,17 +1390,17 @@
     <!-- 01 Moriku -->
     <div class="wc" data-category="enterprise">
       <div class="wph" style="position:relative; overflow:hidden; background:linear-gradient(135deg,#7a1525,#4e0a15);">
-        <img src="images/moriku-cover.webp" alt="Moriku Disnaker Kanban Board" loading="lazy" decoding="async"
+        <img src="images/moriku-cover.webp" alt="Moriku SLA Kanban Board" loading="lazy" decoding="async"
           style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.3; filter:contrast(1.25); z-index:0;" />
         <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(78,10,21,0.9), transparent); z-index:1;"></div>
         <div style="position:relative; z-index:2; font-family:var(--display); font-size:28px; font-weight:700; color:#f7f4ee;">MORIKU</div>
-        <span class="wph-lbl" style="position:relative; z-index:2; color:rgba(247,244,238,0.85);">DISNAKER SLA PIPELINE · LARAVEL 11</span>
+        <span class="wph-lbl" style="position:relative; z-index:2; color:rgba(247,244,238,0.85);">ENTERPRISE SLA PIPELINE · LARAVEL 11</span>
       </div>
       <div class="wo">
         <span class="w-num">01</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Enterprise Workflow & Operations</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">Industrial K3 Compliance Engine</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">MORIKU · PT Delta Nusantara Persada · Disnaker Statutory SLA & Inspection Kanban</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">MORIKU · Industrial Inspection Platform · Statutory SLA &amp; Inspection Kanban</div>
         <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
           <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
           <span>270+ Passing Tests · Zero-Downtime Releases</span>
@@ -1479,7 +1508,7 @@
         <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">React 19 · TypeScript · NestJS · PostgreSQL 16 · Google Sheets API v4</div>
         <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
           <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
-          <span>Multi-Site PPIC · Bogor &amp; Nganjuk</span>
+          <span>Multi-Site PPIC · Production &amp; Inventory</span>
         </div>
         <button class="case-btn" onclick="openCase(5)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:var(--text); padding:6px 14px; font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em; display:inline-flex; align-items:center; gap:6px;">
           <span>View Project</span> <span>↗</span>
@@ -1525,7 +1554,7 @@
         <span class="w-num">06</span>
         <div class="w-cat" style="font-size:12px; font-weight:bold; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Spatial AI &amp; GIS Analytics</div>
         <div class="w-title" style="font-size:24px; margin-bottom:4px;">Geopetak Aerial AI</div>
-        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Bekasi Aerial Sample</div>
+        <div class="w-sub" style="font-size:13px; color:#B0ADA5; margin-bottom:6px;">Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Aerial Sample</div>
         <div style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; font-weight:bold; color:var(--accent2); background:var(--wire); padding:2px 8px; border-radius:2px; margin-bottom:12px;">
           <span style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
           <span>3-Layer X-Ray · Spatial AI</span>
@@ -1589,112 +1618,88 @@
     function closeBrandModal() { var m = document.getElementById('brandModal'); if (m) { m.style.display = 'none'; document.body.style.overflow = ''; } }
   </script>
 
-  <!-- ══ ARCHITECTURAL CAPABILITIES ══ -->
+  <!-- ══ DISCIPLINES ══ -->
   <div class="sec-hd" id="disciplines">
-    <span class="sec-lbl">Architectural Capabilities</span>
-    <span class="sec-ct">08 Verified Engineering Domains</span>
+    <span class="sec-lbl">Disciplines</span>
+    <span class="sec-ct">06 Core Disciplines</span>
   </div>
 
   <div class="disc-table">
     <div class="dr">
       <span class="d-num" style="color:var(--accent);">01</span>
       <div>
-        <div class="d-name">Systems &amp; Enterprise Architecture</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">ACID compliance pipelines, statutory Disnaker SLA state engines, and zero-downtime releases.</div>
+        <div class="d-name">Full-Stack Web Applications</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">End-to-end web apps, internal ERPs, and multi-step business workflows.</div>
       </div>
       <div style="text-align:right;">
-        <div class="d-tag">Laravel 11 · PostgreSQL · React 19 Inertia · Docker</div>
-        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">270+ Passing Tests · Automated Daily Dispatch</div>
+        <div class="d-tag">Laravel · NestJS · React · TypeScript · PostgreSQL</div>
+        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">REST APIs · Role-Based Access · Production Releases</div>
       </div>
     </div>
 
     <div class="dr">
       <span class="d-num" style="color:var(--accent);">02</span>
       <div>
-        <div class="d-name">Real-Time 3D &amp; Creative Engineering</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Procedural WebGL dioramas, custom GLSL wave/caustic shaders, and GPU-safe staging.</div>
+        <div class="d-name">3D Web &amp; Interactive Graphics</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Browser-based 3D scenes, custom shaders, and smooth scroll choreography.</div>
       </div>
       <div style="text-align:right;">
-        <div class="d-tag">Three.js · GLSL · RoomEnvironment IBL · WebGL</div>
-        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">60 FPS Mobile Orbit · Zero-RAM Static Export</div>
+        <div class="d-tag">Three.js · WebGL2 · GLSL · GSAP</div>
+        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">Interactive Viewports · Custom Shaders · Responsive Canvas</div>
       </div>
     </div>
 
     <div class="dr">
       <span class="d-num" style="color:var(--accent);">03</span>
       <div>
-        <div class="d-name">Algorithms &amp; Combinatorial Optimization</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Stable matching and bipartite assignment optimization with verified convergence.</div>
+        <div class="d-name">Backend Systems &amp; Optimization</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">REST APIs, role-based access control, and scheduling or matching logic.</div>
       </div>
       <div style="text-align:right;">
-        <div class="d-tag">Gale-Shapley · Hungarian Matrix · Markov Chains · REST</div>
-        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">88 Algorithm Tests · Zero Deadlocks</div>
+        <div class="d-tag">Node.js · PHP · MySQL · PostgreSQL · REST</div>
+        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">Data Modeling · Automated Testing · Query Tuning</div>
       </div>
     </div>
 
     <div class="dr">
       <span class="d-num" style="color:var(--accent);">04</span>
       <div>
-        <div class="d-name">Cloud Infrastructure &amp; Reliability Operations</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Virtual private networking, encrypted mesh nodes, and zero-daemon static pipelines.</div>
+        <div class="d-name">Deployment &amp; Infrastructure</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Linux server setup, reverse proxies, private networking, and CI/CD pipelines.</div>
       </div>
       <div style="text-align:right;">
-        <div class="d-tag">WireGuard VPN · Nginx · Linux VPS · GitHub Actions</div>
-        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">Strict Timeout CI/CD · 512MB RAM Budget</div>
+        <div class="d-tag">Linux · Nginx · Docker · WireGuard · GitHub Actions</div>
+        <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px;">Automated Builds · SSL &amp; Reverse Proxy</div>
       </div>
     </div>
 
     <div class="disc-expand" id="discExpand" onclick="toggleDisc()" role="button" tabindex="0">
       <div class="dx-icon"></div>
-      <span class="dx-lbl">Expand secondary capabilities (05 — 08)</span>
+      <span class="dx-lbl">Expand additional disciplines (05 — 06)</span>
     </div>
 
     <div class="disc-reveal" id="discReveal">
       <div class="dr sec">
         <span class="d-num">05</span>
         <div>
-          <div class="d-name">Spatial AI &amp; GIS Analytics</div>
-          <div style="font-size:12px; color:var(--muted);">High-resolution satellite imagery inspection and spatial raster analysis.</div>
+          <div class="d-name">Spatial &amp; Data Visualization</div>
+          <div style="font-size:12px; color:var(--muted);">Interactive map overlays, raster inspection tools, and real-time dashboards.</div>
         </div>
         <div style="text-align:right;">
-          <div class="d-tag">Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters</div>
-          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Bekasi Sample Case · Multi-Spectrum</div>
+          <div class="d-tag">Vue 3 · Canvas 2D · GIS · WebSockets</div>
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Multi-Layer Inspection · Live Telemetry Views</div>
         </div>
       </div>
 
       <div class="dr sec">
         <span class="d-num">06</span>
         <div>
-          <div class="d-name">AI Agent Workflows &amp; LLM Integration</div>
-          <div style="font-size:12px; color:var(--muted);">Structured schema pipelines and multi-turn financial record categorization.</div>
+          <div class="d-name">UI Systems &amp; Brand Design</div>
+          <div style="font-size:12px; color:var(--muted);">Design systems, responsive layouts, accessibility, and visual brand guidelines.</div>
         </div>
         <div style="text-align:right;">
-          <div class="d-tag">Next.js · Prisma · Express · Gemini 2.0 Flash</div>
-          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Direct Financial Extraction · Structured OCR</div>
-        </div>
-      </div>
-
-      <div class="dr sec">
-        <span class="d-num">07</span>
-        <div>
-          <div class="d-name">Enterprise Support &amp; Real-Time Messaging</div>
-          <div style="font-size:12px; color:var(--muted);">Automated ticket escalation with multi-channel WhatsApp Cloud webhooks.</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="d-tag">Next.js 16 · Laravel 11 · WhatsApp Cloud API · Soketi</div>
-          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Sub-Second Ticket Updates · Dual-Channel</div>
-        </div>
-      </div>
-
-      <div class="dr sec">
-        <span class="d-num">08</span>
-        <div>
-          <div class="d-name">Visual Identity &amp; Design Systems</div>
-          <div style="font-size:12px; color:var(--muted);">High-contrast architectural typography, design tokens, and accessible ergonomics.</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="d-tag">Figma · Design Tokens · WCAG 2.2 AA · Micro-Motion</div>
-          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Complete Dark/Light Linen Palettes</div>
+          <div class="d-tag">Figma · Tailwind CSS · Design Tokens · WCAG AA</div>
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted);">Component Libraries · Light &amp; Dark Themes</div>
         </div>
       </div>
     </div>
@@ -1838,7 +1843,7 @@
         title: 'Industrial K3 Compliance Engine',
         sub: 'Laravel 11 · React 19 Inertia · PostgreSQL · 270+ Tests',
         year: '2025',
-        prob: 'Manual K3 inspection workflows suffered from Disnaker 30-day SLA calculation bugs, unhandled job errors, and silent failure states across 15 stages.',
+        prob: 'Manual K3 inspection workflows suffered from 30-day statutory SLA calculation bugs, unhandled job errors, and silent failure states across 15 stages.',
         think: 'Re-architected pipeline around official submission timestamps, enforced strict RBAC authorization, and automated zero-downtime atomic symlink deployments.',
         exec: 'Laravel 11, PostgreSQL, React 19 Inertia, DocumentPreviewModal with inspector locks, DailyDigestService, and automated deploy scripts.',
         res: '270+ passing automated tests, 100% eliminated silent errors, zero-downtime releases, and automated daily dispatching for 5 roles.'
@@ -1871,7 +1876,7 @@
         link: 'projects/thesis-docket/index.html?v=20261125',
         prob: 'University thesis administration faced advisor assignment deadlocks, examiner scheduling conflicts, and manual progression bottlenecks.',
         think: 'Modeled advisor matching via Gale-Shapley, defense scheduling via Hungarian cost-optimization, and graduation velocity via Markov chains.',
-        exec: 'Laravel REST API, MySQL, React 19/TS, LiveCohortSeeder (20 student dossiers), and Kaprodi Algorithm Center.',
+        exec: 'Laravel REST API, MySQL, React 19/TS, LiveCohortSeeder (20 student dossiers), and Department Algorithm Center.',
         res: '88 automated tests passing (100%), verified 9-stage academic progression, and zero scheduling deadlocks.'
       },
       5: {
@@ -1879,7 +1884,7 @@
         title: 'MaknaWorks ERP',
         sub: 'React 19 · TypeScript · NestJS · PostgreSQL 16 · Google Sheets API v4',
         year: '2025',
-        prob: 'Multi-site manufacturing across Bogor and Nganjuk lacked unified Bill of Materials tracking, stock opname verification, and real-time PPIC visibility.',
+        prob: 'Multi-site manufacturing across multiple facilities lacked unified Bill of Materials tracking, stock opname verification, and real-time PPIC visibility.',
         think: 'Architected an integrated PPIC ERP platform with role-based permissions, append-only audit logs, and automated Google Sheets synchronization.',
         exec: 'React 19, TypeScript, Tailwind CSS, NestJS/Laravel ERP modules, PostgreSQL 16, and multi-facility inventory dashboards.',
         res: 'Unified multi-facility PPIC planning, verified stock opname ledgers, and automated low-stock threshold alerts.'
@@ -1899,12 +1904,12 @@
       6: {
         cat: 'Spatial AI & GIS Analytics',
         title: 'Geopetak Aerial AI',
-        sub: 'Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Bekasi Aerial Sample',
+        sub: 'Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters · Aerial Sample',
         year: '2026',
         link: 'projects/geopetak/index.html?v=20261125',
         prob: 'Land and spatial inspection required manual satellite imagery comparison across fragmented datasets.',
         think: 'Built a 3-layer spatial inspection tool (Saturated, X-Ray, Wireframe Mesh) featuring smooth cross-dissolve reveals using GSAP.',
-        exec: 'Vue 3, Tailwind CSS, GSAP, high-resolution aerial rasters, and spatial tile inspection controls with Bekasi Aerial Photo sample.',
+        exec: 'Vue 3, Tailwind CSS, GSAP, high-resolution aerial rasters, and spatial tile inspection controls with Aerial Photo sample.',
         res: 'Seamless sub-second multi-spectrum imagery inspection, zero frame drops on 4K displays, and instant land contour defect identification.'
       },
       7: {
@@ -2222,7 +2227,7 @@
               <strong style="color:var(--text);">DNP Monitor — Enterprise K3 Compliance Engine</strong>
               <span style="color:var(--accent); font-weight:bold;">2023 — 2025 · Lead Systems Architect</span>
             </div>
-            <p style="color:var(--muted); font-size:12px;">End-to-end industrial certification platform. Disnaker SLA
+            <p style="color:var(--muted); font-size:12px;">End-to-end industrial certification platform. Statutory SLA
               calculation engines, RBAC preview system, daily digest emailers, atomic symlink deployment with 270+
               passing automated tests.</p>
           </div>

@@ -59,10 +59,10 @@ test('Disciplines component implements Architectural Capability Matrix with conc
   assert.ok(!content.includes('<div className="d-bar"></div>'), 'Disciplines.tsx must not contain fake skill progress bars');
 
   // Must render authoritative architectural capability pillars
-  assert.ok(content.includes('Systems & Enterprise Architecture') || content.includes('Enterprise Architecture'), 'Must feature Systems & Enterprise Architecture pillar');
-  assert.ok(content.includes('Real-Time 3D') || content.includes('Creative Engineering'), 'Must feature Real-Time 3D pillar');
-  assert.ok(content.includes('Optimization') || content.includes('Algorithms'), 'Must feature Algorithms & Optimization pillar');
-  assert.ok(content.includes('Cloud Infrastructure') || content.includes('Infrastructure & Reliability'), 'Must feature Infrastructure pillar');
+  assert.ok(content.includes('Full-Stack Web Applications') || content.includes('Systems & Enterprise Architecture'), 'Must feature Full-Stack Web Applications pillar');
+  assert.ok(content.includes('Real-Time 3D') || content.includes('3D Web & Interactive Graphics'), 'Must feature 3D Web & Interactive Graphics pillar');
+  assert.ok(content.includes('Optimization') || content.includes('Algorithms'), 'Must feature Backend Systems & Optimization pillar');
+  assert.ok(content.includes('Deployment & Infrastructure') || content.includes('Cloud Infrastructure'), 'Must feature Deployment & Infrastructure pillar');
 });
 
 test('About section purges corny infinity stat and highlights verified production engineering metrics', () => {
@@ -254,9 +254,9 @@ test('GeopetakPreview and WorkGrid note Bekasi Aerial Photo sample on Geopetak c
   assert.ok(geoContent.includes('bekasi_xray.jpg'), 'Geopetak must load bekasi_xray.jpg');
   assert.ok(geoContent.includes('bekasi_mesh.jpg'), 'Geopetak must load bekasi_mesh.jpg');
 
-  // Must explicitly note Bekasi Aerial Photo sample in Geopetak preview and case study
+  // Must explicitly note Aerial Photo sample in Geopetak preview and case study
   assert.ok(geoContent.includes('Bekasi Aerial Photo') || geoContent.includes('Bekasi Aerial Sample'), 'GeopetakPreview must note Bekasi Aerial Photo sample');
-  assert.ok(workGridContent.includes('Bekasi Aerial Photo') || workGridContent.includes('Bekasi Aerial'), 'WorkGrid Geopetak case study must note Bekasi Aerial Photo as sample');
+  assert.ok(workGridContent.includes('Aerial Photo') || workGridContent.includes('Bekasi Aerial'), 'WorkGrid Geopetak case study must note Aerial Photo as sample');
 });
 
 test('DNPMonitorPreview implements Docket-inspired 3-tab architecture and horizontal side-scroll', () => {

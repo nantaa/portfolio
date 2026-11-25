@@ -2259,22 +2259,48 @@
       .work-grid--8 .wc:nth-child(n) {
         grid-column: auto !important;
         grid-row: auto !important;
-        min-height: 330px;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
         width: 100% !important;
       }
 
+      .wc > :first-child:not(.wo) {
+        min-height: 190px;
+        height: 190px;
+        flex-shrink: 0;
+      }
+
       .wo {
-        padding: 12px;
-        background: transparent !important;
+        position: static;
+        inset: auto;
+        padding: 0;
+        background: var(--s1) !important;
+        border-top: 0.5px solid var(--wire);
+        pointer-events: auto;
+      }
+
+      .w-arrow {
+        display: none;
       }
 
       .w-bottom-bar {
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
         gap: 10px;
-        padding: 12px 14px;
-        border-radius: 2px;
+        padding: 14px 16px;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: transparent;
+      }
+
+      .w-bottom-bar > div:first-child {
+        padding-right: 0 !important;
+        width: 100%;
       }
 
       .w-title {
@@ -2291,10 +2317,10 @@
       }
 
       .case-dossier-btn {
-        width: auto;
+        width: 100%;
         justify-content: center;
-        padding: 7px 11px;
-        font-size: 9.5px;
+        padding: 9px 12px;
+        font-size: 10px;
         letter-spacing: 0.08em;
       }
 
@@ -2304,18 +2330,12 @@
         flex-direction: column;
         align-items: flex-start;
         padding: 14px 16px;
-        gap: 6px;
+        gap: 8px;
         min-height: auto;
       }
 
-      .d-bar {
-        display: none;
-      }
-
-      .dr > div:first-child {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
+      .dr > div {
+        text-align: left !important;
         width: 100%;
       }
 
@@ -2366,26 +2386,6 @@
         font-size: 13px;
         line-height: 1.75;
         margin-bottom: 24px;
-      }
-
-      .a-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        padding-top: 16px;
-      }
-
-      .a-stat {
-        border-right: none;
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-
-      .a-stat-n {
-        font-size: 22px;
-      }
-
-      .a-stat-l {
-        font-size: 9px;
       }
 
       /* CONTACT */

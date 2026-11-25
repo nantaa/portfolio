@@ -225,5 +225,41 @@ test('HeroTelemetryHUD uses compact single-token tech chips and streamlined summ
   assert.ok(content.includes('{n.tech}'), 'Must render concise tech badge');
 });
 
+test('mobile preview stacks .wo card text below cover with zero overlaid text and aligns .dr left', () => {
+  const cssPath = path.join(rootDir, 'frontend', 'src', 'app', 'globals.css');
+  const css = fs.readFileSync(cssPath, 'utf-8');
+  const mobileStartIndex = css.indexOf('@media (max-width: 768px)');
+  assert.ok(mobileStartIndex !== -1, 'Mobile block must exist');
+  const mobileContent = css.slice(mobileStartIndex);
+
+  assert.ok(
+    mobileContent.includes('.wo') && mobileContent.includes('position: static'),
+    'Mobile .wo must switch to position: static so card text sits below cover art'
+  );
+  assert.ok(
+    mobileContent.includes('.dr') && mobileContent.includes('text-align: left'),
+    'Mobile .dr must left-align stack/deliverables'
+  );
+  assert.ok(
+    !mobileContent.includes('.a-stats'),
+    'Dead .a-stats mobile rules must be removed'
+  );
+
+  const workGridPath = path.join(rootDir, 'frontend', 'src', 'components', 'WorkGrid.tsx');
+  const workGrid = fs.readFileSync(workGridPath, 'utf-8');
+  assert.ok(
+    workGrid.includes('h-[240px] sm:h-[580px]'),
+    '#brand-guidelines must use restrained h-[240px] height on mobile'
+  );
+
+  const modalPath = path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx');
+  const modal = fs.readFileSync(modalPath, 'utf-8');
+  assert.ok(
+    modal.includes('flex-wrap items-center justify-between'),
+    'CaseStudyModal header row must wrap cleanly on narrow mobile viewports'
+  );
+});
+
+
 
 

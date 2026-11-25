@@ -118,14 +118,13 @@ export default function Disciplines() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-3.5 bg-[var(--s1)] border-t border-[var(--wire)] gap-2">
-          <span className="font-mono text-xs text-[var(--muted)]">All capabilities backed by verified production artifacts</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end px-5 py-3.5 bg-[var(--s1)] border-t border-[var(--wire)] gap-2">
           <a
             href="#work"
             className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent2)] transition-colors"
           >
-            <span>See related projects in Selected Work</span>
-            <span>→</span>
+            <span>Explore selected work</span>
+            <span>↑</span>
           </a>
         </div>
       </div>

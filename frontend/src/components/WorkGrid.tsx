@@ -11,7 +11,7 @@ const CORE_PROJECTS: Project[] = [
     id: 1,
     title: "Industrial K3 Compliance Engine",
     category: "Enterprise Workflow",
-    subtitle: "Laravel 11 · React 19 Inertia · PostgreSQL · Disnaker Statutory SLA Pipeline",
+    subtitle: "Laravel 11 · React 19 Inertia · PostgreSQL · Statutory SLA Pipeline",
     outcome_metric: "270+ Passing Tests · Zero-Downtime Releases",
     image_url: null,
     link: null,
@@ -19,7 +19,7 @@ const CORE_PROJECTS: Project[] = [
     sort_order: 0,
     is_featured: true,
     case_study: {
-      problem: "Manual K3 inspection workflows suffered from Disnaker 30-day SLA calculation bugs, unhandled job errors, and silent failure states across 15 stages.",
+      problem: "Manual K3 inspection workflows suffered from 30-day statutory SLA calculation bugs, unhandled job errors, and silent failure states across 15 stages.",
       thinking: "Re-architected pipeline around official submission timestamps, enforced strict RBAC authorization, and automated zero-downtime atomic symlink deployments.",
       execution: "Laravel 11, PostgreSQL, React 19 Inertia, DocumentPreviewModal with inspector locks, DailyDigestService, and automated deploy scripts.",
       result: "270+ passing automated tests, 100% eliminated silent errors, zero-downtime releases, and automated daily dispatching for 5 roles.",
@@ -75,7 +75,7 @@ const CORE_PROJECTS: Project[] = [
     case_study: {
       problem: "University thesis administration faced advisor assignment deadlocks, examiner scheduling conflicts, and manual progression bottlenecks.",
       thinking: "Modeled advisor matching via Gale-Shapley, defense scheduling via Hungarian cost-optimization, and graduation velocity via Markov chains.",
-      execution: "Laravel REST API, MySQL, React 19/TS, LiveCohortSeeder (20 student dossiers), and Kaprodi Algorithm Center.",
+      execution: "Laravel REST API, MySQL, React 19/TS, LiveCohortSeeder (20 student dossiers), and Department Algorithm Center.",
       result: "88 automated tests passing (100%), verified 9-stage academic progression, and zero scheduling deadlocks.",
     },
   },
@@ -84,14 +84,14 @@ const CORE_PROJECTS: Project[] = [
     title: "MaknaWorks ERP",
     category: "Enterprise PPIC",
     subtitle: "React 19 · TypeScript · NestJS · PostgreSQL 16 · Google Sheets API v4",
-    outcome_metric: "Multi-Site PPIC · Bogor & Nganjuk",
+    outcome_metric: "Multi-Site PPIC · Production & Inventory",
     image_url: null,
     link: null,
     year: "2025",
     sort_order: 4,
     is_featured: false,
     case_study: {
-      problem: "Multi-site manufacturing across Bogor and Nganjuk lacked unified Bill of Materials tracking, stock opname verification, and real-time PPIC visibility.",
+      problem: "Multi-site manufacturing across multiple facilities lacked unified Bill of Materials tracking, stock opname verification, and real-time PPIC visibility.",
       thinking: "Architected an integrated PPIC ERP platform with role-based permissions, append-only audit logs, and automated Google Sheets synchronization.",
       execution: "React 19, TypeScript, Tailwind CSS, NestJS/Laravel ERP modules, PostgreSQL 16, and multi-facility inventory dashboards.",
       result: "Unified multi-facility PPIC planning, verified stock opname ledgers, and automated low-stock threshold alerts.",
@@ -121,7 +121,7 @@ const CORE_PROJECTS: Project[] = [
     id: 6,
     title: "Geopetak Web",
     category: "Spatial AI & GIS",
-    subtitle: "Vue 3 · Three.js Canvas · 3-Layer Spatial X-Ray · GSAP (Bekasi Aerial Photo Sample)",
+    subtitle: "Vue 3 · Three.js Canvas · 3-Layer Spatial X-Ray · GSAP (Aerial Photo Sample)",
     outcome_metric: "3-Layer X-Ray · Cadastre Calibrated",
     image_url: null,
     link: null,
@@ -130,9 +130,9 @@ const CORE_PROJECTS: Project[] = [
     is_featured: false,
     case_study: {
       problem: "Traditional tabular real estate data conceals structural, underground, and valuation risks from property analysts.",
-      thinking: "Designed a 3-layer spatial X-Ray interface revealing aerial satellite, monochrome infrastructure, and vector cadastral mesh layers, using a real-world Bekasi Aerial Photo case study as the primary sample dataset.",
-      execution: "Vue 3, Three.js canvas, GSAP interactive reveal, and custom Bekasi GIS coordinate shaders calibrated against high-resolution Bekasi Aerial Photo samples.",
-      result: "Sub-second multi-layer inspection, clear infrastructure visibility, and streamlined spatial analysis verified across Bekasi municipal cadastre data.",
+      thinking: "Designed a 3-layer spatial X-Ray interface revealing aerial satellite, monochrome infrastructure, and vector cadastral mesh layers, using a real-world Aerial Photo case study as the primary sample dataset.",
+      execution: "Vue 3, Three.js canvas, GSAP interactive reveal, and custom GIS coordinate shaders calibrated against high-resolution Aerial Photo samples.",
+      result: "Sub-second multi-layer inspection, clear infrastructure visibility, and streamlined spatial analysis verified across municipal cadastre data.",
     },
   },
   {
@@ -225,7 +225,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/moriku-cover.webp"
-              alt="Moriku Disnaker Kanban Board"
+              alt="Moriku SLA Kanban Board"
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover filter contrast-125"
@@ -234,7 +234,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-[#4e0a15]/90 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
             <div className="font-serif text-3xl font-bold tracking-tight text-[#f7f4ee] drop-shadow-sm">MORIKU</div>
-            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
+            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">ENTERPRISE SLA PIPELINE · LARAVEL 11</div>
             <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
               MORIKU RUNTIME ↗
@@ -516,7 +516,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <span className="sec-ct">Makna Works Brand Guidelines</span>
         </div>
         <div className="w-full">
-          <div className="w-full h-[460px] sm:h-[580px] overflow-hidden border-b border-[var(--wire)]">
+          <div className="w-full h-[240px] sm:h-[580px] overflow-hidden border-b border-[var(--wire)]">
             <MaknaMoodboardPreview />
           </div>
         </div>
