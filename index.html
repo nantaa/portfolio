@@ -1290,7 +1290,7 @@
 <body>
 
   <div id="cur"></div>
-  <canvas id="heroPaperClockCanvas" aria-hidden="true" style="position:fixed; inset:0; width:100vw; height:100vh; display:block; pointer-events:none; z-index:0;"></canvas>
+  <canvas id="heroPaperClockCanvas" aria-hidden="true" style="position:fixed; top:0; left:0; width:100%; height:100%; display:block; pointer-events:none; z-index:0;"></canvas>
 
   <!-- NAV -->
   <nav>
@@ -2432,13 +2432,15 @@
       var lastTime = performance.now();
 
       function resize() {
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = window.innerWidth * dpr;
-        canvas.height = window.innerHeight * dpr;
+        var isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        var dpr = Math.min(window.devicePixelRatio || 1, isCoarse ? 1.5 : 2);
+        canvas.width = Math.max(1, Math.floor(window.innerWidth * dpr));
+        canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       resize();
       window.addEventListener('resize', resize);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 
       function roundPath(c, x, y, w, h, r) {
         c.beginPath();
@@ -2539,11 +2541,21 @@
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.translate(screenX, screenY);
-        ctx.rotate(Math.sin(s.age * 2.1 + s.phase) * 0.38);
-        ctx.scale(1, Math.max(0.22, Math.abs(flipCos)) * (flipCos >= 0 ? 1 : -1));
+        ctx.rotate(Math.sin(s.age * 2.1 + s.phase) * 0.24);
+        ctx.scale(1, Math.max(0.28, Math.abs(flipCos)) * (flipCos >= 0 ? 1 : -1));
+        ctx.shadowColor = 'rgba(28, 10, 14, 0.14)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
         roundPath(ctx, -s.pw / 2, -s.ph / 2, s.pw, s.ph, 7);
-        ctx.fillStyle = flipCos >= 0 ? (isEven ? IVORY : BURGUNDY) : (isEven ? BURGUNDY : IVORY);
+        var faceBg = flipCos >= 0 ? (isEven ? IVORY : BURGUNDY) : (isEven ? BURGUNDY : IVORY);
+        ctx.fillStyle = faceBg;
         ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = faceBg === IVORY ? 'rgba(28, 25, 23, 0.16)' : 'rgba(247, 244, 238, 0.2)';
+        ctx.lineWidth = 1.25;
+        ctx.stroke();
         if (flipCos >= 0) {
           ctx.fillStyle = isEven ? INK : IVORY;
           ctx.font = 'italic 600 ' + Math.round(s.pw * 0.5) + 'px "Playfair Display", Georgia, serif';
@@ -2600,11 +2612,17 @@
           ctx.restore();
         }
 
-        // Draw all airborne sheets ABOVE the calendar pads while canvas (z-index: 0) stays BEHIND all text
-        for (var i = flyingSheets.length - 1; i >= 0; i--) {
+        // Draw all airborne sheets ABOVE the calendar pads while canvas (z-index: 0) stays BEHIND all text.
+        // Sort oldest-to-newest so newer departing sheets render cleanly on top in deterministic painter order.
+        flyingSheets.sort(function (a, b) { return b.age - a.age; });
+        for (var i = 0; i < flyingSheets.length; i++) {
           var s = flyingSheets[i];
           s.age += dt;
-          if (s.age >= s.duration) { flyingSheets.splice(i, 1); continue; }
+          if (s.age >= s.duration) {
+            flyingSheets.splice(i, 1);
+            i--;
+            continue;
+          }
           drawFlyingSheet(s, scrollVh, vw, vh);
         }
 

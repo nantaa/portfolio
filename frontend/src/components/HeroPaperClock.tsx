@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 
@@ -11,6 +11,11 @@ const getServerSnapshot = () => false;
 const IVORY = "#F7F4EE";
 const BURGUNDY = "#800020";
 const INK = "#1C1917";
+const Z_CAM = 14;
+const Z_LANE_BASE = 0.72;
+const Z_LANE_STEP = 0.74;
+
+const clampNum = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 interface SheetTextureEntry {
   canvas: HTMLCanvasElement;
@@ -156,6 +161,8 @@ interface AirborneSheet {
   baseScale: number;
   phase: number;
   spinBias: number;
+  spawnSeq: number;
+  currentZ: number;
 }
 
 function getParityStyle(n: number) {
@@ -248,7 +255,7 @@ function drawDigitSheet(ctx: CanvasRenderingContext2D, value: number) {
   ctx.restore();
 }
 
-function createSheetTexture(initialValue: number): SheetTextureEntry {
+function createSheetTexture(initialValue: number, maxAnisotropy = 1): SheetTextureEntry {
   const canvas = document.createElement("canvas");
   canvas.width = 360;
   canvas.height = 440;
@@ -256,7 +263,7 @@ function createSheetTexture(initialValue: number): SheetTextureEntry {
   if (ctx) drawDigitSheet(ctx, initialValue);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
+  tex.anisotropy = Math.min(4, Math.max(1, maxAnisotropy));
   return { canvas, ctx, tex, value: initialValue };
 }
 
@@ -364,8 +371,8 @@ function deformAirborneSheet(
   phase: number
 ) {
   const posAttr = geo.attributes.position as THREE.BufferAttribute;
-  const camber = Math.max(-0.22, Math.min(0.22, -turnRate * 0.14));
-  const waveAmp = 0.055 + Math.min(0.08, speedNorm * 0.016);
+  const camber = clampNum(-turnRate * 0.08, -0.08, 0.08);
+  const waveAmp = 0.028 + Math.min(0.025, speedNorm * 0.008);
 
   for (let i = 0; i < posAttr.count; i++) {
     const ox = basePositions[i * 3];
@@ -373,20 +380,312 @@ function deformAirborneSheet(
     const u = baseUvs[i * 2];
     const v = baseUvs[i * 2 + 1];
 
-    const wingCurve = Math.sin(u * Math.PI) * 0.14 + (u - 0.5) * (u - 0.5) * camber;
+    const wingCurve = Math.sin(u * Math.PI) * 0.032 + (u - 0.5) * (u - 0.5) * camber;
     const trailLag = Math.pow(1 - v, 1.35);
     const wave = Math.sin(age * 4.2 + phase + v * 3.1) * waveAmp * trailLag;
 
-    posAttr.setXYZ(i, ox, oy, wingCurve + wave);
+    posAttr.setXYZ(i, ox, oy, clampNum(wingCurve + wave, -0.055, 0.055));
   }
 
   posAttr.needsUpdate = true;
   geo.computeVertexNormals();
 }
 
+function catmull1D(p0: number, p1: number, p2: number, p3: number, t: number) {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return (
+    0.5 *
+    (2 * p1 +
+      (-p0 + p2) * t +
+      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+      (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+  );
+}
+
+function evalSpline2D(pts: [number, number][], u: number): [number, number] {
+  const segs = pts.length - 1;
+  const scaled = Math.max(0, Math.min(segs - 1e-4, u * segs));
+  const idx = Math.floor(scaled);
+  const lt = scaled - idx;
+  const p0 = pts[Math.max(0, idx - 1)];
+  const p1 = pts[idx];
+  const p2 = pts[Math.min(segs, idx + 1)];
+  const p3 = pts[Math.min(segs, idx + 2)];
+  return [catmull1D(p0[0], p1[0], p2[0], p3[0], lt), catmull1D(p0[1], p1[1], p2[1], p3[1], lt)];
+}
+
+/**
+ * Automatic Canvas 2D fallback renderer activated when WebGL initialization fails
+ * or mobile hardware loses the WebGL context. Renders the full 3-pad calendar and
+ * Z-ordered airborne sheets using the same spline trajectories and parity styling.
+ */
+function startCanvas2DFallback(
+  canvas: HTMLCanvasElement,
+  slotEl: HTMLElement,
+  prefersReducedMotion: boolean
+): () => void {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return () => {};
+
+  interface FallbackSheet {
+    pts: [number, number][];
+    pw: number;
+    ph: number;
+    val: number;
+    age: number;
+    duration: number;
+    phase: number;
+  }
+
+  const flyingSheets: FallbackSheet[] = [];
+  let cursor = 0;
+  const now0 = new Date();
+  let prevH = now0.getHours();
+  let prevM = now0.getMinutes();
+  let prevS = now0.getSeconds();
+  let lastTime = performance.now();
+  let rafId = 0;
+
+  const resize = () => {
+    const isCoarse = window.matchMedia?.("(pointer: coarse)")?.matches === true;
+    const dpr = Math.min(window.devicePixelRatio || 1, isCoarse ? 1.5 : 2);
+    canvas.width = Math.max(1, Math.floor(window.innerWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(window.innerHeight * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+  window.visualViewport?.addEventListener("resize", resize);
+
+  const roundPath = (x: number, y: number, w: number, h: number, r: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  };
+
+  const spawnSheet = (
+    startNx: number,
+    startDocY: number,
+    pw: number,
+    ph: number,
+    val: number,
+    forceCascade: boolean
+  ) => {
+    if (prefersReducedMotion) return;
+    const pickIndex = forceCascade
+      ? 5 + (cursor % 2)
+      : cursor % 6 === 4
+        ? 5 + (Math.floor(cursor / 6) % 2)
+        : cursor % 5;
+    const preset = TRAJECTORY_PRESETS[pickIndex];
+    cursor++;
+    flyingSheets.push({
+      pts: [[startNx, startDocY], ...preset.waypoints.map((w): [number, number] => [w.nx, w.docYVh])],
+      pw,
+      ph,
+      val,
+      age: 0,
+      duration: preset.duration,
+      phase: Math.random() * Math.PI * 2,
+    });
+    if (flyingSheets.length > 12) flyingSheets.shift();
+  };
+
+  const drawPad = (x: number, y: number, pw: number, ph: number, val: number, curl: number) => {
+    const { bg, fg, underBg } = getParityStyle(val);
+    for (let layer = 3; layer >= 1; layer--) {
+      roundPath(x, y + layer * 3.5, pw, ph, 7);
+      ctx.fillStyle = layer % 2 === 0 ? "#E4DDD4" : "#CFC5B9";
+      ctx.fill();
+    }
+    roundPath(x, y, pw, ph, 7);
+    ctx.fillStyle = underBg;
+    ctx.fill();
+
+    ctx.save();
+    roundPath(x, y, pw, ph, 7);
+    ctx.clip();
+    const peel = curl * pw * 0.36;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + pw, y);
+    ctx.lineTo(x + pw, y + ph - peel * 0.72);
+    ctx.quadraticCurveTo(x + pw - peel * 0.45, y + ph - peel * 0.35, x + pw - peel, y + ph);
+    ctx.lineTo(x, y + ph);
+    ctx.closePath();
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.fillStyle = fg;
+    ctx.font = `italic 600 ${Math.round(pw * 0.5)}px "Playfair Display", Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(val).padStart(2, "0"), x + pw * 0.5, y + ph * 0.54);
+    ctx.restore();
+  };
+
+  const render = (nowMs: number) => {
+    const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTime) / 1000));
+    lastTime = nowMs;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scrollVh = window.scrollY / Math.max(1, vh);
+    ctx.clearRect(0, 0, vw, vh);
+
+    const rect = slotEl.getBoundingClientRect();
+    const totalW = Math.min(rect.width * 0.88, rect.height * 1.48, 420);
+    const gap = Math.max(6, Math.round(totalW * 0.025));
+    const pw = (totalW - gap * 2) / 3;
+    const ph = pw * 1.21;
+    const startX = rect.left + (rect.width - totalW) / 2;
+    const startY = rect.top + (rect.height - ph) / 2 + 8;
+
+    const d = new Date();
+    const hh = d.getHours();
+    const mm = d.getMinutes();
+    const ss = d.getSeconds();
+    const frac = d.getMilliseconds() / 1000;
+
+    if (ss !== prevS) {
+      spawnSheet(
+        (startX + (pw + gap) * 2 + pw * 0.5) / Math.max(1, vw),
+        (startY + ph * 0.5) / Math.max(1, vh) + scrollVh,
+        pw,
+        ph,
+        prevS,
+        false
+      );
+      prevS = ss;
+    }
+    if (mm !== prevM) {
+      spawnSheet(
+        (startX + (pw + gap) + pw * 0.5) / Math.max(1, vw),
+        (startY + ph * 0.5) / Math.max(1, vh) + scrollVh,
+        pw,
+        ph,
+        prevM,
+        true
+      );
+      prevM = mm;
+    }
+    if (hh !== prevH) {
+      spawnSheet(
+        (startX + pw * 0.5) / Math.max(1, vw),
+        (startY + ph * 0.5) / Math.max(1, vh) + scrollVh,
+        pw,
+        ph,
+        prevH,
+        true
+      );
+      prevH = hh;
+    }
+
+    if (rect.bottom > -80 && rect.top < vh + 80) {
+      ctx.save();
+      const pivotX = rect.left + rect.width / 2;
+      const pivotY = rect.top + rect.height / 2;
+      ctx.translate(pivotX, pivotY);
+      ctx.transform(1, -0.04, 0.02, 1, -pivotX, -pivotY);
+      roundPath(startX - 8, startY - 24, totalW + 16, 28, 6);
+      ctx.fillStyle = BURGUNDY;
+      ctx.fill();
+
+      const vals = [hh, mm, ss];
+      for (let idx = 0; idx < 3; idx++) {
+        const px = startX + idx * (pw + gap);
+        const curl = prefersReducedMotion
+          ? 0.03
+          : idx === 2 && frac > 0.35
+            ? Math.pow((frac - 0.35) / 0.65, 1.45) * 0.85
+            : 0.03;
+        drawPad(px, startY, pw, ph, vals[idx], curl);
+        const rg = ctx.createRadialGradient(px + pw / 2 - 2, startY - 12, 1, px + pw / 2, startY - 10, 7);
+        rg.addColorStop(0, "#FFFFFF");
+        rg.addColorStop(0.5, "#C8B8B0");
+        rg.addColorStop(1, "#3B181E");
+        ctx.fillStyle = rg;
+        ctx.beginPath();
+        ctx.arc(px + pw / 2, startY - 10, 6.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Painter sort oldest-to-newest so newly departed cards draw cleanly over earlier ones
+    flyingSheets.sort((a, b) => b.age - a.age);
+    for (let i = 0; i < flyingSheets.length; i++) {
+      const s = flyingSheets[i];
+      s.age += dt;
+      if (s.age >= s.duration) {
+        flyingSheets.splice(i, 1);
+        i--;
+        continue;
+      }
+      const u = Math.min(1, s.age / s.duration);
+      const easedU = Math.min(1, 0.08 * u + 0.92 * (1 - Math.pow(1 - u, 1.18)));
+      const [pxNorm, pyDoc] = evalSpline2D(s.pts, easedU);
+      const screenX = pxNorm * vw;
+      const screenY = (pyDoc - scrollVh) * vh;
+      if (screenY < -s.ph - 80 || screenY > vh + s.ph + 80) continue;
+
+      const flipCos = Math.cos(s.age * 2.1 + s.phase);
+      const textVeil = pxNorm < 0.58 || pyDoc > 0.95 ? 0.72 : 0.95;
+      const edgeFade = u > 0.85 ? 1 - (u - 0.85) / 0.15 : 1;
+      const alpha = clampNum(textVeil * edgeFade, 0, 1);
+      const { bg, fg, underBg } = getParityStyle(s.val);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(screenX, screenY);
+      ctx.rotate(Math.sin(s.age * 1.9 + s.phase) * 0.24);
+      ctx.scale(1, Math.max(0.28, Math.abs(flipCos)) * (flipCos >= 0 ? 1 : -1));
+      ctx.shadowColor = "rgba(28, 10, 14, 0.14)";
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 4;
+      roundPath(-s.pw / 2, -s.ph / 2, s.pw, s.ph, 7);
+      const faceBg = flipCos >= 0 ? bg : underBg;
+      ctx.fillStyle = faceBg;
+      ctx.fill();
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = faceBg === IVORY ? "rgba(28, 25, 23, 0.16)" : "rgba(247, 244, 238, 0.2)";
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
+      if (flipCos >= 0) {
+        ctx.fillStyle = fg;
+        ctx.font = `italic 600 ${Math.round(s.pw * 0.5)}px "Playfair Display", Georgia, serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(s.val).padStart(2, "0"), 0, 4);
+      }
+      ctx.restore();
+    }
+
+    rafId = requestAnimationFrame(render);
+  };
+
+  rafId = requestAnimationFrame(render);
+
+  return () => {
+    cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", resize);
+    window.visualViewport?.removeEventListener("resize", resize);
+  };
+}
+
 export default function HeroPaperClock() {
   const slotRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [renderMode, setRenderMode] = useState<"webgl" | "2d">("webgl");
   const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   useEffect(() => {
@@ -399,7 +698,10 @@ export default function HeroPaperClock() {
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const Z_CAM = 14;
+    if (renderMode === "2d") {
+      return startCanvas2DFallback(canvas, slotEl, prefersReducedMotion);
+    }
+
     const FOV = 36;
     const TAN_HALF = Math.tan((FOV * Math.PI) / 360);
 
@@ -422,10 +724,35 @@ export default function HeroPaperClock() {
         powerPreference: "default",
       });
     } catch {
-      return;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: false,
+          powerPreference: "low-power",
+        });
+      } catch {
+        let active = true;
+        queueMicrotask(() => {
+          if (active) setRenderMode("2d");
+        });
+        return () => {
+          active = false;
+        };
+      }
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      setRenderMode("2d");
+    };
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+
+    const getMaxDpr = () =>
+      window.matchMedia?.("(pointer: coarse)")?.matches === true ? 1.5 : 2;
+    const maxAnisotropy = Math.min(4, Math.max(1, renderer.capabilities.getMaxAnisotropy()));
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, getMaxDpr()));
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.04;
@@ -580,7 +907,7 @@ export default function HeroPaperClock() {
         group.add(ledge);
       }
 
-      const underTex = createSheetTexture(nextVal);
+      const underTex = createSheetTexture(nextVal, maxAnisotropy);
       const underMat = new THREE.MeshStandardMaterial({
         map: underTex.tex,
         alphaTest: 0.5,
@@ -595,7 +922,7 @@ export default function HeroPaperClock() {
       const basePositions = new Float32Array(baseGeo.attributes.position.array);
       const baseUvs = new Float32Array(baseGeo.attributes.uv.array);
 
-      const frontTex = createSheetTexture(val);
+      const frontTex = createSheetTexture(val, maxAnisotropy);
       const frontMat = new THREE.MeshStandardMaterial({
         map: frontTex.tex,
         alphaTest: 0.5,
@@ -652,7 +979,7 @@ export default function HeroPaperClock() {
       const basePositions = new Float32Array(geo.attributes.position.array);
       const baseUvs = new Float32Array(geo.attributes.uv.array);
 
-      const frontTex = createSheetTexture(idx % 60);
+      const frontTex = createSheetTexture(idx % 60, maxAnisotropy);
       const frontMat = new THREE.MeshStandardMaterial({
         map: frontTex.tex,
         alphaTest: 0.5,
@@ -693,10 +1020,13 @@ export default function HeroPaperClock() {
         baseScale: 1,
         phase: 0,
         spinBias: 1,
+        spawnSeq: 0,
+        currentZ: Z_LANE_BASE,
       };
     });
 
     let currentClockScale = 1;
+    let spawnSeqCounter = 0;
     const ssWorldVec = new THREE.Vector3();
 
     const syncClockSlot = () => {
@@ -765,13 +1095,22 @@ export default function HeroPaperClock() {
       slot.backMesh.material.needsUpdate = true;
       slot.backMesh.material.opacity = 1;
 
+      let maxActiveZ = Z_LANE_BASE - Z_LANE_STEP;
+      for (const s of airbornePool) {
+        if (s.active && s !== slot && s.currentZ > maxActiveZ) {
+          maxActiveZ = s.currentZ;
+        }
+      }
+
       slot.active = true;
       slot.age = 0;
       slot.duration = preset.duration;
       slot.baseScale = currentClockScale * 0.94;
       slot.phase = Math.random() * Math.PI * 2;
       slot.spinBias = Math.random() < 0.5 ? 1 : -1;
-      slot.group.scale.setScalar(slot.baseScale);
+      slot.spawnSeq = ++spawnSeqCounter;
+      slot.currentZ = Math.max(Z_LANE_BASE, maxActiveZ + Z_LANE_STEP);
+      slot.group.scale.setScalar(slot.baseScale * ((Z_CAM - slot.currentZ) / Z_CAM));
       slot.group.visible = true;
     };
 
@@ -801,10 +1140,12 @@ export default function HeroPaperClock() {
     const handleResize = () => {
       camera.aspect = Math.max(0.5, window.innerWidth / Math.max(1, window.innerHeight));
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, getMaxDpr()));
       renderer.setSize(window.innerWidth, window.innerHeight, false);
       syncClockSlot();
     };
     window.addEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
 
     let rafId = 0;
     let lastMs = performance.now();
@@ -882,32 +1223,48 @@ export default function HeroPaperClock() {
 
       const scrollVh = window.scrollY / Math.max(1, window.innerHeight);
 
+      // Update sheet ages first, deactivate completed sheets, then order survivors into strict Z-lanes
+      const activeSheets: AirborneSheet[] = [];
       for (let i = 0; i < airbornePool.length; i++) {
         const sh = airbornePool[i];
         if (!sh.active || !sh.curve) continue;
-
         sh.age += dt;
-        const u = Math.min(1, sh.age / sh.duration);
-        if (u >= 1) {
+        if (sh.age >= sh.duration) {
           sh.active = false;
           sh.group.visible = false;
           continue;
         }
+        activeSheets.push(sh);
+      }
+
+      activeSheets.sort((a, b) => a.spawnSeq - b.spawnSeq);
+      const laneAlpha = Math.min(1, dt * 5.0);
+
+      for (let rank = 0; rank < activeSheets.length; rank++) {
+        const sh = activeSheets[rank];
+        const u = Math.min(1, sh.age / sh.duration);
+        const targetZ = Z_LANE_BASE + rank * Z_LANE_STEP;
+        sh.currentZ += (targetZ - sh.currentZ) * laneAlpha;
+        if (rank > 0) {
+          const minSafeZ = activeSheets[rank - 1].currentZ + Z_LANE_STEP;
+          if (sh.currentZ < minSafeZ) sh.currentZ = minSafeZ;
+        }
 
         // Gentle aerodynamic ease so sheets glide briskly off pad and float across curves
         const easedU = Math.min(1, 0.08 * u + 0.92 * (1 - Math.pow(1 - u, 1.18)));
-        const ptDoc = sh.curve.getPointAt(easedU);
-        const tanDoc = sh.curve.getTangentAt(easedU);
+        const ptDoc = sh.curve!.getPointAt(easedU);
+        const tanDoc = sh.curve!.getTangentAt(easedU);
 
         const screenX = ptDoc.x * window.innerWidth;
         const screenY = (ptDoc.y - scrollVh) * window.innerHeight;
-        const worldPos = screenPxToWorld(screenX, screenY, ptDoc.z);
+        const worldPos = screenPxToWorld(screenX, screenY, sh.currentZ);
         sh.group.position.copy(worldPos);
+        sh.group.scale.setScalar(sh.baseScale * ((Z_CAM - sh.currentZ) / Z_CAM));
 
-        // Velocity-coupled banking + pitch tumble along spline
-        const bank = Math.sin(sh.age * 2.6 + sh.phase) * 0.55 + tanDoc.x * 0.45;
-        const pitch = -0.25 + tanDoc.y * 0.6 + Math.sin(sh.age * 1.9 + sh.phase) * 0.35;
-        const yaw = tanDoc.x * -0.45 * sh.spinBias + Math.cos(sh.age * 2.1 + sh.phase) * 0.25;
+        // Bounded banking + pitch keep each sheet strictly inside its half-lane Z envelope
+        const bank = clampNum(Math.sin(sh.age * 2.2 + sh.phase) * 0.16 + tanDoc.x * 0.12, -0.24, 0.24);
+        const pitch = clampNum(-0.08 + tanDoc.y * 0.12 + Math.sin(sh.age * 1.7 + sh.phase) * 0.08, -0.20, 0.20);
+        const yaw = tanDoc.x * -0.42 * sh.spinBias + Math.cos(sh.age * 2.1 + sh.phase) * 0.24;
         sh.group.rotation.set(pitch, bank, yaw);
 
         const speedNorm = Math.hypot(tanDoc.x, tanDoc.y);
@@ -943,8 +1300,10 @@ export default function HeroPaperClock() {
 
     return () => {
       cancelAnimationFrame(rafId);
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("resize", handleResize);
+      window.visualViewport?.removeEventListener("resize", handleResize);
 
       backIvoryTex.dispose();
       backBurgundyTex.dispose();
@@ -980,7 +1339,7 @@ export default function HeroPaperClock() {
 
       renderer.dispose();
     };
-  }, [mounted]);
+  }, [mounted, renderMode]);
 
   return (
     <>
@@ -993,9 +1352,19 @@ export default function HeroPaperClock() {
       {mounted &&
         createPortal(
           <canvas
+            key={renderMode}
             ref={canvasRef}
             id="heroPaperClockCanvas"
-            className="fixed inset-0 w-screen h-screen block pointer-events-none select-none z-0"
+            data-renderer={renderMode}
+            className="block pointer-events-none select-none z-0"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 0,
+            }}
             aria-hidden="true"
           />,
           document.body
