@@ -1265,7 +1265,7 @@
       .hero-body { grid-template-columns: 1fr; }
       .hero-left { padding: 28px 18px; border-right: none; border-bottom: 0.5px solid var(--wire); }
       .hero-right { min-height: 220px !important; }
-      #heroWireframeCanvas { height: 220px !important; }
+      #heroPaperClockCanvas { height: 220px !important; }
       .sec-hd { padding: 12px 16px; }
       .work-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
       .wc { display: flex; flex-direction: column; grid-column: auto !important; grid-row: auto !important; min-height: 320px; }
@@ -1348,10 +1348,10 @@
         </div>
       </div>
 
-      <!-- Live Moving 3D Architectural Wireframe Canvas -->
+      <!-- Live 3D Paper Flip Desk Clock -->
       <div class="hero-right" id="heroRightFrame" aria-hidden="true"
         style="position:relative; width:100%; min-height:420px; display:flex; align-items:center; justify-content:center; user-select:none; overflow:hidden; background:transparent; pointer-events:none;">
-        <canvas id="heroWireframeCanvas" style="width:100%; height:440px; display:block;"></canvas>
+        <canvas id="heroPaperClockCanvas" style="width:100%; height:440px; display:block;"></canvas>
       </div>
 
     </div>
@@ -2402,92 +2402,198 @@
       if (e.key === 'Escape') closeProposal();
     });
 
-    // Moving 3D Architectural Wireframe Canvas (Hero Option 2)
-    (function initHeroWireframe() {
-      var canvas = document.getElementById('heroWireframeCanvas');
+    // Paper Flip Desk Calendar Clock + Full-Sheet APW Aerodynamic Flight (Even = Ivory #F7F4EE, Odd = Burgundy #800020)
+    (function initHeroPaperClock() {
+      var canvas = document.getElementById('heroPaperClockCanvas');
       if (!canvas || !canvas.getContext) return;
       var ctx = canvas.getContext('2d');
-      var phi = (1 + Math.sqrt(5)) / 2;
-      var rawVerts = [
-        [-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0],
-        [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
-        [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
-      ];
-      var verts = rawVerts.map(function(v) {
-        var len = Math.hypot(v[0], v[1], v[2]);
-        return [v[0]/len, v[1]/len, v[2]/len];
-      });
-      var edges = [
-        [0,11],[0,5],[0,1],[0,7],[0,10],[1,5],[5,11],[11,10],[10,7],[7,1],
-        [3,9],[3,4],[3,2],[3,6],[3,8],[4,9],[2,4],[6,2],[8,6],[9,8],
-        [4,5],[9,5],[9,1],[8,1],[8,7],[6,7],[6,10],[2,10],[2,11],[4,11]
-      ];
-      var mx = 0, my = 0, tx = 0, ty = 0, angleY = 0, angleX = 0.3;
+      var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var IVORY = '#F7F4EE';
+      var BURGUNDY = '#800020';
+      var INK = '#1C1917';
+      var flyingSheets = [];
+      var now0 = new Date();
+      var prevH = now0.getHours(), prevM = now0.getMinutes(), prevS = now0.getSeconds();
+      var lastTime = performance.now();
 
       function resize() {
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
         var w = canvas.parentElement ? canvas.parentElement.clientWidth : 500;
-        var h = 440;
+        var h = canvas.clientHeight || 440;
         canvas.width = w * dpr;
         canvas.height = h * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       resize();
       window.addEventListener('resize', resize);
-      window.addEventListener('pointermove', function(e) {
-        tx = (e.clientX / window.innerWidth - 0.5) * 0.7;
-        ty = (e.clientY / window.innerHeight - 0.5) * 0.5;
-      }, { passive: true });
 
-      function project(v, ax, ay, scale, cx, cy) {
-        var x = v[0], y = v[1], z = v[2];
-        var cy1 = Math.cos(ay), sy1 = Math.sin(ay);
-        var x1 = x * cy1 - z * sy1;
-        var z1 = x * sy1 + z * cy1;
-        var cx1 = Math.cos(ax), sx1 = Math.sin(ax);
-        var y2 = y * cx1 - z1 * sx1;
-        var z2 = y * sx1 + z1 * cx1;
-        var persp = 3.2 / (3.2 - z2);
-        return [cx + x1 * scale * persp, cy + y2 * scale * persp, z2];
+      function roundPath(c, x, y, w, h, r) {
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.lineTo(x + w - r, y);
+        c.quadraticCurveTo(x + w, y, x + w, y + r);
+        c.lineTo(x + w, y + h - r);
+        c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        c.lineTo(x + r, y + h);
+        c.quadraticCurveTo(x, y + h, x, y + h - r);
+        c.lineTo(x, y + r);
+        c.quadraticCurveTo(x, y, x + r, y);
+        c.closePath();
       }
 
-      function render() {
-        var w = canvas.width / Math.min(window.devicePixelRatio || 1, 2);
-        var h = 440;
+      function spawnAirborneSheet(px, py, pw, ph, departedVal) {
+        if (reducedMotion) return;
+        flyingSheets.push({
+          x: px + pw / 2,
+          y: py + ph / 2,
+          vx: 110 + Math.random() * 45,
+          vy: -42 - Math.random() * 28,
+          theta: -0.35,
+          omega: (Math.random() - 0.35) * 2.1,
+          pw: pw,
+          ph: ph,
+          val: departedVal,
+          age: 0,
+          life: 2.6,
+          phase: Math.random() * Math.PI * 2
+        });
+        if (flyingSheets.length > 6) flyingSheets.shift();
+      }
+
+      function apwStep(s, dt) {
+        var cT = Math.cos(s.theta), sT = Math.sin(s.theta);
+        var vPar = s.vx * cT + s.vy * sT;
+        var vNorm = -s.vx * sT + s.vy * cT;
+        var vMag = Math.hypot(vPar, vNorm) + 1e-4;
+        var alpha = Math.atan2(vNorm, vPar);
+        var CL = Math.sin(2 * alpha) + 2.1 * (s.omega * s.pw / (2 * vMag));
+        var CD = 0.24 * Math.cos(alpha) * Math.cos(alpha) + 2.0 * Math.sin(alpha) * Math.sin(alpha);
+        var q = 0.004 * vMag * vMag;
+        var fx = -q * CL * (vNorm / vMag) - q * CD * (vPar / vMag) + 65;
+        var fy = q * CL * (vPar / vMag) - q * CD * (vNorm / vMag) + 180;
+        var torque = -0.02 * q * s.pw * (0.28 * s.omega + 0.55 * Math.sin(2 * alpha));
+        s.vx += fx * dt;
+        s.vy += fy * dt;
+        s.omega += torque * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.theta += s.omega * dt;
+      }
+
+      function drawPad(x, y, pw, ph, val, curl) {
+        var isEven = val % 2 === 0;
+        var bg = isEven ? IVORY : BURGUNDY;
+        var fg = isEven ? INK : IVORY;
+        var underBg = isEven ? BURGUNDY : IVORY;
+
+        for (var layer = 3; layer >= 1; layer--) {
+          roundPath(ctx, x, y + layer * 3.5, pw, ph, 7);
+          ctx.fillStyle = layer % 2 === 0 ? '#E4DDD4' : '#CFC5B9';
+          ctx.fill();
+        }
+
+        roundPath(ctx, x, y, pw, ph, 7);
+        ctx.fillStyle = underBg;
+        ctx.fill();
+
+        ctx.save();
+        roundPath(ctx, x, y, pw, ph, 7);
+        ctx.clip();
+        var peel = curl * pw * 0.36;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + pw, y);
+        ctx.lineTo(x + pw, y + ph - peel * 0.72);
+        ctx.quadraticCurveTo(x + pw - peel * 0.45, y + ph - peel * 0.35, x + pw - peel, y + ph);
+        ctx.lineTo(x, y + ph);
+        ctx.closePath();
+        ctx.fillStyle = bg;
+        ctx.fill();
+
+        ctx.fillStyle = fg;
+        ctx.font = 'italic 600 ' + Math.round(pw * 0.5) + 'px "Playfair Display", Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(val).padStart(2, '0'), x + pw * 0.5, y + ph * 0.54);
+        ctx.restore();
+      }
+
+      function render(nowMs) {
+        var dt = Math.min(0.05, (nowMs - lastTime) / 1000);
+        lastTime = nowMs;
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var w = canvas.width / dpr;
+        var h = canvas.clientHeight || 440;
         ctx.clearRect(0, 0, w, h);
-        mx += (tx - mx) * 0.05;
-        my += (ty - my) * 0.05;
-        angleY += 0.0055;
-        angleX += 0.003;
 
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        var accent = isDark ? 'rgba(184, 50, 72, 0.7)' : 'rgba(122, 21, 37, 0.55)';
-        var ink = isDark ? 'rgba(238, 235, 229, 0.35)' : 'rgba(28, 25, 23, 0.25)';
+        var d = new Date();
+        var hh = d.getHours(), mm = d.getMinutes(), ss = d.getSeconds(), frac = d.getMilliseconds() / 1000;
 
-        var cx = w / 2, cy = h / 2, scale = Math.min(w, h) * 0.34;
-        var pts = verts.map(function(v) { return project(v, angleX + my, angleY + mx, scale, cx, cy); });
-        ctx.lineWidth = 1.1;
-        ctx.strokeStyle = accent;
-        ctx.beginPath();
-        edges.forEach(function(e) {
-          ctx.moveTo(pts[e[0]][0], pts[e[0]][1]);
-          ctx.lineTo(pts[e[1]][0], pts[e[1]][1]);
-        });
-        ctx.stroke();
+        var totalW = Math.min(w * 0.84, 340);
+        var gap = 8;
+        var pw = (totalW - gap * 2) / 3;
+        var ph = pw * 1.22;
+        var startX = (w - totalW) / 2;
+        var startY = (h - ph) / 2 + 6;
 
-        var innerPts = verts.map(function(v) { return project(v, -angleX * 1.4, -angleY * 1.2 + mx, scale * 0.55, cx, cy); });
-        ctx.lineWidth = 0.85;
-        ctx.strokeStyle = ink;
-        ctx.beginPath();
-        edges.forEach(function(e) {
-          ctx.moveTo(innerPts[e[0]][0], innerPts[e[0]][1]);
-          ctx.lineTo(innerPts[e[1]][0], innerPts[e[1]][1]);
-        });
-        ctx.stroke();
+        if (ss !== prevS) { spawnAirborneSheet(startX + (pw + gap) * 2, startY, pw, ph, prevS); prevS = ss; }
+        if (mm !== prevM) { spawnAirborneSheet(startX + (pw + gap), startY, pw, ph, prevM); prevM = mm; }
+        if (hh !== prevH) { spawnAirborneSheet(startX, startY, pw, ph, prevH); prevH = hh; }
+
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+        ctx.transform(1, -0.04, 0.02, 1, -w / 2, -h / 2);
+
+        roundPath(ctx, startX - 8, startY - 24, totalW + 16, 28, 6);
+        ctx.fillStyle = BURGUNDY;
+        ctx.fill();
+
+        var vals = [hh, mm, ss];
+        for (var idx = 0; idx < 3; idx++) {
+          var px = startX + idx * (pw + gap);
+          var curl = reducedMotion ? 0.03 : (idx === 2 && frac > 0.35 ? Math.pow((frac - 0.35) / 0.65, 1.45) * 0.85 : 0.03);
+          drawPad(px, startY, pw, ph, vals[idx], curl);
+          var rg = ctx.createRadialGradient(px + pw / 2 - 2, startY - 12, 1, px + pw / 2, startY - 10, 7);
+          rg.addColorStop(0, '#FFFFFF');
+          rg.addColorStop(0.5, '#C8B8B0');
+          rg.addColorStop(1, '#3B181E');
+          ctx.fillStyle = rg;
+          ctx.beginPath();
+          ctx.arc(px + pw / 2, startY - 10, 6.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        for (var i = flyingSheets.length - 1; i >= 0; i--) {
+          var s = flyingSheets[i];
+          s.age += dt;
+          apwStep(s, dt);
+          var flipCos = Math.cos(s.age * 2.8 + s.phase);
+          var alpha = s.age > s.life * 0.7 ? 1 - (s.age - s.life * 0.7) / (s.life * 0.3) : 1;
+          if (s.age >= s.life || alpha <= 0.01) { flyingSheets.splice(i, 1); continue; }
+
+          var isEven = s.val % 2 === 0;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, alpha);
+          ctx.translate(s.x, s.y);
+          ctx.rotate(s.theta * 0.55);
+          ctx.scale(1, Math.max(0.18, Math.abs(flipCos)) * (flipCos >= 0 ? 1 : -1));
+          roundPath(ctx, -s.pw / 2, -s.ph / 2, s.pw, s.ph, 7);
+          ctx.fillStyle = flipCos >= 0 ? (isEven ? IVORY : BURGUNDY) : (isEven ? BURGUNDY : IVORY);
+          ctx.fill();
+          if (flipCos >= 0) {
+            ctx.fillStyle = isEven ? INK : IVORY;
+            ctx.font = 'italic 600 ' + Math.round(s.pw * 0.5) + 'px "Playfair Display", Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(s.val).padStart(2, '0'), 0, 4);
+          }
+          ctx.restore();
+        }
 
         requestAnimationFrame(render);
       }
-      render();
+      requestAnimationFrame(render);
     })();
   </script>
 

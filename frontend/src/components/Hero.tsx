@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ResumeModal from "@/components/ResumeModal";
-import HeroWireframeCanvas from "@/components/HeroWireframeCanvas";
+import HeroPaperClock from "@/components/HeroPaperClock";
 
 export default function Hero() {
   const [isResumeOpen, setIsResumeOpen] = useState(false);
@@ -54,7 +54,7 @@ export default function Hero() {
           </div>
 
           <div className="hero-right">
-            <HeroWireframeCanvas />
+            <HeroPaperClock />
           </div>
         </div>
       </section>

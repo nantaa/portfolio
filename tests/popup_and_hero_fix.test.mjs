@@ -28,9 +28,9 @@ test('Criterion 2: CaseStudyModal embeds Moriku iframe with cache-busting query 
   assert.ok(!modal.includes('allow-top-navigation'), 'CaseStudyModal must not allow top-level navigation');
 });
 
-test('Criterion 3: Hero.tsx renders HeroWireframeCanvas and 2 CTA buttons without metric clutter', () => {
+test('Criterion 3: Hero.tsx renders HeroPaperClock and 2 CTA buttons without metric clutter', () => {
   const hero = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'Hero.tsx'), 'utf-8');
-  assert.ok(hero.includes('HeroWireframeCanvas'), 'Hero.tsx must embed HeroWireframeCanvas');
+  assert.ok(hero.includes('HeroPaperClock'), 'Hero.tsx must embed HeroPaperClock');
   assert.ok(hero.includes('View work'), 'Hero.tsx must include View work button');
   assert.ok(hero.includes('Curriculum Vitae'), 'Hero.tsx must include clean CV button');
   assert.ok(!hero.includes('HeroExecutiveSpecimen'), 'Hero.tsx must remove HeroExecutiveSpecimen bar');
@@ -48,5 +48,5 @@ test('Criterion 4: Hero top padding is >= 96px in globals.css and index.html to 
 test('Criterion 5: Hero purges 3-column bottom bar and unnecessary metrics in index.html', () => {
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf-8');
   assert.ok(!indexHtml.includes('CORE ARCHITECTURE FOCUS'), 'index.html must purge bottom 3-column bar');
-  assert.ok(indexHtml.includes('heroWireframeCanvas'), 'index.html must render moving 3D wireframe canvas in hero');
+  assert.ok(indexHtml.includes('heroPaperClockCanvas'), 'index.html must render Paper Flip clock canvas in hero');
 });
