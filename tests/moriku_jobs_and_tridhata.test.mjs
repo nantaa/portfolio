@@ -23,8 +23,8 @@ test('Criterion 2: Actual compiled MaknaWorks ERP app is deployed in public and 
   const publicMakna = fs.readFileSync(path.join(rootDir, 'frontend', 'public', 'projects', 'maknaworks', 'index.html'), 'utf-8');
   const rootMakna = fs.readFileSync(path.join(rootDir, 'projects', 'maknaworks', 'index.html'), 'utf-8');
 
-  assert.ok(publicMakna.includes('index-nigyFKql.js'), 'public maknaworks must load actual compiled React bundle');
-  assert.ok(rootMakna.includes('index-nigyFKql.js'), 'root maknaworks must load actual compiled React bundle');
+  assert.ok(publicMakna.includes('index-D9N0rRyI.js'), 'public maknaworks must load actual compiled React bundle');
+  assert.ok(rootMakna.includes('index-D9N0rRyI.js'), 'root maknaworks must load actual compiled React bundle');
   assert.ok(publicMakna.includes('MaknaWorks ERP'), 'MaknaWorks ERP title must be set');
 });
 

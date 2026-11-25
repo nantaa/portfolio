@@ -1,153 +1,163 @@
 <!doctype html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MaknaWorks ERP — Dashboard PPIC</title>
-    <script>
-      // Escape key bridge to parent portfolio modal
-      window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          window.parent.postMessage('close-modal', '*');
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaknaWorks ERP — Dashboard PPIC</title>
+  <script>
+    // Escape key bridge to parent portfolio modal
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        window.parent.postMessage('close-modal', '*');
+      }
+    });
+
+    // Offline API & Auth Bootstrap for Static Portfolio Showcase
+    (function () {
+      var LOC_BOGOR = '11111111-1111-4111-8111-111111111111';
+      var LOC_NGANJUK = '22222222-2222-4222-8222-222222222222';
+      var LOCATIONS = [
+        { id: LOC_BOGOR, code: 'BOGOR', name: 'Fasilitas Produksi Bogor' },
+        { id: LOC_NGANJUK, code: 'NGANJUK', name: 'Fasilitas Produksi Nganjuk' }
+      ];
+      var AUTH_USER = {
+        id: 'u-admin-1',
+        name: 'Aryo Ananta',
+        email: 'aryo@maknaworks.co.id',
+        role: 'ADMIN',
+        permissions: [
+          'dashboard:read', 'dashboard:sales', 'dashboard:production', 'dashboard:inventory',
+          'finance:read', 'export:run', 'approval:create', 'approval:read_all',
+          'approval:decide', 'field:activity', 'warehouse:ops', 'user:manage',
+          'audit:read', 'sync:manage', 'location:all'
+        ],
+        locationIds: [LOC_BOGOR, LOC_NGANJUK],
+        defaultLocationId: LOC_BOGOR,
+        mustChangePassword: false
+      };
+
+      var SALES_DATA = {
+        meta: { locationId: LOC_BOGOR, from: '2026-11-01', to: '2026-11-25', daysElapsed: 25, daysInMonth: 30, lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
+        cards: {
+          revenue: 1485000000,
+          previousMonthRevenue: 1320000000,
+          soldQty: 18450,
+          forecastQty: 20000,
+          soldVsForecastPct: 92.3,
+          projectedMonthEndQty: 22140,
+          stockShortageQty: 320,
+          shortageSkuCount: 2,
+          emptySkuCount: 0,
+          criticalSkuCount: 1,
+          stockValue: 842000000
+        },
+        daily: [
+          { date: '2026-11-19', qty: 720, revenue: 58400000 },
+          { date: '2026-11-20', qty: 840, revenue: 67200000 },
+          { date: '2026-11-21', qty: 690, revenue: 55100000 },
+          { date: '2026-11-22', qty: 910, revenue: 74800000 },
+          { date: '2026-11-23', qty: 780, revenue: 63900000 },
+          { date: '2026-11-24', qty: 960, revenue: 79200000 },
+          { date: '2026-11-25', qty: 880, revenue: 71500000 }
+        ],
+        products: [
+          { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', soldQty: 8400, forecastQty: 9000, pct: 93.3, stockQty: 2450, status: 'SAFE' },
+          { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', soldQty: 5200, forecastQty: 5500, pct: 94.5, stockQty: 620, status: 'MINIMUM' },
+          { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', soldQty: 3150, forecastQty: 3500, pct: 90.0, stockQty: 180, status: 'CRITICAL' },
+          { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', soldQty: 1700, forecastQty: 2000, pct: 85.0, stockQty: 1120, status: 'SAFE' }
+        ]
+      };
+
+      var INVENTORY_DATA = {
+        meta: { locationId: LOC_BOGOR, lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
+        cards: { totalSku: 42, safeCount: 34, minimumCount: 5, criticalCount: 3, emptyCount: 0, stockValue: 842000000 },
+        rows: [
+          { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', qty: 2450, minStock: 1000, safetyStock: 1500, status: 'SAFE', value: 318500000, syncedAt: '2026-11-25T05:00:00Z' },
+          { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', qty: 620, minStock: 500, safetyStock: 750, status: 'MINIMUM', value: 148800000, syncedAt: '2026-11-25T05:00:00Z' },
+          { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', qty: 180, minStock: 300, safetyStock: 500, status: 'CRITICAL', value: 64800000, syncedAt: '2026-11-25T05:00:00Z' },
+          { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', qty: 1120, minStock: 400, safetyStock: 600, status: 'SAFE', value: 106400000, syncedAt: '2026-11-25T05:00:00Z' },
+          { sku: 'MW-KAR-25', name: 'Karung Woven Laminasi 25kg', qty: 940, minStock: 1000, safetyStock: 1500, status: 'CRITICAL', value: 23500000, syncedAt: '2026-11-25T05:00:00Z' }
+        ]
+      };
+
+      var PRODUCTION_DATA = {
+        meta: { locationId: LOC_BOGOR, period: '2026-11', lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
+        cards: { totalTarget: 22000, totalActual: 19680, achievementPct: 89.5, skuReached: 14, skuBelow: 4 },
+        rows: [
+          { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', target: 9000, actual: 8650, pct: 96.1, gap: -350 },
+          { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', target: 5500, actual: 5580, pct: 101.5, gap: 80 },
+          { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', target: 4500, actual: 3420, pct: 76.0, gap: -1080 },
+          { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', target: 3000, actual: 2030, pct: 67.7, gap: -970 }
+        ]
+      };
+
+      var origFetch = window.fetch;
+      window.fetch = function (input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.indexOf('localhost:3000') !== -1 || url.indexOf('/api/') !== -1) {
+          var path = url.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
+          var bodyData = {};
+          if (path === '/auth/refresh' || path === '/auth/login') bodyData = { accessToken: 'maknaworks-demo-token', user: AUTH_USER };
+          else if (path === '/me') bodyData = AUTH_USER;
+          else if (path === '/locations') bodyData = LOCATIONS;
+          else if (path === '/dashboard/sales') bodyData = SALES_DATA;
+          else if (path === '/dashboard/inventory') bodyData = INVENTORY_DATA;
+          else if (path === '/dashboard/production') bodyData = PRODUCTION_DATA;
+          else if (path === '/approvals') bodyData = [
+            { id: 'apr-1', type: 'STOCK_ADJUSTMENT', status: 'PENDING', title: 'Penyesuaian Opname Bahan Baku Kompos', requestedBy: 'Kepala Gudang Bogor', createdAt: '2026-11-25T03:15:00Z', amount: 18500000 }
+          ];
+          else if (path === '/users') bodyData = [
+            { id: 'u-admin-1', name: 'Aryo Ananta', email: 'aryo@maknaworks.co.id', role: 'ADMIN', division: 'IT & Systems', active: true, mustChangePassword: false, defaultLocationId: LOC_BOGOR, locations: LOCATIONS, extraPermissions: [], lastLoginAt: '2026-11-25T05:00:00Z', createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-11-25T00:00:00Z' }
+          ];
+          else if (path === '/audit-logs') bodyData = { items: [], nextCursor: null };
+          else if (path === '/sync/status') bodyData = { lastSyncAt: '2026-11-25T05:00:00Z', status: 'SUCCESS', rowsProcessed: 1420 };
+          else if (path === '/sync/mappings') bodyData = [];
+
+          return Promise.resolve(new Response(JSON.stringify(bodyData), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          }));
         }
-      });
+        return origFetch.apply(this, arguments);
+      };
 
-      // Offline API & Auth Bootstrap for Static Portfolio Showcase
-      (function() {
-        var LOC_BOGOR = '11111111-1111-4111-8111-111111111111';
-        var LOC_NGANJUK = '22222222-2222-4222-8222-222222222222';
-        var LOCATIONS = [
-          { id: LOC_BOGOR, code: 'BOGOR', name: 'Fasilitas Produksi Bogor' },
-          { id: LOC_NGANJUK, code: 'NGANJUK', name: 'Fasilitas Produksi Nganjuk' }
-        ];
-        var AUTH_USER = {
-          id: 'u-admin-1',
-          name: 'Aryo Ananta',
-          email: 'aryo@maknaworks.co.id',
-          role: 'ADMIN',
-          permissions: [
-            'dashboard:read', 'dashboard:sales', 'dashboard:production', 'dashboard:inventory',
-            'finance:read', 'export:run', 'approval:create', 'approval:read_all',
-            'approval:decide', 'field:activity', 'warehouse:ops', 'user:manage',
-            'audit:read', 'sync:manage', 'location:all'
-          ],
-          locationIds: [LOC_BOGOR, LOC_NGANJUK],
-          defaultLocationId: LOC_BOGOR,
-          mustChangePassword: false
-        };
+      // Keep relative asset URLs anchored to /projects/maknaworks/ before routing to /penjualan
+    })();
+  </script>
+  <style>
+    html,
+    body,
+    #root,
+    * {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
 
-        var SALES_DATA = {
-          meta: { locationId: LOC_BOGOR, from: '2026-11-01', to: '2026-11-25', daysElapsed: 25, daysInMonth: 30, lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
-          cards: {
-            revenue: 1485000000,
-            previousMonthRevenue: 1320000000,
-            soldQty: 18450,
-            forecastQty: 20000,
-            soldVsForecastPct: 92.3,
-            projectedMonthEndQty: 22140,
-            stockShortageQty: 320,
-            shortageSkuCount: 2,
-            emptySkuCount: 0,
-            criticalSkuCount: 1,
-            stockValue: 842000000
-          },
-          daily: [
-            { date: '2026-11-19', qty: 720, revenue: 58400000 },
-            { date: '2026-11-20', qty: 840, revenue: 67200000 },
-            { date: '2026-11-21', qty: 690, revenue: 55100000 },
-            { date: '2026-11-22', qty: 910, revenue: 74800000 },
-            { date: '2026-11-23', qty: 780, revenue: 63900000 },
-            { date: '2026-11-24', qty: 960, revenue: 79200000 },
-            { date: '2026-11-25', qty: 880, revenue: 71500000 }
-          ],
-          products: [
-            { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', soldQty: 8400, forecastQty: 9000, pct: 93.3, stockQty: 2450, status: 'SAFE' },
-            { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', soldQty: 5200, forecastQty: 5500, pct: 94.5, stockQty: 620, status: 'MINIMUM' },
-            { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', soldQty: 3150, forecastQty: 3500, pct: 90.0, stockQty: 180, status: 'CRITICAL' },
-            { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', soldQty: 1700, forecastQty: 2000, pct: 85.0, stockQty: 1120, status: 'SAFE' }
-          ]
-        };
-
-        var INVENTORY_DATA = {
-          meta: { locationId: LOC_BOGOR, lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
-          cards: { totalSku: 42, safeCount: 34, minimumCount: 5, criticalCount: 3, emptyCount: 0, stockValue: 842000000 },
-          rows: [
-            { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', qty: 2450, minStock: 1000, safetyStock: 1500, status: 'SAFE', value: 318500000, syncedAt: '2026-11-25T05:00:00Z' },
-            { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', qty: 620, minStock: 500, safetyStock: 750, status: 'MINIMUM', value: 148800000, syncedAt: '2026-11-25T05:00:00Z' },
-            { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', qty: 180, minStock: 300, safetyStock: 500, status: 'CRITICAL', value: 64800000, syncedAt: '2026-11-25T05:00:00Z' },
-            { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', qty: 1120, minStock: 400, safetyStock: 600, status: 'SAFE', value: 106400000, syncedAt: '2026-11-25T05:00:00Z' },
-            { sku: 'MW-KAR-25', name: 'Karung Woven Laminasi 25kg', qty: 940, minStock: 1000, safetyStock: 1500, status: 'CRITICAL', value: 23500000, syncedAt: '2026-11-25T05:00:00Z' }
-          ]
-        };
-
-        var PRODUCTION_DATA = {
-          meta: { locationId: LOC_BOGOR, period: '2026-11', lastSuccessAt: '2026-11-25T05:00:00Z', stale: false },
-          cards: { totalTarget: 22000, totalActual: 19680, achievementPct: 89.5, skuReached: 14, skuBelow: 4 },
-          rows: [
-            { sku: 'MW-ORG-25', name: 'Pupuk Organik Granul 25kg', target: 9000, actual: 8650, pct: 96.1, gap: -350 },
-            { sku: 'MW-BIO-05', name: 'Bio-Stimulant Cair 5L', target: 5500, actual: 5580, pct: 101.5, gap: 80 },
-            { sku: 'MW-NPK-50', name: 'NPK Humic Compound 50kg', target: 4500, actual: 3420, pct: 76.0, gap: -1080 },
-            { sku: 'MW-SIL-01', name: 'Silika Cair Konsentrat 1L', target: 3000, actual: 2030, pct: 67.7, gap: -970 }
-          ]
-        };
-
-        var origFetch = window.fetch;
-        window.fetch = function(input, init) {
-          var url = typeof input === 'string' ? input : (input && input.url) || '';
-          if (url.indexOf('localhost:3000') !== -1 || url.indexOf('/api/') !== -1) {
-            var path = url.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
-            var bodyData = {};
-            if (path === '/auth/refresh' || path === '/auth/login') bodyData = { accessToken: 'maknaworks-demo-token', user: AUTH_USER };
-            else if (path === '/me') bodyData = AUTH_USER;
-            else if (path === '/locations') bodyData = LOCATIONS;
-            else if (path === '/dashboard/sales') bodyData = SALES_DATA;
-            else if (path === '/dashboard/inventory') bodyData = INVENTORY_DATA;
-            else if (path === '/dashboard/production') bodyData = PRODUCTION_DATA;
-            else if (path === '/approvals') bodyData = [
-              { id: 'apr-1', type: 'STOCK_ADJUSTMENT', status: 'PENDING', title: 'Penyesuaian Opname Bahan Baku Kompos', requestedBy: 'Kepala Gudang Bogor', createdAt: '2026-11-25T03:15:00Z', amount: 18500000 }
-            ];
-            else if (path === '/users') bodyData = [
-              { id: 'u-admin-1', name: 'Aryo Ananta', email: 'aryo@maknaworks.co.id', role: 'ADMIN', division: 'IT & Systems', active: true, mustChangePassword: false, defaultLocationId: LOC_BOGOR, locations: LOCATIONS, extraPermissions: [], lastLoginAt: '2026-11-25T05:00:00Z', createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-11-25T00:00:00Z' }
-            ];
-            else if (path === '/audit-logs') bodyData = { items: [], nextCursor: null };
-            else if (path === '/sync/status') bodyData = { lastSyncAt: '2026-11-25T05:00:00Z', status: 'SUCCESS', rowsProcessed: 1420 };
-            else if (path === '/sync/mappings') bodyData = [];
-
-            return Promise.resolve(new Response(JSON.stringify(bodyData), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' }
-            }));
-          }
-          return origFetch.apply(this, arguments);
-        };
-
-        // Keep relative asset URLs anchored to /projects/maknaworks/ before routing to /penjualan
-      })();
-    </script>
-    <style>
-      html, body, #root, * {
-        -webkit-user-select: none !important;
-        user-select: none !important;
-        -webkit-touch-callout: none !important;
+    @media print {
+      body {
+        display: none !important;
+        visibility: hidden !important;
       }
-      @media print {
-        body { display: none !important; visibility: hidden !important; }
-      }
-    </style>
-    <script>
-      ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function(evt) {
-        window.addEventListener(evt, function(e) { e.preventDefault(); }, true);
-      });
-    </script>
-    <script type="module" crossorigin src="./assets/index-nigyFKql.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-38OHbNsg.css">
-    <script>
-      try {
-        history.replaceState(null, '', '/penjualan');
-      } catch (e) {}
-    </script>
-  </head>
-  <body class="bg-background text-foreground antialiased">
-    <div id="root"></div>
-  </body>
+    }
+  </style>
+  <script>
+    ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (evt) {
+      window.addEventListener(evt, function (e) { e.preventDefault(); }, true);
+    });
+  </script>
+  <script type="module" crossorigin src="./assets/index-D9N0rRyI.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-C54kZvbs.css">
+  <script>
+    try {
+      history.replaceState(null, '', '/penjualan');
+    } catch (e) { }
+  </script>
+</head>
+
+<body class="bg-background text-foreground antialiased">
+  <div id="root"></div>
+</body>
+
 </html>
