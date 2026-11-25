@@ -379,10 +379,9 @@ test('MaknaMoodboardPreview renders makna_works_branding_moodboard.webp with cli
   assert.ok(previewContent.includes('contextmenu') || previewContent.includes('onContextMenu'), 'Must prevent direct image saving via contextmenu prevention');
 
   // Must focus on Makna Works Brand Guidelines and purge photography/portraiture mentions
-  assert.ok(workGridContent.includes('Makna Works Brand Guidelines'), 'Project 8 title must be Makna Works Brand Guidelines');
-  assert.ok(!workGridContent.includes('Visual Identity & Photo'), 'Must remove photo mentions from Project 8');
-  assert.ok(workGridContent.includes('Brand & Design Systems'), 'Project 8 category must be Brand & Design Systems');
-  assert.ok(workGridContent.includes('brand guideline'), 'Case study must focus on brand guideline manual');
+  assert.ok(workGridContent.includes('Makna Works Brand Guidelines'), 'Standalone section must include Makna Works Brand Guidelines');
+  assert.ok(!workGridContent.includes('Visual Identity & Photo'), 'Must remove photo mentions');
+  assert.ok(workGridContent.includes('Brand &amp; Design Systems') || workGridContent.includes('Brand & Design Systems'), 'Standalone section must note Brand & Design Systems');
 });
 
 test('raja_ampat_snorkel_day.html and ulun_danu_lake_bratan_material_studies.html embed tamper-resistant author signature in middle section', () => {

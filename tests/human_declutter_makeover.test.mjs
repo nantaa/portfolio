@@ -88,10 +88,10 @@ describe("Human UI/UX Makeover & Screenshot Issue Resolutions", () => {
     const workGridPath = path.join(rootDir, "frontend", "src", "components", "WorkGrid.tsx");
     const content = fs.readFileSync(workGridPath, "utf-8");
 
-    // Makna Works must render MaknaMoodboardPreview
+    // Makna Works must render MaknaMoodboardPreview in standalone section
     assert.ok(
-      content.includes("project.id === 8 ? (") && content.includes("<MaknaMoodboardPreview />"),
-      "WorkGrid must render MaknaMoodboardPreview for project 8"
+      content.includes("<MaknaMoodboardPreview />") && !content.includes("title: \"Makna Works Brand Guidelines\""),
+      "WorkGrid must render MaknaMoodboardPreview in standalone section outside CORE_PROJECTS"
     );
 
     // No overlapping 1-CLICK LAUNCH badges

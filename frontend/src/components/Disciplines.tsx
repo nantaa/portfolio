@@ -13,62 +13,48 @@ interface DisciplinePillar {
 const PRIMARY_CAPABILITIES: DisciplinePillar[] = [
   {
     num: "01",
-    title: "Systems & Enterprise Architecture",
-    subtitle: "ACID compliance pipelines, statutory Disnaker SLA state engines, and zero-downtime releases.",
-    stack: "Laravel 11 · PostgreSQL · React 19 Inertia · Docker",
-    deliverables: "270+ Passing Tests · Automated Daily Dispatch · Atomic Symlinks",
+    title: "Full-Stack Web Applications",
+    subtitle: "End-to-end web apps, internal ERPs, and multi-step business workflows.",
+    stack: "Laravel · NestJS · React · TypeScript · PostgreSQL",
+    deliverables: "REST APIs · Role-Based Access · Production Releases",
   },
   {
     num: "02",
-    title: "Real-Time 3D & Creative Engineering",
-    subtitle: "Procedural WebGL dioramas, custom GLSL wave/caustic shaders, and GPU-safe staging.",
-    stack: "Three.js · GLSL · RoomEnvironment IBL · WebGL",
-    deliverables: "60 FPS Mobile Orbit · Zero-RAM Static Export · Parametric Architecture",
+    title: "3D Web & Interactive Graphics",
+    subtitle: "Browser-based 3D scenes, custom shaders, and smooth scroll choreography.",
+    stack: "Three.js · WebGL2 · GLSL · GSAP",
+    deliverables: "Interactive Viewports · Custom Shaders · Responsive Canvas",
   },
   {
     num: "03",
-    title: "Algorithms & Combinatorial Optimization",
-    subtitle: "Stable matching and bipartite assignment optimization with verified convergence.",
-    stack: "Gale-Shapley · Hungarian Matrix · Markov Chains · REST",
-    deliverables: "88 Algorithm Tests · Zero Deadlocks · 9-Stage Academic Progression",
+    title: "Backend Systems & Optimization",
+    subtitle: "REST APIs, role-based access control, and scheduling or matching logic.",
+    stack: "Node.js · PHP · MySQL · PostgreSQL · REST",
+    deliverables: "Data Modeling · Automated Testing · Query Tuning",
   },
   {
     num: "04",
-    title: "Cloud Infrastructure & Reliability Operations",
-    subtitle: "Virtual private networking, encrypted mesh nodes, and zero-daemon static pipelines.",
-    stack: "WireGuard VPN · Nginx · Linux VPS · GitHub Actions",
-    deliverables: "Strict Timeout CI/CD · 512MB RAM Budget · Isolated Mesh Tunnels",
+    title: "Deployment & Infrastructure",
+    subtitle: "Linux server setup, reverse proxies, private networking, and CI/CD pipelines.",
+    stack: "Linux · Nginx · Docker · WireGuard · GitHub Actions",
+    deliverables: "Automated Builds · SSL & Reverse Proxy · Zero-Downtime Deploys",
   },
 ];
 
 const SECONDARY_CAPABILITIES: DisciplinePillar[] = [
   {
     num: "05",
-    title: "Spatial AI & GIS Analytics",
-    subtitle: "High-resolution satellite imagery inspection and spatial raster analysis.",
-    stack: "Vue 3 · Spatial AI X-Ray · GSAP · Aerial Rasters",
-    deliverables: "Bekasi Sample Case · Seamless Multi-Spectrum Imagery Inspection",
+    title: "Spatial & Data Visualization",
+    subtitle: "Interactive map overlays, raster inspection tools, and real-time dashboards.",
+    stack: "Vue 3 · Canvas 2D · GIS · WebSockets",
+    deliverables: "Multi-Layer Inspection · Live Telemetry Views",
   },
   {
     num: "06",
-    title: "AI Agent Workflows & LLM Integration",
-    subtitle: "Structured schema pipelines and multi-turn financial record categorization.",
-    stack: "Next.js · Prisma · Express · Gemini 2.0 Flash",
-    deliverables: "Direct Financial Extraction · Structured OCR Parsing",
-  },
-  {
-    num: "07",
-    title: "Enterprise Support & Real-Time Messaging",
-    subtitle: "Automated ticket escalation with multi-channel WhatsApp Cloud webhooks.",
-    stack: "Next.js 16 · Laravel 11 · WhatsApp Cloud API · Soketi",
-    deliverables: "Sub-Second Ticket Updates · Dual-Channel Helpdesk Routing",
-  },
-  {
-    num: "08",
-    title: "Visual Identity & Design Systems",
-    subtitle: "High-contrast architectural typography, design tokens, and accessible ergonomics.",
-    stack: "Figma · Design Tokens · WCAG 2.2 AA · Micro-Motion",
-    deliverables: "Complete Dark/Light Linen Palettes · Zero Layout Shift",
+    title: "UI Systems & Brand Design",
+    subtitle: "Design systems, responsive layouts, accessibility, and visual brand guidelines.",
+    stack: "Figma · Tailwind CSS · Design Tokens · WCAG AA",
+    deliverables: "Component Libraries · Light & Dark Themes",
   },
 ];
 
@@ -78,8 +64,8 @@ export default function Disciplines() {
   return (
     <>
       <div className="sec-hd" id="disciplines">
-        <span className="sec-lbl">Architectural Capabilities</span>
-        <span className="sec-ct">08 Verified Engineering Domains</span>
+        <span className="sec-lbl">Disciplines</span>
+        <span className="sec-ct">06 Core Disciplines</span>
       </div>
 
       <div className="disc-table">
@@ -112,7 +98,7 @@ export default function Disciplines() {
         >
           <div className="dx-icon"></div>
           <span className="dx-lbl">
-            {discOpen ? "Collapse secondary capabilities" : "Expand secondary capabilities (05 — 08)"}
+            {discOpen ? "Collapse additional disciplines" : "Expand additional disciplines (05 — 06)"}
           </span>
         </div>
 

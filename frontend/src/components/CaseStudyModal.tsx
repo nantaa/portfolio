@@ -196,6 +196,7 @@ export default function CaseStudyModal({
   const getDirectUrl = (p: Project) => {
     if (p.id === 1) return "/projects/moriku/index.html?v=20261125c";
     if (p.id === 2) {
+      if (activeStudyIndex === 2) return "/dusk_orbit.html";
       return activeStudyIndex === 1
         ? "/ulun_danu_lake_bratan_material_studies.html"
         : "/raja_ampat_snorkel_day.html";
@@ -284,16 +285,6 @@ export default function CaseStudyModal({
         <div className="w-full max-w-4xl h-full max-h-[720px] flex flex-col">
           {/* Replaced AcademicDocketPreview, GeopetakPreview, and ExpenseTrackerPreview with live iframes above */}
           {/* Commented out Delta IT Helpdesk preview per user request */}
-          {p.id === 8 && (
-            <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-auto">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/makna_works_branding_moodboard.webp"
-                alt="Makna Works Brand Guidelines"
-                className="max-h-[660px] w-auto max-w-full object-contain rounded-[2px] shadow-lg border border-[var(--wire)]"
-              />
-            </div>
-          )}
         </div>
       </div>
     );
@@ -404,6 +395,7 @@ export default function CaseStudyModal({
               {[
                 { label: "01 Raja Ampat", idx: 0 },
                 { label: "02 Ulun Danu", idx: 1 },
+                { label: "03 Dusk Orbit", idx: 2 },
               ].map((item) => {
                 const isActive = activeStudyIndex === item.idx;
                 return (

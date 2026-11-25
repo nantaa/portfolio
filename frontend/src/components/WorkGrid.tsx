@@ -153,24 +153,6 @@ const CORE_PROJECTS: Project[] = [
       result: "Fluid 60fps interactive 3D vault experience with synchronized scroll-driven camera motion.",
     },
   },
-  {
-    id: 8,
-    title: "Makna Works Brand Guidelines",
-    category: "Brand & Design Systems",
-    subtitle: "Brand Guidelines · Visual Identity & Geometric Design System",
-    outcome_metric: "100% Brand Token System Specimen",
-    image_url: null,
-    link: null,
-    year: "2025",
-    sort_order: 7,
-    is_featured: false,
-    case_study: {
-      problem: "Makna Works lacked a unified brand guideline manual, causing fragmented color usage, inconsistent typography scales, and dilution of the agency's geometric identity across client deliverables.",
-      thinking: "Engineered an authoritative brand guideline system establishing strict typographic hierarchy, optical logo clearspace, geometric grid construction, and high-contrast palette tokens.",
-      execution: "Figma design tokens, vector logo geometry, editorial layout grid, multi-format collateral specs, and interactive digital guidelines.",
-      result: "100% visual consistency across digital, print, and collateral merchandise with streamlined client design handover.",
-    },
-  },
 ];
 
 const ALL_PROJECTS = CORE_PROJECTS.map((p) => ({ ...p, coming_soon: false }));
@@ -478,8 +460,6 @@ export default function WorkGrid({ projects }: WorkGridProps) {
               {project.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={project.image_url} alt={project.title} />
-              ) : project.id === 8 ? (
-                <MaknaMoodboardPreview />
               ) : (
                 renderCardCover(project, i)
               )}
@@ -528,6 +508,19 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           );
         })}
       </div>
+
+      {/* Standalone Clickable Brand Guidelines Section */}
+      <section id="brand-guidelines" aria-label="Makna Works Brand Guidelines">
+        <div className="sec-hd">
+          <span className="sec-lbl">Brand &amp; Design Systems</span>
+          <span className="sec-ct">Makna Works Brand Guidelines</span>
+        </div>
+        <div className="w-full">
+          <div className="w-full h-[460px] sm:h-[580px] overflow-hidden border-b border-[var(--wire)]">
+            <MaknaMoodboardPreview />
+          </div>
+        </div>
+      </section>
 
       {/* Case Study & Project Pop-Up Modal */}
       <CaseStudyModal

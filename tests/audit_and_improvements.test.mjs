@@ -12,8 +12,8 @@ test('index.html contains full 8-project roster and zero legacy 04 count', () =>
   assert.ok(fs.existsSync(indexPath), 'index.html must exist');
   const content = fs.readFileSync(indexPath, 'utf-8');
 
-  // Must declare 08 projects
-  assert.ok(content.includes('08 projects'), 'index.html must state 08 projects in section header');
+  // Must declare 07 projects
+  assert.ok(content.includes('07 projects'), 'index.html must state 07 projects in section header');
   assert.ok(!content.includes('04 projects'), 'index.html must not retain legacy 04 projects count');
 
   // Must include all 8 project cards

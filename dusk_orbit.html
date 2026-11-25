@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dusk Orbit — interceptor · megastation · long shadows</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #09080f;
+      color: #e6dfd3;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+    @media print {
+      body { display: none !important; visibility: hidden !important; }
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #glCanvas { z-index: 1; }
+    #hudCanvas { z-index: 2; pointer-events: none; }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #09080f;
+      transition: opacity 0.35s ease;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .loader-label {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9be8f0;
+    }
+    .loader-track {
+      width: 240px;
+      height: 8px;
+      border: 1px solid #384152;
+      background: #12141c;
+      padding: 1px;
+    }
+    .loader-fill {
+      width: 0%;
+      height: 100%;
+      background: #5de4f5;
+      transition: width 0.08s linear;
+    }
+
+    #titleCard {
+      position: fixed;
+      top: 16%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      text-shadow: 0 2px 0 #09080f, 0 0 18px rgba(9, 8, 15, 0.9);
+    }
+    #titleCard.fade { opacity: 0; }
+    #titleCard h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #f4ece0;
+      font-weight: 700;
+    }
+    #titleCard p {
+      margin-top: 6px;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: #d99b66;
+    }
+
+    #soundBtn {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 15;
+      background: rgba(14, 15, 22, 0.85);
+      border: 1px solid #394557;
+      color: #d7e4ec;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    #soundBtn:hover { border-color: #5de4f5; color: #ffffff; }
+
+    #hintsStrip {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      background: rgba(9, 10, 16, 0.72);
+      border: 1px solid rgba(93, 228, 245, 0.2);
+      color: #b7c3cf;
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      padding: 5px 12px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #touchControls {
+      position: fixed;
+      bottom: 42px;
+      right: 12px;
+      z-index: 15;
+      display: none;
+      gap: 8px;
+    }
+    .touch-btn {
+      background: rgba(14, 16, 24, 0.82);
+      border: 1px solid #4a5a70;
+      color: #e6f6ff;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 10px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    @media (pointer: coarse) {
+      #touchControls { display: flex; }
+      #hintsStrip { font-size: 9px; padding: 4px 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #loader, #titleCard { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="glCanvas"></canvas>
+  <canvas id="hudCanvas"></canvas>
+
+  <div id="loader">
+    <div class="loader-label">Bringing the reactor up</div>
+    <div class="loader-track"><div class="loader-fill" id="loaderFill"></div></div>
+  </div>
+
+  <div id="titleCard">
+    <h1>Dusk Orbit</h1>
+    <p>interceptor · megastation · long shadows</p>
+  </div>
+
+  <button id="soundBtn" type="button">Sound: off</button>
+
+  <div id="touchControls">
+    <button class="touch-btn" id="btnView" type="button">View</button>
+    <button class="touch-btn" id="btnBoost" type="button">Boost</button>
+    <button class="touch-btn" id="btnLaser" type="button">Fire</button>
+  </div>
+
+  <div id="hintsStrip">
+    Mouse: steer · Left-hold: boost · Click/R: roll · Right-click/F: lasers · Space/1-3: view · M: sound
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // Modal Escape bridge & anti-copy guards
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        try { window.parent.postMessage('close-modal', '*'); } catch (_) {}
+      }
+    });
+    ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (evt) {
+      window.addEventListener(evt, function (e) { e.preventDefault(); }, true);
+    });
+
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const glCanvas = document.getElementById('glCanvas');
+    const hudCanvas = document.getElementById('hudCanvas');
+    const hudCtx = hudCanvas.getContext('2d');
+    const loaderEl = document.getElementById('loader');
+    const loaderFill = document.getElementById('loaderFill');
+    const titleCard = document.getElementById('titleCard');
+    const soundBtn = document.getElementById('soundBtn');
+
+    // ─── Web Audio Synthesizer (silent until toggled on) ──────────────────────
+    let audioCtx = null;
+    let soundEnabled = false;
+    let engineOsc = null;
+    let engineGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+      engineOsc = audioCtx.createOscillator();
+      engineGain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 240;
+      engineOsc.type = 'sawtooth';
+      engineOsc.frequency.value = 62;
+      engineGain.gain.value = 0.0;
+      engineOsc.connect(filter);
+      filter.connect(engineGain);
+      engineGain.connect(audioCtx.destination);
+      engineOsc.start();
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      soundBtn.textContent = soundEnabled ? 'Sound: on' : 'Sound: off';
+      if (soundEnabled) {
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } else if (engineGain && audioCtx) {
+        engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
+      }
+    }
+    soundBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      toggleSound();
+    });
+
+    function playLaserSound() {
+      if (!soundEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(920, now);
+      osc.frequency.exponentialRampToValueAtTime(190, now + 0.11);
+      g.gain.setValueAtTime(0.08, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(g);
+      g.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    }
+
+    function playImpactSound() {
+      if (!soundEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(38, now + 0.16);
+      g.gain.setValueAtTime(0.14, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+      osc.connect(g);
+      g.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.17);
+    }
+
+    // ─── Web Worker: Seamless Megastation Height & Tower Grid Generator ──────
+    const MAP_SIZE = 256;
+    const workerSrc = `
+      self.onmessage = function() {
+        const N = ${MAP_SIZE};
+        const data = new Uint8Array(N * N * 4);
+        function hash(x, y) {
+          let h = (x * 374761393 + y * 668265263) ^ 0x5bf03635;
+          h = (h ^ (h >> 13)) * 1274126177;
+          return ((h ^ (h >> 16)) >>> 0) / 4294967296;
+        }
+        for (let y = 0; y < N; y++) {
+          if (y % 32 === 0) {
+            self.postMessage({ type: 'progress', value: Math.round((y / N) * 100) });
+          }
+          for (let x = 0; x < N; x++) {
+            const idx = (y * N + x) * 4;
+            const gx = x & 31;
+            const gy = y & 31;
+            const cx = x >> 3;
+            const cy = y >> 3;
+            const cellRand = hash(cx & 31, cy & 31);
+            const subRand = hash(x, y);
+
+            // Base stepped deck height
+            let deck = 46 + (Math.floor(hash(x >> 4, y >> 4) * 3) * 18);
+            let feature = 0; // 0=deck, 64=main trench, 128=side trench, 192=hangar/dome, 255=conduit
+            let seam = ((gx === 0 || gy === 0) ? 200 : 40);
+            let tower = 0;
+
+            // Wide main trench along x in [112..144] and cross trench y in [118..138]
+            const inMainTrench = (x >= 112 && x <= 144);
+            const inSideTrench = (y >= 120 && y <= 136 && !inMainTrench);
+            const inHangar = ((x >= 44 && x <= 84 && y >= 44 && y <= 84));
+            const dxDome = x - 200, dyDome = y - 64;
+            const inDome = (dxDome * dxDome + dyDome * dyDome) < 22 * 22;
+
+            if (inMainTrench) {
+              deck = 14;
+              feature = (x >= 126 && x <= 130) ? 255 : 64; // glowing conduit along center
+              seam = 20;
+            } else if (inSideTrench) {
+              deck = 22;
+              feature = (y >= 127 && y <= 129) ? 255 : 128;
+              seam = 25;
+            } else if (inHangar) {
+              deck = 18;
+              feature = 192;
+              seam = (x === 44 || x === 84 || y === 44 || y === 84) ? 220 : 60;
+            } else if (inDome) {
+              const dist = Math.sqrt(dxDome * dxDome + dyDome * dyDome) / 22;
+              deck = Math.min(255, Math.round(70 + Math.sqrt(Math.max(0, 1 - dist * dist)) * 75));
+              feature = 192;
+              seam = 30;
+            } else {
+              // Gun emplacements along main trench rims
+              const onRim = (x >= 104 && x <= 111) || (x >= 145 && x <= 152);
+              if (onRim && (y % 16 >= 4 && y % 16 <= 10)) {
+                tower = 42;
+                feature = 96;
+              } else if ((x & 7) >= 2 && (x & 7) <= 6 && (y & 7) >= 2 && (y & 7) <= 6 && cellRand > 0.38) {
+                tower = Math.round(28 + cellRand * 120);
+                if (subRand > 0.72) seam = 240; // lit window / warning light seed
+              }
+            }
+
+            data[idx] = deck;
+            data[idx + 1] = feature;
+            data[idx + 2] = seam;
+            data[idx + 3] = tower;
+          }
+        }
+        self.postMessage({ type: 'done', buffer: data.buffer }, [data.buffer]);
+      };
+    `;
+
+    // ─── WebGL2 Setup ────────────────────────────────────────────────────────
+    const gl = glCanvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+    if (!gl) {
+      loaderEl.innerHTML = '<div class="loader-label">WebGL2 unavailable</div>';
+      return;
+    }
+
+    function compileShader(type, src) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(s) || 'Shader error');
+      }
+      return s;
+    }
+
+    function createProgram(vsSrc, fsSrc) {
+      const p = gl.createProgram();
+      gl.attachShader(p, compileShader(gl.VERTEX_SHADER, vsSrc));
+      gl.attachShader(p, compileShader(gl.FRAGMENT_SHADER, fsSrc));
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(p) || 'Link error');
+      }
+      return p;
+    }
+
+    // Fullscreen quad VAO
+    const quadVao = gl.createVertexArray();
+    gl.bindVertexArray(quadVao);
+    const quadBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    // ─── Pass 1A: Ray-Marched World + Space Skybox + Hard Sun Shadows ────────
+    const worldVS = `#version 300 es
+      layout(location = 0) in vec2 aPos;
+      out vec2 vUv;
+      void main() {
+        vUv = aPos * 0.5 + 0.5;
+        gl_Position = vec4(aPos, 0.0, 1.0);
+      }
+    `;
+
+    const worldFS = `#version 300 es
+      precision highp float;
+      in vec2 vUv;
+      out vec4 outColor;
+
+      uniform sampler2D uMap;
+      uniform vec3 uCamPos;
+      uniform mat3 uCamMat;
+      uniform vec2 uRes;
+      uniform float uTime;
+      uniform vec3 uSunDir;
+      uniform vec3 uScorch[8];
+      uniform float uScorchCount;
+
+      // 4x4 Bayer matrix
+      float bayer4(vec2 p) {
+        int x = int(mod(p.x, 4.0));
+        int y = int(mod(p.y, 4.0));
+        int idx = y * 4 + x;
+        float m[16] = float[16](
+          0.0, 8.0, 2.0, 10.0,
+          12.0, 4.0, 14.0, 6.0,
+          3.0, 11.0, 1.0, 9.0,
+          15.0, 7.0, 13.0, 5.0
+        );
+        return (m[idx] + 0.5) / 16.0;
+      }
+
+      // 4-tone dusk ramp quantization with Bayer dithering in penumbras
+      vec3 quantizeRamp(vec3 col, float lum, float dither, vec3 t0, vec3 t1, vec3 t2, vec3 t3) {
+        float v = lum + (dither - 0.5) * 0.16;
+        if (v < 0.25) return t0;
+        if (v < 0.52) return t1;
+        if (v < 0.78) return t2;
+        return t3;
+      }
+
+      vec4 sampleWorld(vec2 xz) {
+        return texture(uMap, fract(xz * 0.00390625)); // 1 / 256
+      }
+
+      float getTerrainHeight(vec2 xz) {
+        vec4 s = sampleWorld(xz);
+        return s.r * 12.0 + s.a * 16.0;
+      }
+
+      vec3 spaceBackdrop(vec3 dir, float dither) {
+        vec3 bg = vec3(0.035, 0.03, 0.06);
+        // Soft nebula band
+        float neb = sin(dir.x * 3.1 + dir.y * 2.2) * cos(dir.z * 2.7 - dir.y * 1.9);
+        if (neb + (dither - 0.5) * 0.25 > 0.32) bg = vec3(0.11, 0.07, 0.16);
+        // Stars
+        vec2 suv = floor(vec2(atan(dir.z, dir.x), asin(clamp(dir.y, -1.0, 1.0))) * 140.0);
+        float sh = fract(sin(dot(suv, vec2(127.1, 311.7))) * 43758.5453);
+        if (sh > 0.994) bg = vec3(0.95, 0.92, 0.86);
+        // Ringed planet
+        vec3 pDir = normalize(vec3(-0.42, 0.34, -0.84));
+        float pAng = acos(clamp(dot(dir, pDir), -1.0, 1.0));
+        if (pAng < 0.16) {
+          float lit = dot(normalize(dir - pDir * cos(pAng)), uSunDir) * 0.5 + 0.5;
+          bg = quantizeRamp(bg, lit, dither, vec3(0.08, 0.06, 0.12), vec3(0.24, 0.16, 0.22), vec3(0.55, 0.36, 0.30), vec3(0.86, 0.64, 0.44));
+        }
+        // Sun disc
+        float sAng = dot(dir, uSunDir);
+        if (sAng > 0.996) bg = vec3(1.0, 0.92, 0.72);
+        else if (sAng > 0.988 && dither > 0.5) bg = vec3(0.92, 0.56, 0.30);
+        return bg;
+      }
+
+      void main() {
+        vec2 px = gl_FragCoord.xy;
+        float dither = bayer4(px);
+        vec2 ndc = (vUv * 2.0 - 1.0);
+        ndc.x *= uRes.x / uRes.y;
+        vec3 rd = normalize(uCamMat * vec3(ndc.x, ndc.y, -1.45));
+        vec3 ro = uCamPos;
+
+        float t = 0.2;
+        bool hit = false;
+        vec3 hitPos = vec3(0.0);
+        vec4 hitSample = vec4(0.0);
+        vec3 hitNorm = vec3(0.0, 1.0, 0.0);
+
+        // Ray-march megastation hull & DDA-stepped towers
+        if (rd.y < 0.18) {
+          for (int i = 0; i < 88; i++) {
+            vec3 p = ro + rd * t;
+            if (p.y > 42.0 && rd.y > 0.0) break;
+            float h = getTerrainHeight(p.xz);
+            if (p.y <= h) {
+              // Refine hit
+              float tPrev = max(0.2, t - 0.9);
+              for (int j = 0; j < 4; j++) {
+                float mid = 0.5 * (tPrev + t);
+                vec3 mp = ro + rd * mid;
+                if (mp.y <= getTerrainHeight(mp.xz)) t = mid;
+                else tPrev = mid;
+              }
+              hitPos = ro + rd * t;
+              hitSample = sampleWorld(hitPos.xz);
+              float eps = 0.35;
+              float hx = getTerrainHeight(hitPos.xz + vec2(eps, 0.0)) - getTerrainHeight(hitPos.xz - vec2(eps, 0.0));
+              float hz = getTerrainHeight(hitPos.xz + vec2(0.0, eps)) - getTerrainHeight(hitPos.xz - vec2(0.0, eps));
+              hitNorm = normalize(vec3(-hx, 2.0 * eps, -hz));
+              hit = true;
+              break;
+            }
+            t += max(0.45, (p.y - h) * 0.42 + t * 0.015);
+            if (t > 240.0) break;
+          }
+        }
+
+        if (!hit) {
+          outColor = vec4(spaceBackdrop(rd, dither), 1.0);
+          return;
+        }
+
+        // Long hard shadow march toward low sun
+        float shadow = 1.0;
+        float st = 0.8;
+        for (int i = 0; i < 28; i++) {
+          vec3 sp = hitPos + uSunDir * st;
+          if (sp.y < getTerrainHeight(sp.xz)) {
+            shadow = 0.0;
+            break;
+          }
+          st += 1.6;
+        }
+
+        float diff = max(0.0, dot(hitNorm, uSunDir)) * shadow;
+        float distFade = clamp(1.0 - t / 240.0, 0.0, 1.0);
+        float lum = clamp(0.14 + diff * 0.82, 0.0, 1.0) * (0.45 + 0.55 * distFade);
+
+        // 4-tone hull ramp
+        vec3 col = quantizeRamp(
+          vec3(0.0), lum, dither,
+          vec3(0.07, 0.07, 0.11),
+          vec3(0.18, 0.17, 0.24),
+          vec3(0.38, 0.35, 0.42),
+          vec3(0.76, 0.60, 0.48)
+        );
+
+        // Glowing trench conduit
+        if (hitSample.g > 0.92) {
+          col = vec3(0.36, 0.92, 0.96);
+        } else if (hitSample.b > 0.88 && hitSample.a > 0.05) {
+          // Lit tower windows & warning lights
+          col = (fract(hitPos.x + hitPos.z) > 0.5) ? vec3(0.95, 0.65, 0.24) : vec3(0.92, 0.25, 0.28);
+        }
+
+        // Scorch marks from laser impacts
+        for (int s = 0; s < 8; s++) {
+          if (float(s) >= uScorchCount) break;
+          if (distance(hitPos.xz, uScorch[s].xz) < 1.35) {
+            col = vec3(0.05, 0.04, 0.06);
+          }
+        }
+
+        outColor = vec4(col, 1.0);
+      }
+    `;
+
+    // ─── Pass 1B: Flat-Shaded 3D Meshes (Fighter, Asteroids, Lasers, Sparks) ──
+    const meshVS = `#version 300 es
+      layout(location = 0) in vec3 aPos;
+      layout(location = 1) in vec3 aNorm;
+      uniform mat4 uProjView;
+      uniform mat4 uModel;
+      out vec3 vNorm;
+      out vec3 vWorld;
+      void main() {
+        vec4 w = uModel * vec4(aPos, 1.0);
+        vWorld = w.xyz;
+        vNorm = mat3(uModel) * aNorm;
+        gl_Position = uProjView * w;
+      }
+    `;
+
+    const meshFS = `#version 300 es
+      precision highp float;
+      in vec3 vNorm;
+      in vec3 vWorld;
+      out vec4 outColor;
+      uniform vec3 uSunDir;
+      uniform vec3 uTone0;
+      uniform vec3 uTone1;
+      uniform vec3 uTone2;
+      uniform float uAlphaMask;
+      void main() {
+        float d = dot(normalize(vNorm), uSunDir);
+        vec3 col = uTone1;
+        if (d > 0.35) col = uTone2;
+        else if (d < -0.1) col = uTone0;
+        outColor = vec4(col, uAlphaMask);
+      }
+    `;
+
+    // ─── Pass 2: 1-Pixel Ink Outline Around Fighter + Nearest Blit ───────────
+    const postFS = `#version 300 es
+      precision highp float;
+      in vec2 vUv;
+      out vec4 outColor;
+      uniform sampler2D uTex;
+      uniform vec2 uTexel;
+      void main() {
+        vec4 c = texture(uTex, vUv);
+        // Fighter writes alpha = 0.0; background/world writes alpha = 1.0
+        if (c.a > 0.5) {
+          float n0 = texture(uTex, vUv + vec2(uTexel.x, 0.0)).a;
+          float n1 = texture(uTex, vUv - vec2(uTexel.x, 0.0)).a;
+          float n2 = texture(uTex, vUv + vec2(0.0, uTexel.y)).a;
+          float n3 = texture(uTex, vUv - vec2(0.0, uTexel.y)).a;
+          if (min(min(n0, n1), min(n2, n3)) < 0.5) {
+            outColor = vec4(0.03, 0.02, 0.05, 1.0);
+            return;
+          }
+        }
+        outColor = vec4(c.rgb, 1.0);
+      }
+    `;
+
+    const worldProg = createProgram(worldVS, worldFS);
+    const meshProg = createProgram(meshVS, meshFS);
+    const postProg = createProgram(worldVS, postFS);
+
+    // ─── Build Flat-Shaded Low-Poly Geometry ─────────────────────────────────
+    function makeGeometry(verts) {
+      // verts: array of triangles [x,y,z, ...] (auto-computes flat face normals)
+      const data = new Float32Array((verts.length / 3) * 6);
+      for (let i = 0; i < verts.length; i += 9) {
+        const ax = verts[i], ay = verts[i + 1], az = verts[i + 2];
+        const bx = verts[i + 3], by = verts[i + 4], bz = verts[i + 5];
+        const cx = verts[i + 6], cy = verts[i + 7], cz = verts[i + 8];
+        const ux = bx - ax, uy = by - ay, uz = bz - az;
+        const vx = cx - ax, vy = cy - ay, vz = cz - az;
+        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const len = Math.hypot(nx, ny, nz) || 1;
+        nx /= len; ny /= len; nz /= len;
+        const base = (i / 3) * 6;
+        for (let k = 0; k < 3; k++) {
+          const p = i + k * 3;
+          const o = base + k * 6;
+          data[o] = verts[p]; data[o + 1] = verts[p + 1]; data[o + 2] = verts[p + 2];
+          data[o + 3] = nx; data[o + 4] = ny; data[o + 5] = nz;
+        }
+      }
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+      return { vao, count: verts.length / 3 };
+    }
+
+    // Sleek Delta Interceptor Mesh
+    const fighterMesh = makeGeometry([
+      // Nose & upper fuselage
+      0, 0.16, -1.6,  -0.36, 0.08, 0.7,  0.36, 0.08, 0.7,
+      0, 0.16, -1.6,  0.36, 0.08, 0.7,   0, 0.34, 0.1,
+      0, 0.16, -1.6,  0, 0.34, 0.1,      -0.36, 0.08, 0.7,
+      // Underbelly
+      0, 0.16, -1.6,  0.36, 0.08, 0.7,   0, -0.14, 0.5,
+      0, 0.16, -1.6,  0, -0.14, 0.5,     -0.36, 0.08, 0.7,
+      // Left & Right swept wings
+      -0.25, 0.08, -0.3, -1.45, -0.02, 0.85, -0.25, 0.08, 0.75,
+      0.25, 0.08, -0.3,  0.25, 0.08, 0.75,   1.45, -0.02, 0.85,
+      // Twin tail fins
+      -0.35, 0.1, 0.3,  -0.5, 0.56, 0.85,  -0.32, 0.1, 0.85,
+      0.35, 0.1, 0.3,   0.32, 0.1, 0.85,   0.5, 0.56, 0.85,
+    ]);
+
+    // Low-poly Octahedron for Asteroids & Bolts
+    const octMesh = makeGeometry([
+      0, 1, 0,  1, 0, 0,  0, 0, 1,
+      0, 1, 0,  0, 0, 1, -1, 0, 0,
+      0, 1, 0, -1, 0, 0,  0, 0, -1,
+      0, 1, 0,  0, 0, -1, 1, 0, 0,
+      0, -1, 0, 0, 0, 1,  1, 0, 0,
+      0, -1, 0, -1, 0, 0, 0, 0, 1,
+      0, -1, 0, 0, 0, -1, -1, 0, 0,
+      0, -1, 0, 1, 0, 0,  0, 0, -1,
+    ]);
+
+    // ─── Offscreen FBO (Low Internal Resolution ~340px tall) ─────────────────
+    let targetHeight = 340;
+    let fbo = null, fboTex = null, fboW = 600, fboH = 340;
+
+    function rebuildFBO() {
+      const aspect = Math.max(0.5, window.innerWidth / Math.max(1, window.innerHeight));
+      fboH = targetHeight;
+      fboW = Math.max(160, Math.round(fboH * aspect));
+      if (fboTex) gl.deleteTexture(fboTex);
+      if (fbo) gl.deleteFramebuffer(fbo);
+      fboTex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, fboTex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, fboW, fboH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
+    }
+
+    function resizeViewports() {
+      glCanvas.width = window.innerWidth;
+      glCanvas.height = window.innerHeight;
+      hudCanvas.width = Math.max(320, Math.round(window.innerWidth / 2));
+      hudCanvas.height = Math.max(200, Math.round(window.innerHeight / 2));
+      rebuildFBO();
+    }
+    window.addEventListener('resize', resizeViewports);
+    resizeViewports();
+
+    // ─── Math Helpers ────────────────────────────────────────────────────────
+    function mat4Perspective(fov, aspect, near, far) {
+      const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+      return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
+    }
+    function mat4Mul(a, b) {
+      const out = new Float32Array(16);
+      for (let c = 0; c < 4; c++) {
+        for (let r = 0; r < 4; r++) {
+          out[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+        }
+      }
+      return out;
+    }
+    function mat4LookAt(eye, center, up) {
+      let zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
+      let zl = Math.hypot(zx, zy, zz) || 1; zx /= zl; zy /= zl; zz /= zl;
+      let xx = up[1] * zz - up[2] * zy, xy = up[2] * zx - up[0] * zz, xz = up[0] * zy - up[1] * zx;
+      let xl = Math.hypot(xx, xy, xz) || 1; xx /= xl; xy /= xl; xz /= xl;
+      const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+      return new Float32Array([
+        xx, yx, zx, 0,
+        xy, yy, zy, 0,
+        xz, yz, zz, 0,
+        -(xx * eye[0] + xy * eye[1] + xz * eye[2]),
+        -(yx * eye[0] + yy * eye[1] + yz * eye[2]),
+        -(zx * eye[0] + zy * eye[1] + zz * eye[2]),
+        1,
+      ]);
+    }
+    function mat4Transform(pos, yaw, pitch, roll, sx, sy, sz) {
+      const cy = Math.cos(yaw), syaw = Math.sin(yaw);
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const cr = Math.cos(roll), sr = Math.sin(roll);
+      // Y * X * Z rotation
+      const m00 = (cy * cr + syaw * sp * sr) * sx;
+      const m01 = (cp * sr) * sx;
+      const m02 = (-syaw * cr + cy * sp * sr) * sx;
+      const m10 = (-cy * sr + syaw * sp * cr) * sy;
+      const m11 = (cp * cr) * sy;
+      const m12 = (syaw * sr + cy * sp * cr) * sy;
+      const m20 = (syaw * cp) * sz;
+      const m21 = (-sp) * sz;
+      const m22 = (cy * cp) * sz;
+      return new Float32Array([
+        m00, m01, m02, 0,
+        m10, m11, m12, 0,
+        m20, m21, m22, 0,
+        pos[0], pos[1], pos[2], 1,
+      ]);
+    }
+
+    // ─── Flight, World & Game State ──────────────────────────────────────────
+    let mapTex = null;
+    let mapData = null;
+    let ready = false;
+    let userInteracted = false;
+
+    const ship = {
+      x: 128, y: 24, z: 128,
+      yaw: 0, pitch: 0, bank: 0, rollSpin: 0,
+      speed: 22, boost: false,
+      heat: 0, overheated: false, fireCd: 0,
+    };
+
+    // Views: 0 = Top, 1 = Chase, 2 = Cockpit
+    let viewIndex = 1;
+    let viewBlend = 1;
+    let cockpitSlide = 0;
+    const camPos = [128, 30, 140];
+    const camTarget = [128, 24, 120];
+    let camShake = 0;
+
+    const pointer = { nx: 0, ny: 0, leftDown: false, rightDown: false };
+    const keys = {};
+    const lasers = [];
+    const sparks = [];
+    const scorches = [];
+    const asteroids = [];
+
+    for (let i = 0; i < 24; i++) {
+      asteroids.push({
+        x: Math.random() * 256,
+        y: 26 + Math.random() * 24,
+        z: Math.random() * 256,
+        vx: (Math.random() - 0.5) * 3,
+        vz: (Math.random() - 0.5) * 3,
+        rot: Math.random() * 6.28,
+        size: 1.4 + Math.random() * 1.9,
+        hp: 2,
+      });
+    }
+
+    function sampleHeightCPU(x, z) {
+      if (!mapData) return 10;
+      const ix = ((Math.floor(x) % MAP_SIZE) + MAP_SIZE) % MAP_SIZE;
+      const iz = ((Math.floor(z) % MAP_SIZE) + MAP_SIZE) % MAP_SIZE;
+      const idx = (iz * MAP_SIZE + ix) * 4;
+      return (mapData[idx] / 255) * 12 + (mapData[idx + 3] / 255) * 16;
+    }
+
+    function markInteracted() {
+      if (!userInteracted) {
+        userInteracted = true;
+        titleCard.classList.add('fade');
+      }
+    }
+
+    function triggerRoll() {
+      markInteracted();
+      if (ship.rollSpin <= 0.05) ship.rollSpin = Math.PI * 2;
+    }
+
+    function switchView(nextIdx) {
+      markInteracted();
+      viewIndex = nextIdx;
+      if (reducedMotion) {
+        viewBlend = viewIndex;
+      }
+    }
+
+    function fireLasers() {
+      markInteracted();
+      if (ship.overheated || ship.fireCd > 0) return;
+      ship.fireCd = 0.14;
+      ship.heat = Math.min(8, ship.heat + 1);
+      if (ship.heat >= 8) ship.overheated = true;
+
+      const fx = -Math.sin(ship.yaw) * Math.cos(ship.pitch);
+      const fy = Math.sin(ship.pitch);
+      const fz = -Math.cos(ship.yaw) * Math.cos(ship.pitch);
+      const rx = Math.cos(ship.yaw), rz = -Math.sin(ship.yaw);
+      [-0.75, 0.75].forEach(function (side) {
+        lasers.push({
+          x: ship.x + rx * side + fx * 1.4,
+          y: ship.y + fy * 1.4,
+          z: ship.z + rz * side + fz * 1.4,
+          vx: fx * 110, vy: fy * 110, vz: fz * 110,
+          life: 1.4,
+        });
+      });
+      playLaserSound();
+    }
+
+    // ─── Input Listeners (Mouse + Keyboard + Touch) ──────────────────────────
+    window.addEventListener('pointermove', function (e) {
+      pointer.nx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+      pointer.ny = (e.clientY / Math.max(1, window.innerHeight)) * 2 - 1;
+      markInteracted();
+    });
+    window.addEventListener('pointerdown', function (e) {
+      markInteracted();
+      if (e.target && e.target.tagName === 'BUTTON') return;
+      if (e.button === 2) {
+        pointer.rightDown = true;
+        fireLasers();
+      } else if (e.button === 0) {
+        pointer.leftDown = true;
+        triggerRoll();
+      }
+    });
+    window.addEventListener('pointerup', function (e) {
+      if (e.button === 2) pointer.rightDown = false;
+      if (e.button === 0) pointer.leftDown = false;
+    });
+
+    let lastTap = 0;
+    window.addEventListener('touchstart', function (e) {
+      markInteracted();
+      const now = performance.now();
+      if (now - lastTap < 280) triggerRoll();
+      lastTap = now;
+      if (e.touches[0]) {
+        pointer.nx = (e.touches[0].clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+        pointer.ny = (e.touches[0].clientY / Math.max(1, window.innerHeight)) * 2 - 1;
+      }
+    }, { passive: true });
+    window.addEventListener('touchmove', function (e) {
+      if (e.touches[0]) {
+        pointer.nx = (e.touches[0].clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+        pointer.ny = (e.touches[0].clientY / Math.max(1, window.innerHeight)) * 2 - 1;
+      }
+    }, { passive: true });
+
+    document.getElementById('btnView').addEventListener('click', function () {
+      switchView((viewIndex + 1) % 3);
+    });
+    document.getElementById('btnBoost').addEventListener('touchstart', function () { pointer.leftDown = true; }, { passive: true });
+    document.getElementById('btnBoost').addEventListener('touchend', function () { pointer.leftDown = false; }, { passive: true });
+    document.getElementById('btnLaser').addEventListener('touchstart', function () { pointer.rightDown = true; fireLasers(); }, { passive: true });
+    document.getElementById('btnLaser').addEventListener('touchend', function () { pointer.rightDown = false; }, { passive: true });
+
+    window.addEventListener('keydown', function (e) {
+      keys[e.code] = true;
+      if (e.code === 'Space') { e.preventDefault(); switchView((viewIndex + 1) % 3); }
+      if (e.key === '1') switchView(0);
+      if (e.key === '2') switchView(1);
+      if (e.key === '3') switchView(2);
+      if (e.key === 'r' || e.key === 'R') triggerRoll();
+      if (e.key === 'f' || e.key === 'F') fireLasers();
+      if (e.key === 'm' || e.key === 'M') toggleSound();
+    });
+    window.addEventListener('keyup', function (e) { keys[e.code] = false; });
+
+    // ─── Start Web Worker ────────────────────────────────────────────────────
+    const blob = new Blob([workerSrc], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+    worker.onmessage = function (e) {
+      if (e.data.type === 'progress') {
+        loaderFill.style.width = e.data.value + '%';
+      } else if (e.data.type === 'done') {
+        loaderFill.style.width = '100%';
+        mapData = new Uint8Array(e.data.buffer);
+        mapTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, mapTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, MAP_SIZE, MAP_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, mapData);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        ready = true;
+        loaderEl.classList.add('hidden');
+        requestAnimationFrame(loop);
+      }
+    };
+    worker.postMessage('start');
+
+    // ─── 2D Cockpit & HUD Renderer ───────────────────────────────────────────
+    function drawCockpitHUD(dt) {
+      const w = hudCanvas.width, h = hudCanvas.height;
+      hudCtx.clearRect(0, 0, w, h);
+
+      // Smooth slide-up for cockpit instrument panel
+      const targetSlide = viewIndex === 2 ? 1 : 0;
+      cockpitSlide = reducedMotion ? targetSlide : cockpitSlide + (targetSlide - cockpitSlide) * Math.min(1, dt * 8);
+      if (cockpitSlide < 0.02) return;
+
+      const panelH = Math.round(h * 0.34);
+      const y0 = Math.round(h - panelH * cockpitSlide);
+
+      // Pixel instrument panel bezel
+      hudCtx.fillStyle = '#0e1118';
+      hudCtx.fillRect(0, y0, w, panelH);
+      hudCtx.fillStyle = '#263242';
+      hudCtx.fillRect(0, y0, w, 3);
+
+      // Cyan HUD telemetry & crosshair
+      hudCtx.strokeStyle = 'rgba(93, 228, 245, 0.78)';
+      hudCtx.fillStyle = '#5de4f5';
+      hudCtx.font = '10px monospace';
+
+      // Target bracket on center horizon
+      const cx = Math.round(w / 2), cy = Math.round(h * 0.44);
+      hudCtx.strokeRect(cx - 14, cy - 14, 28, 28);
+      hudCtx.fillRect(cx - 1, cy - 1, 2, 2);
+
+      // Left readout: Speed & Height
+      const alt = Math.max(0, Math.round(ship.y - sampleHeightCPU(ship.x, ship.z)));
+      const hdg = (((Math.round((-ship.yaw * 180) / Math.PI) % 360) + 360) % 360);
+      hudCtx.fillText('SPD ' + Math.round(ship.speed * 18) + ' KT', 16, y0 + 22);
+      hudCtx.fillText('ALT ' + alt + ' M', 16, y0 + 38);
+      hudCtx.fillText('HDG ' + String(hdg).padStart(3, '0') + '°', 16, y0 + 54);
+
+      // Heat cells (8 cells)
+      hudCtx.fillText(ship.overheated ? 'HEAT LOCKOUT' : 'CANNON HEAT', 16, y0 + 74);
+      for (let i = 0; i < 8; i++) {
+        const filled = i < Math.ceil(ship.heat);
+        hudCtx.fillStyle = filled ? (ship.overheated ? '#ff4f5e' : '#f4a842') : '#1c2430';
+        hudCtx.fillRect(16 + i * 14, y0 + 80, 11, 8);
+      }
+
+      // Radar scanner with live asteroid blips
+      const rx = w - 62, ry = y0 + Math.round(panelH * 0.52), rr = 34;
+      hudCtx.strokeStyle = 'rgba(93, 228, 245, 0.55)';
+      hudCtx.beginPath();
+      hudCtx.arc(rx, ry, rr, 0, Math.PI * 2);
+      hudCtx.stroke();
+      hudCtx.fillStyle = '#5de4f5';
+      hudCtx.fillRect(rx - 1, ry - 1, 3, 3);
+      for (let i = 0; i < asteroids.length; i++) {
+        const a = asteroids[i];
+        const dx = ((a.x - ship.x + 384) % 256) - 128;
+        const dz = ((a.z - ship.z + 384) % 256) - 128;
+        const bx = rx + (dx / 128) * rr;
+        const by = ry + (dz / 128) * rr;
+        if ((bx - rx) * (bx - rx) + (by - ry) * (by - ry) < rr * rr) {
+          hudCtx.fillStyle = '#f4a842';
+          hudCtx.fillRect(Math.round(bx), Math.round(by), 2, 2);
+        }
+      }
+    }
+
+    // ─── Main Simulation & Render Loop ───────────────────────────────────────
+    let lastTime = performance.now();
+    let fpsFrames = 0, fpsTimer = 0;
+    const sunDir = [-0.76, 0.24, -0.60];
+    const sLen = Math.hypot(sunDir[0], sunDir[1], sunDir[2]);
+    sunDir[0] /= sLen; sunDir[1] /= sLen; sunDir[2] /= sLen;
+
+    function loop(now) {
+      if (!ready) return;
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // Auto-drop internal resolution if FPS stays low
+      fpsFrames++;
+      fpsTimer += dt;
+      if (fpsTimer > 2.0) {
+        const fps = fpsFrames / fpsTimer;
+        if (fps < 36 && targetHeight > 220) {
+          targetHeight = Math.max(220, targetHeight - 40);
+          rebuildFBO();
+        }
+        fpsFrames = 0;
+        fpsTimer = 0;
+      }
+
+      // Controls & auto-weave on title screen
+      ship.boost = pointer.leftDown;
+      const targetSpeed = ship.boost ? 44 : 22;
+      ship.speed += (targetSpeed - ship.speed) * Math.min(1, dt * 6);
+
+      if (!userInteracted) {
+        ship.yaw += Math.sin(now * 0.0008) * 0.45 * dt;
+        ship.pitch = Math.sin(now * 0.0011) * 0.08;
+        ship.bank = Math.cos(now * 0.0008) * 0.28;
+      } else {
+        const steerX = Math.max(-1, Math.min(1, pointer.nx));
+        const steerY = Math.max(-1, Math.min(1, pointer.ny));
+        ship.yaw -= steerX * 1.9 * dt;
+        if (viewIndex === 0) {
+          ship.pitch += (0 - ship.pitch) * Math.min(1, dt * 4);
+        } else {
+          ship.pitch += (-steerY * 0.55 - ship.pitch) * Math.min(1, dt * 5);
+        }
+        ship.bank += (-steerX * 0.68 - ship.bank) * Math.min(1, dt * 7);
+      }
+
+      if (ship.rollSpin > 0) {
+        const step = Math.min(ship.rollSpin, dt * 11);
+        ship.rollSpin -= step;
+      }
+
+      // Trench centering assist when flying inside main trench (x in [112..144])
+      const modX = ((ship.x % 256) + 256) % 256;
+      if (modX > 112 && modX < 144 && ship.y < 16) {
+        ship.x += (128 - modX) * 0.7 * dt;
+      }
+
+      // Move fighter
+      const vx = -Math.sin(ship.yaw) * Math.cos(ship.pitch) * ship.speed;
+      const vy = Math.sin(ship.pitch) * ship.speed;
+      const vz = -Math.cos(ship.yaw) * Math.cos(ship.pitch) * ship.speed;
+      ship.x += vx * dt;
+      ship.y = Math.min(62, ship.y + vy * dt);
+      ship.z += vz * dt;
+
+      // Solid collision guard: never pass through hull or towers
+      const floorH = Math.max(
+        sampleHeightCPU(ship.x, ship.z),
+        sampleHeightCPU(ship.x - Math.sin(ship.yaw) * 2.0, ship.z - Math.cos(ship.yaw) * 2.0)
+      );
+      if (ship.y < floorH + 2.2) {
+        ship.y = floorH + 2.2;
+        if (ship.pitch < 0.06) ship.pitch = 0.14;
+      }
+
+      // Weapon heat & firing
+      ship.fireCd = Math.max(0, ship.fireCd - dt);
+      if (pointer.rightDown || keys['KeyF']) fireLasers();
+      ship.heat = Math.max(0, ship.heat - dt * (ship.overheated ? 2.2 : 1.5));
+      if (ship.overheated && ship.heat <= 1.2) ship.overheated = false;
+
+      // Update engine sound
+      if (soundEnabled && engineOsc && engineGain && audioCtx) {
+        engineOsc.frequency.setTargetAtTime(ship.boost ? 96 : 62, audioCtx.currentTime, 0.05);
+        engineGain.gain.setTargetAtTime(ship.boost ? 0.06 : 0.03, audioCtx.currentTime, 0.05);
+      }
+
+      // Update lasers & check hull/asteroid impacts
+      for (let i = lasers.length - 1; i >= 0; i--) {
+        const l = lasers[i];
+        l.x += l.vx * dt; l.y += l.vy * dt; l.z += l.vz * dt;
+        l.life -= dt;
+        let hit = false;
+        if (l.y <= sampleHeightCPU(l.x, l.z)) {
+          hit = true;
+          scorches.unshift([l.x, l.y, l.z]);
+          if (scorches.length > 8) scorches.pop();
+          for (let k = 0; k < 5; k++) {
+            sparks.push({ x: l.x, y: l.y + 0.4, z: l.z, vx: (Math.random() - 0.5) * 14, vy: 4 + Math.random() * 8, vz: (Math.random() - 0.5) * 14, life: 0.35 });
+          }
+          playImpactSound();
+        } else {
+          for (let a = asteroids.length - 1; a >= 0; a--) {
+            const ast = asteroids[a];
+            const dist = Math.hypot(l.x - ast.x, l.y - ast.y, l.z - ast.z);
+            if (dist < ast.size * 1.15) {
+              hit = true;
+              ast.hp--;
+              if (ast.hp <= 0) {
+                if (ast.size > 1.2) {
+                  asteroids.push({ x: ast.x + 1, y: ast.y, z: ast.z, vx: ast.vx + 4, vz: -ast.vz, rot: 0, size: ast.size * 0.55, hp: 1 });
+                  asteroids.push({ x: ast.x - 1, y: ast.y, z: ast.z, vx: ast.vx - 4, vz: ast.vz, rot: 1, size: ast.size * 0.55, hp: 1 });
+                }
+                asteroids.splice(a, 1);
+              }
+              playImpactSound();
+              if (!reducedMotion) camShake = 0.35;
+              break;
+            }
+          }
+        }
+        if (hit || l.life <= 0) lasers.splice(i, 1);
+      }
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt;
+        s.life -= dt;
+        if (s.life <= 0) sparks.splice(i, 1);
+      }
+
+      for (let i = 0; i < asteroids.length; i++) {
+        const a = asteroids[i];
+        a.x = (a.x + a.vx * dt + 256) % 256;
+        a.z = (a.z + a.vz * dt + 256) % 256;
+        a.rot += dt * 0.6;
+      }
+
+      // Smoothly blend between the 3 views
+      viewBlend = reducedMotion ? viewIndex : viewBlend + (viewIndex - viewBlend) * Math.min(1, dt * 6);
+      const fwdX = -Math.sin(ship.yaw), fwdZ = -Math.cos(ship.yaw);
+      const topEye = [ship.x, ship.y + 38, ship.z + 6];
+      const topTgt = [ship.x + fwdX * 6, ship.y, ship.z + fwdZ * 6];
+      const chaseEye = [ship.x - fwdX * 8.5, ship.y + 3.0, ship.z - fwdZ * 8.5];
+      const chaseTgt = [ship.x + fwdX * 14, ship.y + Math.sin(ship.pitch) * 10, ship.z + fwdZ * 14];
+      const cockEye = [ship.x + fwdX * 0.4, ship.y + 0.35, ship.z + fwdZ * 0.4];
+      const cockTgt = [ship.x + fwdX * 24, ship.y + Math.sin(ship.pitch) * 20, ship.z + fwdZ * 24];
+
+      function lerp3(a, b, t) {
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+      }
+      let desiredEye, desiredTgt;
+      if (viewBlend < 1) {
+        desiredEye = lerp3(topEye, chaseEye, viewBlend);
+        desiredTgt = lerp3(topTgt, chaseTgt, viewBlend);
+      } else {
+        desiredEye = lerp3(chaseEye, cockEye, viewBlend - 1);
+        desiredTgt = lerp3(chaseTgt, cockTgt, viewBlend - 1);
+      }
+
+      camShake = Math.max(0, camShake - dt * 1.8);
+      const shakeAmt = reducedMotion ? 0 : camShake * 0.35;
+      camPos[0] = desiredEye[0] + (Math.random() - 0.5) * shakeAmt;
+      camPos[1] = Math.max(sampleHeightCPU(desiredEye[0], desiredEye[2]) + 1.5, desiredEye[1]);
+      camPos[2] = desiredEye[2] + (Math.random() - 0.5) * shakeAmt;
+      camTarget[0] = desiredTgt[0]; camTarget[1] = desiredTgt[1]; camTarget[2] = desiredTgt[2];
+
+      const viewMat = mat4LookAt(camPos, camTarget, [0, 1, 0]);
+      const projMat = mat4Perspective(0.95, fboW / fboH, 0.2, 400);
+      const projView = mat4Mul(projMat, viewMat);
+      // Camera basis for ray-marcher (column-major -> columns are right, up, -forward)
+      const camMat3 = new Float32Array([
+        viewMat[0], viewMat[4], viewMat[8],
+        viewMat[1], viewMat[5], viewMat[9],
+        viewMat[2], viewMat[6], viewMat[10],
+      ]);
+
+      // ─── Render Pass 1A: Ray-marched megastation into FBO ────────────────
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.viewport(0, 0, fboW, fboH);
+      gl.disable(gl.DEPTH_TEST);
+      gl.useProgram(worldProg);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, mapTex);
+      gl.uniform1i(gl.getUniformLocation(worldProg, 'uMap'), 0);
+      gl.uniform3fv(gl.getUniformLocation(worldProg, 'uCamPos'), camPos);
+      gl.uniformMatrix3fv(gl.getUniformLocation(worldProg, 'uCamMat'), false, camMat3);
+      gl.uniform2f(gl.getUniformLocation(worldProg, 'uRes'), fboW, fboH);
+      gl.uniform1f(gl.getUniformLocation(worldProg, 'uTime'), now * 0.001);
+      gl.uniform3fv(gl.getUniformLocation(worldProg, 'uSunDir'), sunDir);
+      const scorchFlat = new Float32Array(24);
+      for (let i = 0; i < scorches.length; i++) {
+        scorchFlat[i * 3] = scorches[i][0]; scorchFlat[i * 3 + 1] = scorches[i][1]; scorchFlat[i * 3 + 2] = scorches[i][2];
+      }
+      gl.uniform3fv(gl.getUniformLocation(worldProg, 'uScorch'), scorchFlat);
+      gl.uniform1f(gl.getUniformLocation(worldProg, 'uScorchCount'), scorches.length);
+      gl.bindVertexArray(quadVao);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      // ─── Render Pass 1B: 3D Asteroids, Fighter, Plumes, Lasers, Sparks ────
+      gl.useProgram(meshProg);
+      gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uProjView'), false, projView);
+      gl.uniform3fv(gl.getUniformLocation(meshProg, 'uSunDir'), sunDir);
+
+      // Asteroids (alpha = 1.0)
+      gl.bindVertexArray(octMesh.vao);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone0'), 0.14, 0.12, 0.18);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone1'), 0.34, 0.30, 0.36);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone2'), 0.68, 0.54, 0.44);
+      gl.uniform1f(gl.getUniformLocation(meshProg, 'uAlphaMask'), 1.0);
+      for (let i = 0; i < asteroids.length; i++) {
+        const a = asteroids[i];
+        gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uModel'), false, mat4Transform([a.x, a.y, a.z], a.rot, a.rot * 0.5, 0, a.size, a.size * 0.85, a.size));
+        gl.drawArrays(gl.TRIANGLES, 0, octMesh.count);
+      }
+
+      // Lasers & Sparks
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone0'), 0.35, 0.92, 0.98);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone1'), 0.72, 0.98, 1.0);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone2'), 1.0, 1.0, 1.0);
+      for (let i = 0; i < lasers.length; i++) {
+        const l = lasers[i];
+        gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uModel'), false, mat4Transform([l.x, l.y, l.z], ship.yaw, ship.pitch, 0, 0.12, 0.12, 1.2));
+        gl.drawArrays(gl.TRIANGLES, 0, octMesh.count);
+      }
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone0'), 0.95, 0.55, 0.18);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone1'), 1.0, 0.85, 0.35);
+      gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone2'), 1.0, 1.0, 0.85);
+      for (let i = 0; i < sparks.length; i++) {
+        const s = sparks[i];
+        gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uModel'), false, mat4Transform([s.x, s.y, s.z], 0, 0, 0, 0.16, 0.16, 0.16));
+        gl.drawArrays(gl.TRIANGLES, 0, octMesh.count);
+      }
+
+      // Fighter & Twin Engine Plumes (alpha = 0.0 so Post Pass draws 1px outline)
+      if (viewIndex !== 2 || viewBlend < 1.7) {
+        gl.bindVertexArray(fighterMesh.vao);
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone0'), 0.24, 0.28, 0.36);
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone1'), 0.58, 0.62, 0.68);
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone2'), 0.92, 0.90, 0.86);
+        gl.uniform1f(gl.getUniformLocation(meshProg, 'uAlphaMask'), 0.0);
+        const totalRoll = ship.bank + ship.rollSpin;
+        gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uModel'), false, mat4Transform([ship.x, ship.y, ship.z], ship.yaw, ship.pitch, totalRoll, 1, 1, 1));
+        gl.drawArrays(gl.TRIANGLES, 0, fighterMesh.count);
+
+        // Twin engine plumes
+        gl.bindVertexArray(octMesh.vao);
+        const plumeLen = ship.boost ? 1.55 + Math.random() * 0.45 : 0.75 + Math.random() * 0.25;
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone0'), 0.28, 0.82, 0.96);
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone1'), 0.75, 0.96, 1.0);
+        gl.uniform3f(gl.getUniformLocation(meshProg, 'uTone2'), 1.0, 1.0, 1.0);
+        gl.uniform1f(gl.getUniformLocation(meshProg, 'uAlphaMask'), 1.0);
+        const rx = Math.cos(ship.yaw), rz = -Math.sin(ship.yaw);
+        const fx = -Math.sin(ship.yaw), fz = -Math.cos(ship.yaw);
+        [-0.26, 0.26].forEach(function (side) {
+          gl.uniformMatrix4fv(gl.getUniformLocation(meshProg, 'uModel'), false, mat4Transform([ship.x + rx * side - fx * 0.9, ship.y + 0.05, ship.z + rz * side - fz * 0.9], ship.yaw, ship.pitch, totalRoll, 0.14, 0.14, plumeLen));
+          gl.drawArrays(gl.TRIANGLES, 0, octMesh.count);
+        });
+      }
+
+      // ─── Render Pass 2: 1px Ink Outline + Nearest Blit to Viewport ───────
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+      gl.useProgram(postProg);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, fboTex);
+      gl.uniform1i(gl.getUniformLocation(postProg, 'uTex'), 0);
+      gl.uniform2f(gl.getUniformLocation(postProg, 'uTexel'), 1 / fboW, 1 / fboH);
+      gl.bindVertexArray(quadVao);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      drawCockpitHUD(dt);
+      requestAnimationFrame(loop);
+    }
+  })();
+  </script>
+</body>
+</html>

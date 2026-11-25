@@ -33,6 +33,14 @@ export const MATERIAL_STUDIES: StudyItem[] = [
     fullSrc: "/ulun_danu_lake_bratan_material_studies.html",
     accent: "#9b1e30",
   },
+  {
+    id: "dusk-orbit",
+    name: "Dusk Orbit",
+    location: "WebGL2 Space Station Toy",
+    embedSrc: "/dusk_orbit.html",
+    fullSrc: "/dusk_orbit.html",
+    accent: "#5de4f5",
+  },
 ];
 
 interface MaterialStudiesCarouselProps {
