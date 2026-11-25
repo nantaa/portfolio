@@ -8,7 +8,7 @@ import { Project } from "@/lib/api";
 // import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
 import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
 // import AcademicDocketPreview from "@/components/previews/AcademicDocketPreview";
-import GeopetakPreview from "@/components/previews/GeopetakPreview";
+// import GeopetakPreview from "@/components/previews/GeopetakPreview";
 
 const emptySubscribe = () => () => {};
 
@@ -198,6 +198,7 @@ export default function CaseStudyModal({
     if (p.id === 3) return "/projects/tata/index.html?v=20261125";
     if (p.id === 4) return "/projects/thesis-docket/index.html?v=20261125";
     if (p.id === 5) return "/projects/maknaworks/index.html?v=20261125";
+    if (p.id === 6) return "/projects/geopetak/index.html?v=20261125";
     return p.link || null;
   };
 
@@ -250,12 +251,22 @@ export default function CaseStudyModal({
         />
       );
     }
+    if (p.id === 6) {
+      return (
+        <iframe
+          src="/projects/geopetak/index.html?v=20261125"
+          title="Geopetak - Spatial AI Platform"
+          className="w-full h-full border-0 block flex-1 min-h-0 bg-[#0b0c10] pointer-events-auto"
+          loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-forms"
+        />
+      );
+    }
     return (
       <div className="w-full flex-1 min-h-0 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[var(--s1)]">
         <div className="w-full max-w-4xl h-full max-h-[720px] flex flex-col">
-          {/* Replaced AcademicDocketPreview with live iframe above */}
+          {/* Replaced AcademicDocketPreview and GeopetakPreview with live iframes above */}
           {/* Commented out Delta IT Helpdesk preview per user request */}
-          {p.id === 6 && <GeopetakPreview />}
           {p.id === 7 && <ExpenseTrackerPreview />}
           {p.id === 8 && (
             <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-auto">
