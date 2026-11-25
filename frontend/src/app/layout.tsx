@@ -1,22 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Syne, Syne_Mono } from "next/font/google";
+import { Playfair_Display, Syne_Mono } from "next/font/google";
 import "./globals.css";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--display",
   style: ["normal", "italic"],
-});
-
-const syne = Syne({
-  subsets: ["latin"],
-  variable: "--sans",
+  display: "swap",
+  preload: true,
 });
 
 const syneMono = Syne_Mono({
   weight: "400",
   subsets: ["latin"],
   variable: "--mono",
+  display: "swap",
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -106,7 +105,7 @@ export default function RootLayout({
       lang="en"
       data-theme="light"
       suppressHydrationWarning
-      className={`${playfair.variable} ${syne.variable} ${syneMono.variable} antialiased`}
+      className={`${playfair.variable} ${syneMono.variable} antialiased`}
     >
       <head>
         <link rel="icon" type="image/svg+xml" href="/logo-svg.svg" />
