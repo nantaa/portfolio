@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import * as THREE from "three";
+
+const subscribeNoop = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 const IVORY = "#F7F4EE";
 const BURGUNDY = "#800020";
@@ -31,18 +36,110 @@ interface PadRig {
   isFlipping: boolean;
 }
 
-interface ApwState {
-  x: number;
-  y: number;
-  z: number;
-  vx: number;
-  vy: number;
-  vz: number;
-  theta: number; // Pitch angle in XY flight plane
-  omega: number; // Pitch angular velocity
-  bank: number;  // Lateral roll/bank angle coupled to horizontal speed
-  yaw: number;   // Gentle Z rotation
+interface WaypointSpec {
+  nx: number;
+  docYVh: number;
+  wz: number;
 }
+
+interface TrajectoryPreset {
+  id: string;
+  duration: number;
+  waypoints: WaypointSpec[];
+}
+
+/**
+ * 5 clean swept trajectories originating at the live SS pad corner plus
+ * 2 downward cross-section paths traveling across Work, Disciplines, About, and Contact.
+ * Positive depth wz keeps airborne cards above the calendar pads (z = 0) while canvas z-0 stays behind all DOM text.
+ */
+const TRAJECTORY_PRESETS: TrajectoryPreset[] = [
+  // 1. Yellow: Upper-left sweep across Aryo Ananta / Rifa'i off top-left
+  {
+    id: "yellow-upper-left",
+    duration: 4.5,
+    waypoints: [
+      { nx: 0.64, docYVh: 0.50, wz: 0.72 },
+      { nx: 0.44, docYVh: 0.42, wz: 0.85 },
+      { nx: 0.25, docYVh: 0.30, wz: 0.95 },
+      { nx: 0.08, docYVh: 0.22, wz: 0.88 },
+      { nx: -0.18, docYVh: 0.27, wz: 0.75 },
+    ],
+  },
+  // 2. Dark Green: Lower sweep under calendar pads, behind CTA buttons off bottom-left
+  {
+    id: "green-lower-left",
+    duration: 4.7,
+    waypoints: [
+      { nx: 0.72, docYVh: 0.71, wz: 0.68 },
+      { nx: 0.50, docYVh: 0.80, wz: 0.82 },
+      { nx: 0.30, docYVh: 0.67, wz: 0.92 },
+      { nx: 0.12, docYVh: 0.75, wz: 0.88 },
+      { nx: -0.18, docYVh: 0.94, wz: 0.76 },
+    ],
+  },
+  // 3. Light Lime: Orbit loop swooping across and over calendar pads, exiting right
+  {
+    id: "lime-calendar-orbit",
+    duration: 4.3,
+    waypoints: [
+      { nx: 0.69, docYVh: 0.64, wz: 0.74 },
+      { nx: 0.55, docYVh: 0.58, wz: 0.96 },
+      { nx: 0.63, docYVh: 0.43, wz: 1.12 },
+      { nx: 0.79, docYVh: 0.40, wz: 1.08 },
+      { nx: 0.96, docYVh: 0.45, wz: 0.90 },
+      { nx: 1.18, docYVh: 0.49, wz: 0.72 },
+    ],
+  },
+  // 4. Pink: Clockwise upper-right loop behind AVAILABLE FOR WORK nav button
+  {
+    id: "pink-top-right-loop",
+    duration: 4.1,
+    waypoints: [
+      { nx: 0.76, docYVh: 0.38, wz: 0.76 },
+      { nx: 0.74, docYVh: 0.19, wz: 0.95 },
+      { nx: 0.86, docYVh: 0.05, wz: 1.05 },
+      { nx: 1.02, docYVh: 0.14, wz: 0.92 },
+      { nx: 1.18, docYVh: 0.34, wz: 0.74 },
+    ],
+  },
+  // 5. Cyan: Clean brisk peel down-right off Hero corner
+  {
+    id: "cyan-bottom-right",
+    duration: 2.9,
+    waypoints: [
+      { nx: 0.86, docYVh: 0.68, wz: 0.68 },
+      { nx: 0.92, docYVh: 0.81, wz: 0.78 },
+      { nx: 1.18, docYVh: 0.86, wz: 0.74 },
+    ],
+  },
+  // 6. Cross-section glide left: Travels down across Work -> Disciplines -> About
+  {
+    id: "cascade-section-left",
+    duration: 9.6,
+    waypoints: [
+      { nx: 0.76, docYVh: 0.82, wz: 0.72 },
+      { nx: 0.54, docYVh: 1.18, wz: 0.88 },
+      { nx: 0.26, docYVh: 1.62, wz: 0.98 },
+      { nx: 0.62, docYVh: 2.18, wz: 0.90 },
+      { nx: 0.22, docYVh: 2.74, wz: 0.84 },
+      { nx: 0.48, docYVh: 3.45, wz: 0.75 },
+    ],
+  },
+  // 7. Cross-section glide right: Travels down across Disciplines -> About -> Contact
+  {
+    id: "cascade-section-right",
+    duration: 10.4,
+    waypoints: [
+      { nx: 0.80, docYVh: 0.90, wz: 0.72 },
+      { nx: 0.68, docYVh: 1.40, wz: 0.86 },
+      { nx: 0.38, docYVh: 1.95, wz: 0.96 },
+      { nx: 0.74, docYVh: 2.55, wz: 0.90 },
+      { nx: 0.34, docYVh: 3.15, wz: 0.84 },
+      { nx: 0.64, docYVh: 3.95, wz: 0.75 },
+    ],
+  },
+];
 
 interface AirborneSheet {
   group: THREE.Group;
@@ -52,12 +149,13 @@ interface AirborneSheet {
   geo: THREE.PlaneGeometry;
   basePositions: Float32Array;
   baseUvs: Float32Array;
-  state: ApwState;
+  curve: THREE.CatmullRomCurve3 | null;
   active: boolean;
   age: number;
-  life: number;
-  windBias: number;
+  duration: number;
+  baseScale: number;
   phase: number;
+  spinBias: number;
 }
 
 function getParityStyle(n: number) {
@@ -115,7 +213,6 @@ function drawDigitSheet(ctx: CanvasRenderingContext2D, value: number) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
 
-  // Top crease & perforated tear seam under binding bar
   const topGrad = ctx.createLinearGradient(0, 0, 0, 58);
   topGrad.addColorStop(0, "rgba(0, 0, 0, 0.18)");
   topGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -131,7 +228,6 @@ function drawDigitSheet(ctx: CanvasRenderingContext2D, value: number) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Soft bottom pad shading
   const botGrad = ctx.createLinearGradient(0, h - 64, 0, h);
   botGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
   botGrad.addColorStop(1, isEven ? "rgba(28, 25, 23, 0.05)" : "rgba(0, 0, 0, 0.15)");
@@ -145,7 +241,6 @@ function drawDigitSheet(ctx: CanvasRenderingContext2D, value: number) {
   ctx.textBaseline = "middle";
   ctx.fillText(label, w / 2, h * 0.56);
 
-  // Hairline paper rim inside alpha mask
   drawRoundedMask(ctx, w, h, 24);
   ctx.strokeStyle = isEven ? "rgba(28, 25, 23, 0.14)" : "rgba(247, 244, 238, 0.18)";
   ctx.lineWidth = 2;
@@ -196,10 +291,6 @@ function createRoundedSolidTexture(colorHex: string): THREE.CanvasTexture {
   return tex;
 }
 
-/**
- * Arc-length-preserving cylindrical corner peel for the resting pad sheet.
- * Gentler wrap (max ~125 deg) prepares the visual anticipation before full detachment.
- */
 function deformPadSheet(
   geo: THREE.PlaneGeometry,
   basePositions: Float32Array,
@@ -263,116 +354,18 @@ function deformPadSheet(
   geo.computeVertexNormals();
 }
 
-/**
- * Andersen-Pesavento-Wang (2005, J. Fluid Mech.) dimensionless falling card ODEs.
- * Coupled circulation lift, angle-of-attack drag, and rotational damping produce
- * authentic air-pocket glides, stall peaks, and smooth petal trajectories.
- */
-const APW_PARAM = {
-  mass: 1.0,
-  inertia: 0.16,
-  g: 4.8,
-  chord: 1.24,
-  CD0: 0.24,
-  CD90: 2.15,
-  CL_rot: 2.3,
-};
-
-function computeApwDerivatives(st: ApwState) {
-  const cosT = Math.cos(st.theta);
-  const sinT = Math.sin(st.theta);
-
-  // Global velocity resolved into the sheet chord frame
-  const vPar = st.vx * cosT + st.vy * sinT;
-  const vNorm = -st.vx * sinT + st.vy * cosT;
-  const vMag = Math.hypot(vPar, vNorm) + 1e-5;
-  const alpha = Math.atan2(vNorm, vPar);
-
-  const CL = Math.sin(2 * alpha) + APW_PARAM.CL_rot * ((st.omega * APW_PARAM.chord) / (2 * vMag));
-  const CD = APW_PARAM.CD0 * Math.cos(alpha) ** 2 + APW_PARAM.CD90 * Math.sin(alpha) ** 2;
-
-  const q = 0.5 * vMag * vMag * APW_PARAM.chord;
-  const liftX = -q * CL * (vNorm / vMag);
-  const liftY = q * CL * (vPar / vMag);
-  const dragX = -q * CD * (vPar / vMag);
-  const dragY = -q * CD * (vNorm / vMag);
-
-  const ax = (liftX + dragX) / APW_PARAM.mass;
-  const ay = -APW_PARAM.g + (liftY + dragY) / APW_PARAM.mass;
-
-  const torque =
-    -0.5 *
-    q *
-    APW_PARAM.chord *
-    APW_PARAM.chord *
-    (0.28 * ((st.omega * APW_PARAM.chord) / vMag) + 0.55 * Math.sin(2 * alpha));
-
-  return {
-    dx: st.vx,
-    dy: st.vy,
-    dvx: ax,
-    dvy: ay,
-    dtheta: st.omega,
-    domega: torque / APW_PARAM.inertia,
-  };
-}
-
-function rk4Step(st: ApwState, dt: number) {
-  const k1 = computeApwDerivatives(st);
-  const s2: ApwState = {
-    ...st,
-    x: st.x + 0.5 * dt * k1.dx,
-    y: st.y + 0.5 * dt * k1.dy,
-    vx: st.vx + 0.5 * dt * k1.dvx,
-    vy: st.vy + 0.5 * dt * k1.dvy,
-    theta: st.theta + 0.5 * dt * k1.dtheta,
-    omega: st.omega + 0.5 * dt * k1.domega,
-  };
-  const k2 = computeApwDerivatives(s2);
-  const s3: ApwState = {
-    ...st,
-    x: st.x + 0.5 * dt * k2.dx,
-    y: st.y + 0.5 * dt * k2.dy,
-    vx: st.vx + 0.5 * dt * k2.dvx,
-    vy: st.vy + 0.5 * dt * k2.dvy,
-    theta: st.theta + 0.5 * dt * k2.dtheta,
-    omega: st.omega + 0.5 * dt * k2.domega,
-  };
-  const k3 = computeApwDerivatives(s3);
-  const s4: ApwState = {
-    ...st,
-    x: st.x + dt * k3.dx,
-    y: st.y + dt * k3.dy,
-    vx: st.vx + dt * k3.dvx,
-    vy: st.vy + dt * k3.dvy,
-    theta: st.theta + dt * k3.dtheta,
-    omega: st.omega + dt * k3.domega,
-  };
-  const k4 = computeApwDerivatives(s4);
-
-  st.x += (dt / 6) * (k1.dx + 2 * k2.dx + 2 * k3.dx + k4.dx);
-  st.y += (dt / 6) * (k1.dy + 2 * k2.dy + 2 * k3.dy + k4.dy);
-  st.vx += (dt / 6) * (k1.dvx + 2 * k2.dvx + 2 * k3.dvx + k4.dvx);
-  st.vy += (dt / 6) * (k1.dvy + 2 * k2.dvy + 2 * k3.dvy + k4.dvy);
-  st.theta += (dt / 6) * (k1.dtheta + 2 * k2.dtheta + 2 * k3.dtheta + k4.dtheta);
-  st.omega += (dt / 6) * (k1.domega + 2 * k2.domega + 2 * k3.domega + k4.domega);
-}
-
-/**
- * Supple airfoil bend + trailing-edge wave across the detached sheet chord.
- */
 function deformAirborneSheet(
   geo: THREE.PlaneGeometry,
   basePositions: Float32Array,
   baseUvs: Float32Array,
   age: number,
   speedNorm: number,
-  omega: number,
+  turnRate: number,
   phase: number
 ) {
   const posAttr = geo.attributes.position as THREE.BufferAttribute;
-  const camber = Math.max(-0.22, Math.min(0.22, -omega * 0.045));
-  const waveAmp = 0.055 + Math.min(0.08, speedNorm * 0.02);
+  const camber = Math.max(-0.22, Math.min(0.22, -turnRate * 0.14));
+  const waveAmp = 0.055 + Math.min(0.08, speedNorm * 0.016);
 
   for (let i = 0; i < posAttr.count; i++) {
     const ox = basePositions[i * 3];
@@ -380,7 +373,6 @@ function deformAirborneSheet(
     const u = baseUvs[i * 2];
     const v = baseUvs[i * 2 + 1];
 
-    // Arch across chord + trailing ripple along flight stream
     const wingCurve = Math.sin(u * Math.PI) * 0.14 + (u - 0.5) * (u - 0.5) * camber;
     const trailLag = Math.pow(1 - v, 1.35);
     const wave = Math.sin(age * 4.2 + phase + v * 3.1) * waveAmp * trailLag;
@@ -393,33 +385,33 @@ function deformAirborneSheet(
 }
 
 export default function HeroPaperClock() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    const container = containerRef.current;
+    if (!mounted) return;
+    const slotEl = slotRef.current;
     const canvas = canvasRef.current;
-    if (!container || !canvas) return;
+    if (!slotEl || !canvas) return;
 
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const width = container.clientWidth || 560;
-    const height = container.clientHeight || 480;
+    const Z_CAM = 14;
+    const FOV = 36;
+    const TAN_HALF = Math.tan((FOV * Math.PI) / 360);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
-
-    const updateCameraForViewport = (w: number, h: number) => {
-      const aspect = Math.max(0.5, w / Math.max(1, h));
-      camera.aspect = aspect;
-      const dist = Math.max(9.2 / aspect, 6.4);
-      camera.position.set(0.08, 0.08, dist);
-      camera.lookAt(0, -0.05, 0);
-      camera.updateProjectionMatrix();
-    };
-    updateCameraForViewport(width, height);
+    const camera = new THREE.PerspectiveCamera(
+      FOV,
+      Math.max(0.5, window.innerWidth / Math.max(1, window.innerHeight)),
+      0.1,
+      100
+    );
+    camera.position.set(0, 0, Z_CAM);
+    camera.lookAt(0, 0, 0);
 
     let renderer: THREE.WebGLRenderer;
     try {
@@ -434,26 +426,41 @@ export default function HeroPaperClock() {
     }
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(width, height, false);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.04;
+
+    const getWorldDimsAtZ = (zPlane: number) => {
+      const dist = Z_CAM - zPlane;
+      const worldH = 2 * dist * TAN_HALF;
+      const worldW = worldH * (window.innerWidth / Math.max(1, window.innerHeight));
+      return { worldW, worldH };
+    };
+
+    const screenPxToWorld = (sx: number, sy: number, zPlane = 0) => {
+      const { worldW, worldH } = getWorldDimsAtZ(zPlane);
+      const nx = sx / Math.max(1, window.innerWidth) - 0.5;
+      const ny = 0.5 - sy / Math.max(1, window.innerHeight);
+      return new THREE.Vector3(nx * worldW, ny * worldH, zPlane);
+    };
 
     const ambientLight = new THREE.AmbientLight(0xfff6f0, 1.45);
     scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight(0xfffbf5, 1.85);
-    keyLight.position.set(-2.6, 4.4, 5.8);
+    keyLight.position.set(-4, 6, 10);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xfde8ea, 0.8);
-    rimLight.position.set(4.5, -1.6, 3.4);
+    const rimLight = new THREE.DirectionalLight(0xfde8ea, 0.78);
+    rimLight.position.set(6, -3, 6);
     scene.add(rimLight);
 
     const backIvoryTex = createRoundedSolidTexture(IVORY);
     const backBurgundyTex = createRoundedSolidTexture(BURGUNDY);
 
+    // Desk calendar group sits at z = 0.0 so airborne paths (wz > +0.55) fly cleanly above the pads
     const clockGroup = new THREE.Group();
-    clockGroup.rotation.set(-0.09, -0.22, 0.045);
+    clockGroup.position.set(0, 0, 0);
     scene.add(clockGroup);
 
     const sheetW = 1.24;
@@ -462,7 +469,6 @@ export default function HeroPaperClock() {
     const padGap = 0.065;
     const padOffsetsX = [-(sheetW + padGap), 0, sheetW + padGap];
 
-    // 1. Soft studio shadow behind desk calendar
     const shadowGeo = new THREE.PlaneGeometry(4.4, 2.2);
     const shadowCanvas = document.createElement("canvas");
     shadowCanvas.width = 256;
@@ -487,7 +493,6 @@ export default function HeroPaperClock() {
     shadowMesh.position.set(0.08, -0.22, -0.34);
     clockGroup.add(shadowMesh);
 
-    // 2. Sculpted Rounded Burgundy Top Binding Bar (ExtrudeGeometry)
     const barW = sheetW * 3 + padGap * 2 + 0.08;
     const barH = 0.34;
     const barShape = createRoundedRectShape(barW, barH, 0.055);
@@ -508,7 +513,6 @@ export default function HeroPaperClock() {
     bindingBar.position.set(0, sheetH * 0.5 + barH * 0.3, 0);
     clockGroup.add(bindingBar);
 
-    // 3. Three Metallic Brushed Rivets
     const rivetGeo = new THREE.SphereGeometry(0.08, 24, 16);
     const rivetCollarGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.025, 24);
     rivetCollarGeo.rotateX(Math.PI / 2);
@@ -534,7 +538,6 @@ export default function HeroPaperClock() {
       clockGroup.add(rivet);
     });
 
-    // 4. Rounded Pad Stack Geometry (No sharp box corners leaking behind rounded pages)
     const padShape = createRoundedRectShape(sheetW * 0.992, sheetH * 0.99, cornerRadius);
     const stackBlockGeo = new THREE.ExtrudeGeometry(padShape, {
       depth: 0.16,
@@ -638,12 +641,12 @@ export default function HeroPaperClock() {
       };
     });
 
-    // 5. Full-Size Airborne Sheet Pool (Detached numbered sheets gliding out of frame via APW RK4)
-    const FLIGHT_POOL_SIZE = 6;
+    // Airborne Flight Sheet Pool (lives in scene root so curves glide seamlessly behind clock & text)
+    const FLIGHT_POOL_SIZE = 12;
     const airbornePool: AirborneSheet[] = Array.from({ length: FLIGHT_POOL_SIZE }, (_, idx) => {
       const g = new THREE.Group();
       g.visible = false;
-      clockGroup.add(g);
+      scene.add(g);
 
       const geo = new THREE.PlaneGeometry(sheetW, sheetH, 16, 20);
       const basePositions = new Float32Array(geo.attributes.position.array);
@@ -653,8 +656,8 @@ export default function HeroPaperClock() {
       const frontMat = new THREE.MeshStandardMaterial({
         map: frontTex.tex,
         alphaTest: 0.5,
-        roughness: 0.65,
-        metalness: 0.03,
+        roughness: 0.68,
+        metalness: 0.02,
         transparent: true,
         opacity: 1,
         side: THREE.FrontSide,
@@ -662,7 +665,7 @@ export default function HeroPaperClock() {
       const backMat = new THREE.MeshStandardMaterial({
         map: backBurgundyTex,
         alphaTest: 0.5,
-        roughness: 0.72,
+        roughness: 0.74,
         metalness: 0.02,
         transparent: true,
         opacity: 1,
@@ -683,33 +686,77 @@ export default function HeroPaperClock() {
         geo,
         basePositions,
         baseUvs,
-        state: {
-          x: 0,
-          y: 0,
-          z: 0,
-          vx: 0,
-          vy: 0,
-          vz: 0,
-          theta: 0,
-          omega: 0,
-          bank: 0,
-          yaw: 0,
-        },
+        curve: null,
         active: false,
         age: 0,
-        life: 3.1,
-        windBias: 0,
+        duration: 4.5,
+        baseScale: 1,
         phase: 0,
+        spinBias: 1,
       };
     });
 
-    const spawnAirborneSheet = (padIndex: number, departedValue: number) => {
+    let currentClockScale = 1;
+    const ssWorldVec = new THREE.Vector3();
+
+    const syncClockSlot = () => {
+      const rect = slotEl.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const worldCenter = screenPxToWorld(cx, cy, 0);
+      clockGroup.position.set(worldCenter.x, worldCenter.y, 0);
+
+      const { worldW } = getWorldDimsAtZ(0);
+      const targetPixelW = Math.min(rect.width * 0.88, rect.height * 1.48, 560);
+      const targetWorldW = (targetPixelW / Math.max(1, window.innerWidth)) * worldW;
+      currentClockScale = Math.max(0.32, targetWorldW / 4.05);
+      clockGroup.scale.setScalar(currentClockScale);
+      clockGroup.visible = rect.bottom > -120 && rect.top < window.innerHeight + 120;
+    };
+    syncClockSlot();
+
+    let trajectoryCursor = 0;
+
+    const spawnAirborneSheet = (
+      padIndex: number,
+      departedValue: number,
+      forceCascade = false
+    ) => {
       if (prefersReducedMotion) return;
-      // Pick first idle sheet, or recycle oldest active sheet
       let slot = airbornePool.find((s) => !s.active);
       if (!slot) {
-        slot = airbornePool.reduce((oldest, curr) => (curr.age > oldest.age ? curr : oldest), airbornePool[0]);
+        slot = airbornePool.reduce(
+          (oldest, curr) => (curr.age / curr.duration > oldest.age / oldest.duration ? curr : oldest),
+          airbornePool[0]
+        );
       }
+
+      // Compute exact world coordinate of departing pad center -> normalized document space
+      clockGroup.updateMatrixWorld();
+      ssWorldVec.set(padOffsetsX[padIndex], -0.02, 0.02).applyMatrix4(clockGroup.matrixWorld);
+      const ndc = ssWorldVec.clone().project(camera);
+      const startNx = (ndc.x + 1) * 0.5;
+      const startScreenY = (1 - ndc.y) * 0.5;
+      const scrollVh = window.scrollY / Math.max(1, window.innerHeight);
+
+      let preset: TrajectoryPreset;
+      if (forceCascade) {
+        preset = TRAJECTORY_PRESETS[5 + (trajectoryCursor % 2)];
+      } else {
+        const pickIndex =
+          trajectoryCursor % 6 === 4
+            ? 5 + (Math.floor(trajectoryCursor / 6) % 2)
+            : trajectoryCursor % 5;
+        preset = TRAJECTORY_PRESETS[pickIndex];
+      }
+      trajectoryCursor++;
+
+      const pts: THREE.Vector3[] = [
+        new THREE.Vector3(startNx, startScreenY + scrollVh, 0.55),
+        ...preset.waypoints.map((w) => new THREE.Vector3(w.nx, w.docYVh, w.wz)),
+      ];
+
+      slot.curve = new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5);
 
       const isEven = departedValue % 2 === 0;
       updateSheetTexture(slot.frontTex, departedValue);
@@ -718,23 +765,13 @@ export default function HeroPaperClock() {
       slot.backMesh.material.needsUpdate = true;
       slot.backMesh.material.opacity = 1;
 
-      slot.state = {
-        x: padOffsetsX[padIndex] + 0.06,
-        y: -0.02,
-        z: 0.06,
-        vx: 1.55 + Math.random() * 0.65,
-        vy: 0.65 + Math.random() * 0.45,
-        vz: 1.15 + Math.random() * 0.45,
-        theta: -0.45 - Math.random() * 0.3,
-        omega: (Math.random() - 0.35) * 2.2,
-        bank: 0.18,
-        yaw: -0.14,
-      };
       slot.active = true;
       slot.age = 0;
-      slot.life = 2.9 + Math.random() * 0.4;
-      slot.windBias = 0.8 + Math.random() * 0.5;
+      slot.duration = preset.duration;
+      slot.baseScale = currentClockScale * 0.94;
       slot.phase = Math.random() * Math.PI * 2;
+      slot.spinBias = Math.random() < 0.5 ? 1 : -1;
+      slot.group.scale.setScalar(slot.baseScale);
       slot.group.visible = true;
     };
 
@@ -754,20 +791,18 @@ export default function HeroPaperClock() {
     let currentTiltY = 0;
 
     const handlePointerMove = (e: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
-      const ny = -(((e.clientY - rect.top) / Math.max(1, rect.height)) * 2 - 1);
-      targetTiltY = Math.max(-0.22, Math.min(0.22, nx * 0.14));
-      targetTiltX = Math.max(-0.16, Math.min(0.16, -ny * 0.1));
+      const nx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+      const ny = -(e.clientY / Math.max(1, window.innerHeight)) * 2 + 1;
+      targetTiltY = Math.max(-0.2, Math.min(0.2, nx * 0.12));
+      targetTiltX = Math.max(-0.14, Math.min(0.14, -ny * 0.08));
     };
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     const handleResize = () => {
-      if (!container) return;
-      const w = container.clientWidth || 560;
-      const h = container.clientHeight || 480;
-      updateCameraForViewport(w, h);
-      renderer.setSize(w, h, false);
+      camera.aspect = Math.max(0.5, window.innerWidth / Math.max(1, window.innerHeight));
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      syncClockSlot();
     };
     window.addEventListener("resize", handleResize);
 
@@ -781,6 +816,8 @@ export default function HeroPaperClock() {
       const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastMs) / 1000));
       lastMs = nowMs;
 
+      syncClockSlot();
+
       const d = new Date();
       const h = d.getHours();
       const m = d.getMinutes();
@@ -791,7 +828,7 @@ export default function HeroPaperClock() {
         const departedS = prevS;
         prevS = s;
         updatePadMaterials(pads[2], s, 60);
-        spawnAirborneSheet(2, departedS);
+        spawnAirborneSheet(2, departedS, false);
       }
       if (m !== prevM) {
         const departedM = prevM;
@@ -799,7 +836,7 @@ export default function HeroPaperClock() {
         updatePadMaterials(pads[1], m, 60);
         pads[1].isFlipping = true;
         pads[1].flipProgress = 0;
-        spawnAirborneSheet(1, departedM);
+        spawnAirborneSheet(1, departedM, true);
       }
       if (h !== prevH) {
         const departedH = prevH;
@@ -807,18 +844,20 @@ export default function HeroPaperClock() {
         updatePadMaterials(pads[0], h, 24);
         pads[0].isFlipping = true;
         pads[0].flipProgress = 0;
-        spawnAirborneSheet(0, departedH);
+        spawnAirborneSheet(0, departedH, true);
       }
 
       if (prefersReducedMotion) {
-        pads.forEach((pad) => deformPadSheet(pad.baseGeo, pad.basePositions, pad.baseUvs, sheetW, sheetH, 0.02));
+        pads.forEach((pad) =>
+          deformPadSheet(pad.baseGeo, pad.basePositions, pad.baseUvs, sheetW, sheetH, 0.02)
+        );
         renderer.render(scene, camera);
         rafId = requestAnimationFrame(animate);
         return;
       }
 
-      // Resting second pad curls subtly at bottom-right just prior to tearing off
-      const rawSecCurl = frac < 0.35 ? 0.03 + frac * 0.12 : 0.072 + Math.pow((frac - 0.35) / 0.65, 1.5) * 0.52;
+      const rawSecCurl =
+        frac < 0.35 ? 0.03 + frac * 0.12 : 0.072 + Math.pow((frac - 0.35) / 0.65, 1.5) * 0.52;
       deformPadSheet(pads[2].baseGeo, pads[2].basePositions, pads[2].baseUvs, sheetW, sheetH, rawSecCurl);
 
       [pads[0], pads[1]].forEach((pad) => {
@@ -841,57 +880,54 @@ export default function HeroPaperClock() {
         }
       });
 
-      // Update detached airborne sheets with APW RK4 fluid physics + airfoil flexing
-      const subSteps = 4;
-      const subDt = dt / subSteps;
+      const scrollVh = window.scrollY / Math.max(1, window.innerHeight);
 
       for (let i = 0; i < airbornePool.length; i++) {
         const sh = airbornePool[i];
-        if (!sh.active) continue;
+        if (!sh.active || !sh.curve) continue;
 
         sh.age += dt;
-        for (let step = 0; step < subSteps; step++) {
-          sh.state.vx += (sh.windBias + currentTiltY * 2.2) * subDt;
-          rk4Step(sh.state, subDt);
+        const u = Math.min(1, sh.age / sh.duration);
+        if (u >= 1) {
+          sh.active = false;
+          sh.group.visible = false;
+          continue;
         }
 
-        sh.state.z += sh.state.vz * dt;
-        sh.state.vz *= 1 - 1.15 * dt;
-        sh.state.bank = Math.sin(sh.age * 3.1 + sh.phase) * 0.38 + sh.state.vx * 0.14;
-        sh.state.yaw += sh.state.omega * 0.28 * dt;
+        // Gentle aerodynamic ease so sheets glide briskly off pad and float across curves
+        const easedU = Math.min(1, 0.08 * u + 0.92 * (1 - Math.pow(1 - u, 1.18)));
+        const ptDoc = sh.curve.getPointAt(easedU);
+        const tanDoc = sh.curve.getTangentAt(easedU);
 
-        sh.group.position.set(sh.state.x, sh.state.y, sh.state.z);
-        sh.group.rotation.set(
-          -0.25 + sh.state.theta * 0.65,
-          sh.state.bank,
-          sh.state.yaw
-        );
+        const screenX = ptDoc.x * window.innerWidth;
+        const screenY = (ptDoc.y - scrollVh) * window.innerHeight;
+        const worldPos = screenPxToWorld(screenX, screenY, ptDoc.z);
+        sh.group.position.copy(worldPos);
 
-        const speedNorm = Math.hypot(sh.state.vx, sh.state.vy);
+        // Velocity-coupled banking + pitch tumble along spline
+        const bank = Math.sin(sh.age * 2.6 + sh.phase) * 0.55 + tanDoc.x * 0.45;
+        const pitch = -0.25 + tanDoc.y * 0.6 + Math.sin(sh.age * 1.9 + sh.phase) * 0.35;
+        const yaw = tanDoc.x * -0.45 * sh.spinBias + Math.cos(sh.age * 2.1 + sh.phase) * 0.25;
+        sh.group.rotation.set(pitch, bank, yaw);
+
+        const speedNorm = Math.hypot(tanDoc.x, tanDoc.y);
         deformAirborneSheet(
           sh.geo,
           sh.basePositions,
           sh.baseUvs,
           sh.age,
           speedNorm,
-          sh.state.omega,
+          bank,
           sh.phase
         );
 
-        const exitProgress = Math.max(
-          sh.age / sh.life,
-          (sh.state.x - 1.8) / 3.4,
-          (-1.6 - sh.state.y) / 2.2
-        );
-        const fade = exitProgress > 0.72 ? 1 - (exitProgress - 0.72) / 0.28 : 1;
-        const opacity = Math.max(0, Math.min(1, fade));
+        // Contrast safeguard: soften sheets crossing behind left-side typography / lower text bands
+        const isBehindTextZone = ptDoc.x < 0.58 || ptDoc.y > 0.95;
+        const textVeil = isBehindTextZone ? 0.72 : 0.96;
+        const edgeFade = u > 0.85 ? 1 - (u - 0.85) / 0.15 : 1;
+        const opacity = Math.max(0, Math.min(1, textVeil * edgeFade));
         sh.frontMesh.material.opacity = opacity;
         sh.backMesh.material.opacity = opacity;
-
-        if (sh.age >= sh.life || opacity <= 0.01) {
-          sh.active = false;
-          sh.group.visible = false;
-        }
       }
 
       currentTiltX += (targetTiltX - currentTiltX) * 0.06;
@@ -944,15 +980,26 @@ export default function HeroPaperClock() {
 
       renderer.dispose();
     };
-  }, []);
+  }, [mounted]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full min-h-[300px] sm:min-h-[380px] md:min-h-[480px] flex items-center justify-center select-none pointer-events-none"
-      aria-hidden="true"
-    >
-      <canvas ref={canvasRef} className="w-full h-full block" />
-    </div>
+    <>
+      <div
+        ref={slotRef}
+        id="heroClockSlot"
+        className="relative w-full h-full min-h-[300px] sm:min-h-[380px] md:min-h-[480px] select-none pointer-events-none"
+        aria-hidden="true"
+      />
+      {mounted &&
+        createPortal(
+          <canvas
+            ref={canvasRef}
+            id="heroPaperClockCanvas"
+            className="fixed inset-0 w-screen h-screen block pointer-events-none select-none z-0"
+            aria-hidden="true"
+          />,
+          document.body
+        )}
+    </>
   );
 }
