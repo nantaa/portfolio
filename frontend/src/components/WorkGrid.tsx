@@ -236,21 +236,22 @@ export default function WorkGrid({ projects }: WorkGridProps) {
     const isMaroon = index === 0 || index === 3 || index === 4 || index === 6;
 
     if (project.id === 1) {
-      // 01: Moriku - Industrial K3 Compliance Engine (Maroon Square)
+      // 01: Moriku - Industrial K3 Compliance Engine (Maroon Square, TATA$ Cover Style)
       return (
         <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(247,244,238,0.14)_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/Modern%20Laptop%20Displaying%20Kanban%20Board.png"
+              alt="Moriku Disnaker Kanban Board"
+              className="w-full h-full object-cover filter contrast-125"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#4e0a15]/90 via-transparent to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-lg bg-[#f7f4ee] border border-white/30 flex items-center justify-center p-2.5 shadow-md group-hover:scale-105 transition-transform">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/projects/moriku/moriku-logo.png"
-                alt="Moriku Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <div className="font-serif text-3xl font-bold tracking-tight text-[#f7f4ee] drop-shadow-sm">MORIKU</div>
             <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">DISNAKER SLA PIPELINE · LARAVEL 11</div>
-            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm">
+            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
               MORIKU RUNTIME ↗
             </div>
