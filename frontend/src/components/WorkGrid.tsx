@@ -218,7 +218,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
       const url = new URL(window.location.href);
       url.searchParams.set("project", String(project.id));
       window.history.pushState({ projectId: project.id }, "", url.toString());
-    } catch {}
+    } catch { }
   };
 
   const handleCloseProject = () => {
@@ -227,7 +227,7 @@ export default function WorkGrid({ projects }: WorkGridProps) {
       const url = new URL(window.location.href);
       url.searchParams.delete("project");
       window.history.pushState({}, "", url.pathname + (url.hash || ""));
-    } catch {}
+    } catch { }
   };
 
   const renderCardCover = (project: Project, index: number) => {
@@ -242,8 +242,10 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/Modern%20Laptop%20Displaying%20Kanban%20Board.png"
+              src="/images/moriku-cover.webp"
               alt="Moriku Disnaker Kanban Board"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover filter contrast-125"
             />
           </div>
@@ -298,6 +300,33 @@ export default function WorkGrid({ projects }: WorkGridProps) {
             <div className="px-3 py-1 rounded-[2px] bg-[#7a1525]/10 border border-[#7a1525]/30 text-[#7a1525] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7a1525]"></span>
               3D SHOWCASE ↗
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (project.id === 4) {
+      // 04: Academic Thesis Docket (Maroon Square, TATA$ Cover Style)
+      return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#7a1525] via-[#630f1c] to-[#4e0a15] flex flex-col items-center justify-center p-6 text-center select-none group-hover:scale-[1.01] transition-transform duration-500">
+          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/docket-cover.webp"
+              alt="Academic Thesis Docket Optimization Board"
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover filter contrast-125"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#4e0a15]/90 via-transparent to-transparent"></div>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <div className="font-serif text-3xl font-bold tracking-tight text-[#f7f4ee] drop-shadow-sm">ACADEMIC DOCKET</div>
+            <div className="font-mono text-xs text-[#f7f4ee]/85 tracking-widest uppercase">GALE-SHAPLEY · HUNGARIAN · LARAVEL</div>
+            <div className="px-3 py-1 rounded-[2px] bg-white/15 border border-white/35 text-[#f7f4ee] font-mono text-[11px] font-semibold tracking-wider flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f7f4ee]"></span>
+              DOCKET RUNTIME ↗
             </div>
           </div>
         </div>
