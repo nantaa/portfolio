@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
@@ -43,6 +43,78 @@ export default function CaseStudyModal({
   );
   const [privacyVeil, setPrivacyVeil] = useState(false);
   const [activeStudyIndex, setActiveStudyIndex] = useState(0);
+  const veilTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeCleanupRef = useRef<(() => void) | null>(null);
+
+  const triggerTemporaryVeil = useCallback((clearClipboard: boolean, durationMs = 2000) => {
+    setPrivacyVeil(true);
+    if (clearClipboard && typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText("").catch(() => {});
+    }
+    if (veilTimerRef.current) clearTimeout(veilTimerRef.current);
+    veilTimerRef.current = setTimeout(() => setPrivacyVeil(false), durationMs);
+  }, []);
+
+  const handleCaptureKeyEvent = useCallback((e: KeyboardEvent, phase: "keydown" | "keyup") => {
+    const keyLower = (e.key || "").toLowerCase();
+    const isMetaShift =
+      (e.shiftKey && (e.key === "Meta" || e.key === "OS")) || (e.metaKey && e.key === "Shift");
+    const isCaptureCombo =
+      e.key === "PrintScreen" || ((e.metaKey || e.ctrlKey) && e.shiftKey && keyLower === "s");
+
+    if (isMetaShift && phase === "keydown") {
+      triggerTemporaryVeil(false, 1800);
+      return true;
+    }
+
+    if (shouldBlockInspectShortcut(e) || isCaptureCombo) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isCaptureCombo) {
+        triggerTemporaryVeil(e.key === "PrintScreen", 2000);
+      }
+      return true;
+    }
+    return false;
+  }, [triggerTemporaryVeil]);
+
+  const attachIframeGuards = (iframeEl: HTMLIFrameElement | null) => {
+    iframeCleanupRef.current?.();
+    iframeCleanupRef.current = null;
+    if (!iframeEl) return;
+    try {
+      const win = iframeEl.contentWindow;
+      if (!win) return;
+      const onIframeBlur = () => {
+        setTimeout(() => {
+          if (!document.hasFocus()) setPrivacyVeil(true);
+        }, 0);
+      };
+      const onIframeFocus = () => {
+        if (document.hasFocus()) setPrivacyVeil(false);
+      };
+      const onIframeKeyDown = (e: KeyboardEvent) => handleCaptureKeyEvent(e, "keydown");
+      const onIframeKeyUp = (e: KeyboardEvent) => handleCaptureKeyEvent(e, "keyup");
+
+      win.addEventListener("blur", onIframeBlur);
+      win.addEventListener("focus", onIframeFocus);
+      win.addEventListener("keydown", onIframeKeyDown, true);
+      win.addEventListener("keyup", onIframeKeyUp, true);
+
+      iframeCleanupRef.current = () => {
+        try {
+          win.removeEventListener("blur", onIframeBlur);
+          win.removeEventListener("focus", onIframeFocus);
+          win.removeEventListener("keydown", onIframeKeyDown, true);
+          win.removeEventListener("keyup", onIframeKeyUp, true);
+        } catch {
+          // Ignore detached cross-realm frame errors on cleanup
+        }
+      };
+    } catch {
+      // Non-same-origin guard
+    }
+  };
 
   const currentIndex = allProjects && project ? allProjects.findIndex((p) => p.id === project.id) : -1;
   const prevProject = allProjects && currentIndex > 0 ? allProjects[currentIndex - 1] : null;
@@ -73,8 +145,6 @@ export default function CaseStudyModal({
       }
     }, 20);
 
-    let veilTimer: ReturnType<typeof setTimeout> | null = null;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -82,17 +152,7 @@ export default function CaseStudyModal({
         return;
       }
 
-      if (shouldBlockInspectShortcut(e)) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.key === "PrintScreen") {
-          setPrivacyVeil(true);
-          if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText("").catch(() => {});
-          }
-          if (veilTimer) clearTimeout(veilTimer);
-          veilTimer = setTimeout(() => setPrivacyVeil(false), 2000);
-        }
+      if (handleCaptureKeyEvent(e, "keydown")) {
         return;
       }
 
@@ -139,6 +199,10 @@ export default function CaseStudyModal({
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      handleCaptureKeyEvent(e, "keyup");
+    };
+
     const handleMessage = (e: MessageEvent) => {
       if (!isTrustedSameOrigin(e)) return;
       if (e.data === "close-modal") {
@@ -147,9 +211,11 @@ export default function CaseStudyModal({
     };
 
     const handleWindowBlur = () => {
-      const activeTag = document.activeElement?.tagName;
-      if (activeTag === "IFRAME") return;
-      setPrivacyVeil(true);
+      setTimeout(() => {
+        if (!document.hasFocus()) {
+          setPrivacyVeil(true);
+        }
+      }, 0);
     };
 
     const handleWindowFocus = () => {
@@ -161,6 +227,7 @@ export default function CaseStudyModal({
     };
 
     window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("keyup", handleKeyUp, true);
     window.addEventListener("message", handleMessage);
     window.addEventListener("blur", handleWindowBlur);
     window.addEventListener("focus", handleWindowFocus);
@@ -168,8 +235,11 @@ export default function CaseStudyModal({
 
     return () => {
       clearTimeout(focusTimer);
-      if (veilTimer) clearTimeout(veilTimer);
+      if (veilTimerRef.current) clearTimeout(veilTimerRef.current);
+      iframeCleanupRef.current?.();
+      iframeCleanupRef.current = null;
       window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("keyup", handleKeyUp, true);
       window.removeEventListener("message", handleMessage);
       window.removeEventListener("blur", handleWindowBlur);
       window.removeEventListener("focus", handleWindowFocus);
@@ -184,7 +254,7 @@ export default function CaseStudyModal({
         triggerElementRef.current.focus();
       }
     };
-  }, [project, prevProject, nextProject, onSelectProject, onClose]);
+  }, [project, prevProject, nextProject, onSelectProject, onClose, handleCaptureKeyEvent]);
 
   if (!project || !mounted || typeof document === "undefined") return null;
 
@@ -213,6 +283,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/moriku/index.html?v=20261125c"
           title="Moriku - DNP Compliance Engine"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-950 pointer-events-auto"
           loading="eager"
         />
@@ -224,6 +295,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/tata/index.html?v=20261125"
           title="TATA$ 3D Showcase"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"
         />
@@ -234,6 +306,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/thesis-docket/index.html?v=20261125"
           title="Academic Thesis Docket - Optimization & Kanban"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-50 pointer-events-auto"
           loading="eager"
         />
@@ -244,6 +317,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/maknaworks/index.html?v=20261125"
           title="MaknaWorks ERP - PPIC Dashboard"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-white pointer-events-auto"
           loading="eager"
         />
@@ -254,6 +328,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/geopetak/index.html?v=20261125"
           title="Geopetak - Spatial AI Platform"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-[#0b0c10] pointer-events-auto"
           loading="eager"
         />
@@ -264,6 +339,7 @@ export default function CaseStudyModal({
         <iframe
           src="/projects/vaultr/index.html?v=20261125b"
           title="VAULTR - 3D Vault Showcase"
+          onLoad={(e) => attachIframeGuards(e.currentTarget)}
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"
         />

@@ -278,8 +278,12 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-45 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/projects/tata/cards/1.png"
+              src="/images/tata-cover.webp"
               alt="TATA$ 3D Bag"
+              width={800}
+              height={706}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover filter contrast-125"
             />
           </div>
@@ -357,8 +361,12 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           <div className="absolute inset-0 flex items-center justify-center opacity-35 group-hover:opacity-50 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/projects/bekasi_saturated.jpg"
+              src="/images/geopetak-cover.webp"
               alt="Bekasi Aerial Photo Sample"
+              width={960}
+              height={586}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover filter contrast-125"
             />
           </div>

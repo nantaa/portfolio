@@ -101,10 +101,11 @@ export default function Nav() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo-svg.svg"
+            src="/images/logo-nav.webp"
             alt="Aryo Logo"
             width={26}
             height={26}
+            decoding="async"
             className="nav-logo-icon w-[26px] h-[26px] object-contain transition-transform duration-300 group-hover:scale-105"
           />
           <span>Aryo<em>.</em></span>

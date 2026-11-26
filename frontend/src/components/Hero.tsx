@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import ResumeModal from "@/components/ResumeModal";
-import HeroPaperClock from "@/components/HeroPaperClock";
+
+const HeroPaperClock = dynamic(() => import("@/components/HeroPaperClock"), {
+  ssr: false,
+});
 
 export default function Hero() {
   const [isResumeOpen, setIsResumeOpen] = useState(false);

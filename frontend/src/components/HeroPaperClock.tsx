@@ -425,22 +425,26 @@ export default function HeroPaperClock() {
       return;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    let viewportW = window.innerWidth;
+    let viewportH = window.innerHeight;
+    let cachedScrollY = window.scrollY;
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, viewportW < 768 ? 1.5 : 2));
+    renderer.setSize(viewportW, viewportH, false);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.04;
 
     const getWorldDimsAtZ = (zPlane: number) => {
       const dist = Z_CAM - zPlane;
       const worldH = 2 * dist * TAN_HALF;
-      const worldW = worldH * (window.innerWidth / Math.max(1, window.innerHeight));
+      const worldW = worldH * (viewportW / Math.max(1, viewportH));
       return { worldW, worldH };
     };
 
     const screenPxToWorld = (sx: number, sy: number, zPlane = 0) => {
       const { worldW, worldH } = getWorldDimsAtZ(zPlane);
-      const nx = sx / Math.max(1, window.innerWidth) - 0.5;
-      const ny = 0.5 - sy / Math.max(1, window.innerHeight);
+      const nx = sx / Math.max(1, viewportW) - 0.5;
+      const ny = 0.5 - sy / Math.max(1, viewportH);
       return new THREE.Vector3(nx * worldW, ny * worldH, zPlane);
     };
 
@@ -708,10 +712,10 @@ export default function HeroPaperClock() {
 
       const { worldW } = getWorldDimsAtZ(0);
       const targetPixelW = Math.min(rect.width * 0.88, rect.height * 1.48, 560);
-      const targetWorldW = (targetPixelW / Math.max(1, window.innerWidth)) * worldW;
+      const targetWorldW = (targetPixelW / Math.max(1, viewportW)) * worldW;
       currentClockScale = Math.max(0.32, targetWorldW / 4.05);
       clockGroup.scale.setScalar(currentClockScale);
-      clockGroup.visible = rect.bottom > -120 && rect.top < window.innerHeight + 120;
+      clockGroup.visible = rect.bottom > -120 && rect.top < viewportH + 120;
     };
     syncClockSlot();
 
@@ -737,7 +741,7 @@ export default function HeroPaperClock() {
       const ndc = ssWorldVec.clone().project(camera);
       const startNx = (ndc.x + 1) * 0.5;
       const startScreenY = (1 - ndc.y) * 0.5;
-      const scrollVh = window.scrollY / Math.max(1, window.innerHeight);
+      const scrollVh = cachedScrollY / Math.max(1, viewportH);
 
       let preset: TrajectoryPreset;
       if (forceCascade) {
@@ -790,33 +794,112 @@ export default function HeroPaperClock() {
     let currentTiltX = 0;
     let currentTiltY = 0;
 
+    let lastPointerMs = 0;
     const handlePointerMove = (e: PointerEvent) => {
-      const nx = (e.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
-      const ny = -(e.clientY / Math.max(1, window.innerHeight)) * 2 + 1;
+      const now = performance.now();
+      if (now - lastPointerMs < 20) return;
+      lastPointerMs = now;
+      const nx = (e.clientX / Math.max(1, viewportW)) * 2 - 1;
+      const ny = -(e.clientY / Math.max(1, viewportH)) * 2 + 1;
       targetTiltY = Math.max(-0.2, Math.min(0.2, nx * 0.12));
       targetTiltX = Math.max(-0.14, Math.min(0.14, -ny * 0.08));
     };
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
-    const handleResize = () => {
-      camera.aspect = Math.max(0.5, window.innerWidth / Math.max(1, window.innerHeight));
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight, false);
-      syncClockSlot();
-    };
-    window.addEventListener("resize", handleResize);
-
+    let isPageVisible = !document.hidden;
+    let isSlotVisible = true;
+    let loopActive = false;
+    let scrollSyncPending = false;
     let rafId = 0;
     let lastMs = performance.now();
     let prevH = nowInit.getHours();
     let prevM = nowInit.getMinutes();
     let prevS = nowInit.getSeconds();
 
+    const hasActiveFlight = () => airbornePool.some((sh) => sh.active);
+    const shouldAnimate = () =>
+      !prefersReducedMotion && isPageVisible && (isSlotVisible || hasActiveFlight());
+
+    const stopLoop = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+      loopActive = false;
+    };
+
+    const startLoop = () => {
+      if (loopActive || !shouldAnimate()) return;
+      loopActive = true;
+      lastMs = performance.now();
+      rafId = requestAnimationFrame(animate);
+    };
+
+    const syncViewportAndLayout = () => {
+      cachedScrollY = window.scrollY;
+      syncClockSlot();
+    };
+
+    const handleScroll = () => {
+      cachedScrollY = window.scrollY;
+      if (scrollSyncPending) return;
+      scrollSyncPending = true;
+      requestAnimationFrame(() => {
+        scrollSyncPending = false;
+        syncClockSlot();
+      });
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    const handleResize = () => {
+      viewportW = window.innerWidth;
+      viewportH = window.innerHeight;
+      camera.aspect = Math.max(0.5, viewportW / Math.max(1, viewportH));
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, viewportW < 768 ? 1.5 : 2));
+      renderer.setSize(viewportW, viewportH, false);
+      syncViewportAndLayout();
+    };
+    window.addEventListener("resize", handleResize);
+
+    const handleVisibilityChange = () => {
+      isPageVisible = !document.hidden;
+      if (isPageVisible) {
+        syncViewportAndLayout();
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const observer =
+      typeof IntersectionObserver !== "undefined"
+        ? new IntersectionObserver(
+            (entries) => {
+              const entry = entries[0];
+              if (!entry) return;
+              isSlotVisible = entry.isIntersecting;
+              if (isSlotVisible) {
+                syncViewportAndLayout();
+                startLoop();
+              } else if (!hasActiveFlight()) {
+                stopLoop();
+              }
+            },
+            { rootMargin: "160px 0px" }
+          )
+        : null;
+    if (observer) observer.observe(slotEl);
+
     const animate = (nowMs: number) => {
+      if (!shouldAnimate()) {
+        stopLoop();
+        return;
+      }
+
       const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastMs) / 1000));
       lastMs = nowMs;
-
-      syncClockSlot();
 
       const d = new Date();
       const h = d.getHours();
@@ -847,15 +930,6 @@ export default function HeroPaperClock() {
         spawnAirborneSheet(0, departedH, true);
       }
 
-      if (prefersReducedMotion) {
-        pads.forEach((pad) =>
-          deformPadSheet(pad.baseGeo, pad.basePositions, pad.baseUvs, sheetW, sheetH, 0.02)
-        );
-        renderer.render(scene, camera);
-        rafId = requestAnimationFrame(animate);
-        return;
-      }
-
       const rawSecCurl =
         frac < 0.35 ? 0.03 + frac * 0.12 : 0.072 + Math.pow((frac - 0.35) / 0.65, 1.5) * 0.52;
       deformPadSheet(pads[2].baseGeo, pads[2].basePositions, pads[2].baseUvs, sheetW, sheetH, rawSecCurl);
@@ -880,7 +954,7 @@ export default function HeroPaperClock() {
         }
       });
 
-      const scrollVh = window.scrollY / Math.max(1, window.innerHeight);
+      const scrollVh = cachedScrollY / Math.max(1, viewportH);
 
       for (let i = 0; i < airbornePool.length; i++) {
         const sh = airbornePool[i];
@@ -899,8 +973,8 @@ export default function HeroPaperClock() {
         const ptDoc = sh.curve.getPointAt(easedU);
         const tanDoc = sh.curve.getTangentAt(easedU);
 
-        const screenX = ptDoc.x * window.innerWidth;
-        const screenY = (ptDoc.y - scrollVh) * window.innerHeight;
+        const screenX = ptDoc.x * viewportW;
+        const screenY = (ptDoc.y - scrollVh) * viewportH;
         const worldPos = screenPxToWorld(screenX, screenY, ptDoc.z);
         sh.group.position.copy(worldPos);
 
@@ -939,10 +1013,21 @@ export default function HeroPaperClock() {
       rafId = requestAnimationFrame(animate);
     };
 
-    rafId = requestAnimationFrame(animate);
+    if (prefersReducedMotion) {
+      pads.forEach((pad) =>
+        deformPadSheet(pad.baseGeo, pad.basePositions, pad.baseUvs, sheetW, sheetH, 0.02)
+      );
+      clockGroup.rotation.set(-0.09, -0.22, 0);
+      renderer.render(scene, camera);
+    } else {
+      startLoop();
+    }
 
     return () => {
-      cancelAnimationFrame(rafId);
+      stopLoop();
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("resize", handleResize);
 
