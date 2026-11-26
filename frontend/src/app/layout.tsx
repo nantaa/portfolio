@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Syne_Mono } from "next/font/google";
+import CloneCanary from "@/components/CloneCanary";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -137,6 +138,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        <CloneCanary />
         <main id="main-content">
           {children}
         </main>

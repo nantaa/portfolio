@@ -189,8 +189,8 @@ describe("Human UI/UX Makeover & Screenshot Issue Resolutions", () => {
       "WorkGrid must purge '1:1 LIVE SYSTEM' chips"
     );
     assert.ok(
-      content.includes("View Project") || content.includes("Read Case"),
-      "WorkGrid button must use clean, professional call to action such as View Project"
+      !content.includes(">View Project<") && content.includes('aria-haspopup="dialog"'),
+      "WorkGrid cards must open dialog directly without redundant View Project button"
     );
   });
 });

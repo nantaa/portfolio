@@ -229,11 +229,9 @@ test('Frontend WorkGrid.tsx wires dedicated button for CaseStudyModal to prevent
   assert.ok(content.includes('CaseStudyModal'), 'WorkGrid must import CaseStudyModal');
   assert.ok(content.includes('selectedProject') || content.includes('activeProject'), 'WorkGrid must manage selected project state');
 
-  // Must NOT attach modal onClick to the outer .wc card container (which hijacks 3D dragging/controls)
-  assert.ok(!content.includes('className={`wc wc-interactive cursor-pointer group focus:outline-none focus-visible:outline-none`}\n              onClick={() => setSelectedProject(project)}'), 'Outer card container must not hijack clicks with setSelectedProject');
-
-  // Must have dedicated button for opening case dossier
-  assert.ok(content.includes('case-dossier-btn') || content.includes('case-study-btn'), 'Must have dedicated button for opening case study');
+  // Clickable card surface handles opening CaseStudyModal without redundant nested button
+  assert.ok(content.includes('handleOpenProject(project)') && content.includes('aria-haspopup="dialog"'), 'Card container must trigger CaseStudyModal dialog');
+  assert.ok(!content.includes('>View Project<'), 'WorkGrid must remove redundant View Project button');
 });
 
 test('Portfolio index.html implements interactive Case Framework modal', () => {

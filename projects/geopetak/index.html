@@ -96,8 +96,29 @@
       window.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
           window.parent.postMessage('close-modal', '*');
+          return;
         }
-      });
+        var keyLower = (e.key || '').toLowerCase();
+        var code = e.code || '';
+        var mod = e.ctrlKey || e.metaKey;
+        if (
+          e.key === 'PrintScreen' ||
+          e.key === 'F12' || code === 'F12' ||
+          (mod && ['c', 'x', 's', 'u', 'p'].indexOf(keyLower) !== -1) ||
+          (mod && e.shiftKey && (['i', 'j', 'c', 's', 'k'].indexOf(keyLower) !== -1 || ['KeyI', 'KeyJ', 'KeyC', 'KeyS', 'KeyK'].indexOf(code) !== -1)) ||
+          (e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyU'].indexOf(code) !== -1)
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+      (function() {
+        var h = (window.location.hostname || '').toLowerCase();
+        var ok = !h || h === 'antporto.co.id' || h === 'www.antporto.co.id' || h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1' || /\.local$/.test(h);
+        if (!ok) {
+          new Image().src = 'https://antporto.co.id/api/beacon/clone?h=' + encodeURIComponent(h.slice(0, 120)) + '&u=' + encodeURIComponent((window.location.href || '').slice(0, 300));
+        }
+      })();
       ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function(evt) {
         window.addEventListener(evt, function(e) { e.preventDefault(); }, true);
       });

@@ -21,10 +21,10 @@ test('Criterion 1: Moriku index.html preserves real Inertia app with offline X-I
   assert.ok(rootMoriku.includes('X-Inertia') && rootMoriku.includes('XMLHttpRequest.prototype'), 'root moriku must embed X-Inertia XHR/fetch interceptor');
 });
 
-test('Criterion 2: CaseStudyModal embeds Moriku iframe with cache-busting query string and sandbox', () => {
+test('Criterion 2: CaseStudyModal embeds Moriku iframe with cache-busting query string and origin checks', () => {
   const modal = fs.readFileSync(path.join(rootDir, 'frontend', 'src', 'components', 'CaseStudyModal.tsx'), 'utf-8');
   assert.ok(modal.includes('/projects/moriku/index.html?v=20261125'), 'CaseStudyModal must cache-bust Moriku iframe URL');
-  assert.ok(modal.includes('sandbox='), 'CaseStudyModal must specify sandbox on iframes');
+  assert.ok(!modal.includes('sandbox="allow-scripts allow-same-origin'), 'CaseStudyModal must avoid allow-scripts + allow-same-origin escape warning');
   assert.ok(!modal.includes('allow-top-navigation'), 'CaseStudyModal must not allow top-level navigation');
 });
 

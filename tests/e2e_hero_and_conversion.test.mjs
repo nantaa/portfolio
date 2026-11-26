@@ -86,7 +86,7 @@ test('WorkGrid cards render visible project descriptions and case study triggers
   const content = fs.readFileSync(workGridPath, 'utf-8');
 
   assert.ok(content.includes('w-desc') || content.includes('w-sub'), 'WorkGrid must render visible description/subtitle element');
-  assert.ok(content.includes('Read Case') || content.includes('Case Study') || content.includes('w-arrow'), 'WorkGrid must have explicit case study trigger indicator');
+  assert.ok(content.includes('handleOpenProject') && content.includes('aria-haspopup="dialog"'), 'WorkGrid cards must open case study dialog on click');
 });
 
 test('Hero conforms to DESIGN.md: negative space is intentional, zero fake mosaic image-cells', () => {
@@ -143,7 +143,7 @@ test('WorkGrid cards render clean, concise titles, subtitles, and case study tri
   assert.ok(!content.includes('w-narrative'), 'Cards must not have essay walls on the surface');
   assert.ok(content.includes('w-title'), 'Cards must have clean titles');
   assert.ok(content.includes('w-sub'), 'Cards must have concise subtitles');
-  assert.ok(content.includes('View Project') || content.includes('Live Project') || content.includes('Read Case'), 'Cards must have clean interactive project triggers');
+  assert.ok(!content.includes('>View Project<'), 'Cards must not render redundant View Project button when whole card opens popup');
 });
 
 test('Hero Right layout in globals.css eliminates obsolete 3fr 2fr grid crushing', () => {

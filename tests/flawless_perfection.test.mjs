@@ -65,6 +65,6 @@ test('WorkGrid.tsx project cards support Enter key accessibility on container el
   // Verify container card accessibility
   assert.ok(content.includes('tabIndex={0}'), 'WorkGrid.tsx cards must be keyboard focusable via tabIndex={0}');
   assert.ok(content.includes('onKeyDown'), 'WorkGrid.tsx cards must support onKeyDown keyboard events');
-  assert.ok(content.includes('role="article"') || content.includes('role="region"'), 'WorkGrid.tsx cards must declare semantic role');
+  assert.ok(content.includes('role="article"') || content.includes('role="region"') || content.includes('role="button"'), 'WorkGrid.tsx cards must declare semantic role');
 });
 

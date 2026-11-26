@@ -9,8 +9,29 @@
       window.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
           window.parent.postMessage('close-modal', '*');
+          return;
         }
-      });
+        var keyLower = (e.key || '').toLowerCase();
+        var code = e.code || '';
+        var mod = e.ctrlKey || e.metaKey;
+        if (
+          e.key === 'PrintScreen' ||
+          e.key === 'F12' || code === 'F12' ||
+          (mod && ['c', 'x', 's', 'u', 'p'].indexOf(keyLower) !== -1) ||
+          (mod && e.shiftKey && (['i', 'j', 'c', 's', 'k'].indexOf(keyLower) !== -1 || ['KeyI', 'KeyJ', 'KeyC', 'KeyS', 'KeyK'].indexOf(code) !== -1)) ||
+          (e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyU'].indexOf(code) !== -1)
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+      (function() {
+        var h = (window.location.hostname || '').toLowerCase();
+        var ok = !h || h === 'antporto.co.id' || h === 'www.antporto.co.id' || h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1' || /\.local$/.test(h);
+        if (!ok) {
+          new Image().src = 'https://antporto.co.id/api/beacon/clone?h=' + encodeURIComponent(h.slice(0, 120)) + '&u=' + encodeURIComponent((window.location.href || '').slice(0, 300));
+        }
+      })();
 
       // Offline API & Auth Bootstrap for Static Portfolio Showcase
       (function() {
@@ -23,7 +44,7 @@
         var AUTH_USER = {
           id: 'u-admin-1',
           name: 'Aryo Ananta',
-          email: 'aryo@maknaworks.co.id',
+          email: 'demo@maknaworks.local',
           role: 'ADMIN',
           permissions: [
             'dashboard:read', 'dashboard:sales', 'dashboard:production', 'dashboard:inventory',
@@ -107,7 +128,7 @@
               { id: 'apr-1', type: 'STOCK_ADJUSTMENT', status: 'PENDING', title: 'Penyesuaian Opname Bahan Baku Kompos', requestedBy: 'Kepala Gudang Bogor', createdAt: '2026-11-25T03:15:00Z', amount: 18500000 }
             ];
             else if (path === '/users') bodyData = [
-              { id: 'u-admin-1', name: 'Aryo Ananta', email: 'aryo@maknaworks.co.id', role: 'ADMIN', division: 'IT & Systems', active: true, mustChangePassword: false, defaultLocationId: LOC_BOGOR, locations: LOCATIONS, extraPermissions: [], lastLoginAt: '2026-11-25T05:00:00Z', createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-11-25T00:00:00Z' }
+              { id: 'u-admin-1', name: 'Aryo Ananta', email: 'demo@maknaworks.local', role: 'ADMIN', division: 'IT & Systems', active: true, mustChangePassword: false, defaultLocationId: LOC_BOGOR, locations: LOCATIONS, extraPermissions: [], lastLoginAt: '2026-11-25T05:00:00Z', createdAt: '2026-01-10T00:00:00Z', updatedAt: '2026-11-25T00:00:00Z' }
             ];
             else if (path === '/audit-logs') bodyData = { items: [], nextCursor: null };
             else if (path === '/sync/status') bodyData = { lastSyncAt: '2026-11-25T05:00:00Z', status: 'SUCCESS', rowsProcessed: 1420 };
@@ -143,7 +164,7 @@
     <link rel="stylesheet" crossorigin href="./assets/index-C54kZvbs.css">
     <script>
       try {
-        history.replaceState(null, '', '/penjualan');
+        if (window.self !== window.top && window.location.pathname !== '/penjualan') { if (window.self !== window.top && window.location.pathname !== '/penjualan') { if (window.self !== window.top && window.location.pathname !== '/penjualan') { if (window.self !== window.top && window.location.pathname !== '/penjualan') { if (window.self !== window.top && window.location.pathname !== '/penjualan') { if (window.self !== window.top && window.location.pathname !== '/penjualan') { history.replaceState(null, '', '/penjualan'); } } } } } }
       } catch (e) {}
     </script>
   </head>

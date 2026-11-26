@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { Project } from "@/lib/api";
+import { isTrustedSameOrigin, shouldBlockInspectShortcut } from "@/lib/inspectGuard";
 // Commented out Delta IT Helpdesk preview per user request
 // import HelpdeskPreview from "@/components/previews/HelpdeskPreview";
 // import ExpenseTrackerPreview from "@/components/previews/ExpenseTrackerPreview";
@@ -81,14 +82,7 @@ export default function CaseStudyModal({
         return;
       }
 
-      const keyLower = e.key.toLowerCase();
-      const mod = e.ctrlKey || e.metaKey;
-      if (
-        e.key === "PrintScreen" ||
-        e.key === "F12" ||
-        (mod && ["c", "x", "s", "u", "p"].includes(keyLower)) ||
-        (mod && e.shiftKey && ["i", "j", "c", "s"].includes(keyLower))
-      ) {
+      if (shouldBlockInspectShortcut(e)) {
         e.preventDefault();
         e.stopPropagation();
         if (e.key === "PrintScreen") {
@@ -146,6 +140,7 @@ export default function CaseStudyModal({
     };
 
     const handleMessage = (e: MessageEvent) => {
+      if (!isTrustedSameOrigin(e)) return;
       if (e.data === "close-modal") {
         onClose();
       }
@@ -209,7 +204,7 @@ export default function CaseStudyModal({
     return p.link || null;
   };
 
-  const directUrl = getDirectUrl(project);
+  const directUrl = ![1, 3, 6].includes(project.id) ? getDirectUrl(project) : null;
 
   // 1:1 Live project runtime with responsive viewports
   const renderLivePreview = (p: Project) => {
@@ -220,7 +215,6 @@ export default function CaseStudyModal({
           title="Moriku - DNP Compliance Engine"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-950 pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -232,7 +226,6 @@ export default function CaseStudyModal({
           title="TATA$ 3D Showcase"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -243,7 +236,6 @@ export default function CaseStudyModal({
           title="Academic Thesis Docket - Optimization & Kanban"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-slate-50 pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -254,7 +246,6 @@ export default function CaseStudyModal({
           title="MaknaWorks ERP - PPIC Dashboard"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-white pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -265,7 +256,6 @@ export default function CaseStudyModal({
           title="Geopetak - Spatial AI Platform"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-[#0b0c10] pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }
@@ -276,7 +266,6 @@ export default function CaseStudyModal({
           title="VAULTR - 3D Vault Showcase"
           className="w-full h-full border-0 block flex-1 min-h-0 bg-black pointer-events-auto"
           loading="eager"
-          sandbox="allow-scripts allow-same-origin allow-forms"
         />
       );
     }

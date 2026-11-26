@@ -444,15 +444,17 @@ export default function WorkGrid({ projects }: WorkGridProps) {
           return (
             <div
               key={project.id}
-              role="article"
+              role="button"
               tabIndex={0}
-              aria-label={`Project card: ${project.title}`}
-              className="wc wc-interactive group focus:outline-none focus-visible:outline-none cursor-pointer"
+              aria-haspopup="dialog"
+              aria-label={`View project or case study for ${project.title}`}
+              className="wc wc-interactive group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer"
               onClick={() => {
                 handleOpenProject(project);
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
                   handleOpenProject(project);
                 }
               }}
@@ -486,21 +488,6 @@ export default function WorkGrid({ projects }: WorkGridProps) {
                         <span className="truncate">{project.outcome_metric}</span>
                       </div>
                     )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      className="case-dossier-btn live-launch-btn px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-[var(--accent)] hover:bg-[var(--accent2)] text-white rounded-[2px] transition-all duration-200 ease-out flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenProject(project);
-                      }}
-                      aria-haspopup="dialog"
-                      aria-label={`View project or case study for ${project.title}`}
-                    >
-                      <span>View Project</span>
-                      <span className="w-arrow text-white/80 transition-transform group-hover:translate-x-0.5">↗</span>
-                    </button>
                   </div>
                 </div>
               </div>
